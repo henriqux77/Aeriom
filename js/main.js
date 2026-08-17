@@ -3,7 +3,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const menuButton = document.getElementById("menuButton");
     const profileButton = document.getElementById("profileButton");
     const createAccountButton = document.getElementById("createAccountButton");
-    const loginButton = document.getElementById("loginButton");
+    
 document.addEventListener("DOMContentLoaded", () => {
 
     const loginButton = document.getElementById("loginButton");
