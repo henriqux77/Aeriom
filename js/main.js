@@ -7,7 +7,45 @@ document.addEventListener("DOMContentLoaded", async () => {
 
 
     // =========================
-    // VERIFICAR USUÁRIO LOGADO
+    // BUSCAR PERFIL
+    // =========================
+
+    async function loadUserProfile(user) {
+
+        if (!user) {
+            console.log("Nenhum usuário para carregar.");
+            return;
+        }
+
+        console.log("Buscando perfil do usuário...");
+
+        const { data, error } = await supabaseClient
+            .from("profiles")
+            .select("*")
+            .eq("id", user.id)
+            .single();
+
+
+        if (error) {
+
+            console.error(
+                "Erro ao buscar perfil:",
+                error
+            );
+
+            return;
+        }
+
+
+        console.log("Perfil encontrado!");
+        console.log("Nome:", data.display_name);
+        console.log("Avatar:", data.avatar_url);
+
+    }
+
+
+    // =========================
+    // VERIFICAR SESSÃO
     // =========================
 
     const {
@@ -21,7 +59,8 @@ document.addEventListener("DOMContentLoaded", async () => {
 
         console.log("ID:", session.user.id);
         console.log("E-mail:", session.user.email);
-        console.log("Usuário:", session.user);
+
+        await loadUserProfile(session.user);
 
     } else {
 
@@ -31,24 +70,37 @@ document.addEventListener("DOMContentLoaded", async () => {
 
 
     // =========================
-    // DETECTAR ALTERAÇÕES DE LOGIN
+    // ALTERAÇÕES DE AUTENTICAÇÃO
     // =========================
 
-    supabaseClient.auth.onAuthStateChange((event, session) => {
+    supabaseClient.auth.onAuthStateChange(
+        async (event, session) => {
 
-        console.log("Evento de autenticação:", event);
+            console.log(
+                "Evento de autenticação:",
+                event
+            );
 
-        if (session) {
 
-            console.log("Usuário autenticado:", session.user.email);
+            if (session) {
 
-        } else {
+                console.log(
+                    "Usuário autenticado:",
+                    session.user.email
+                );
 
-            console.log("Usuário saiu da conta.");
+                await loadUserProfile(session.user);
+
+            } else {
+
+                console.log(
+                    "Usuário saiu da conta."
+                );
+
+            }
 
         }
-
-    });
+    );
 
 
     // =========================
@@ -89,7 +141,9 @@ document.addEventListener("DOMContentLoaded", async () => {
 
         createAccountButton.addEventListener("click", () => {
 
-            console.log("A criação de conta será implementada em breve.");
+            console.log(
+                "A criação de conta será implementada em breve."
+            );
 
         });
 
@@ -102,41 +156,48 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     if (loginButton) {
 
-        loginButton.addEventListener("click", async () => {
+        loginButton.addEventListener(
+            "click",
+            async () => {
 
-            console.log("Iniciando login com Google...");
-
-
-            const { data, error } =
-                await supabaseClient.auth.signInWithOAuth({
-
-                    provider: "google",
-
-                    options: {
-                        redirectTo: window.location.origin
-                    }
-
-                });
-
-
-            if (error) {
-
-                console.error(
-                    "Erro no login Google:",
-                    error
+                console.log(
+                    "Iniciando login com Google..."
                 );
 
-                return;
+
+                const { data, error } =
+                    await supabaseClient.auth
+                        .signInWithOAuth({
+
+                            provider: "google",
+
+                            options: {
+                                redirectTo:
+                                    window.location.origin
+                            }
+
+                        });
+
+
+                if (error) {
+
+                    console.error(
+                        "Erro no login Google:",
+                        error
+                    );
+
+                    return;
+
+                }
+
+
+                console.log(
+                    "Login Google iniciado:",
+                    data
+                );
 
             }
-
-
-            console.log(
-                "Login Google iniciado:",
-                data
-            );
-
-        });
+        );
 
     }
 
