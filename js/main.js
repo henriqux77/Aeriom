@@ -259,3 +259,33 @@ if (closeProfile) {
     });
 
 }
+const logoutButton =
+    document.getElementById("logoutButton");
+
+if (logoutButton) {
+
+    logoutButton.addEventListener("click", async () => {
+
+        const { error } =
+            await supabaseClient.auth.signOut();
+
+        if (error) {
+
+            console.error(
+                "Erro ao sair:",
+                error
+            );
+
+            return;
+        }
+
+        console.log("Usuário saiu da conta.");
+
+        const profilePanel =
+            document.getElementById("profilePanel");
+
+        profilePanel.classList.remove("active");
+
+    });
+
+}
