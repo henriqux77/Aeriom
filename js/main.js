@@ -1,71 +1,52 @@
 document.addEventListener("DOMContentLoaded", async () => {
 
+    // =========================
+    // BOTÕES EXISTENTES
+    // =========================
+
     const menuButton = document.getElementById("menuButton");
-    if (profileButton) {
-
-    profileButton.addEventListener("click", async () => {
-
-        const {
-            data: { session },
-            error
-        } = await supabaseClient.auth.getSession();
-
-        if (error) {
-            console.error("Erro ao verificar usuário:", error);
-            return;
-        }
-
-        if (!session) {
-            console.log("Nenhum usuário está logado.");
-            return;
-        }
-
-        const user = session.user;
-
-        console.log("Perfil do usuário:");
-        console.log("ID:", user.id);
-        console.log("E-mail:", user.email);
-
-        const { data: profile, error: profileError } =
-            await supabaseClient
-                .from("profiles")
-                .select("*")
-                .eq("id", user.id)
-                .single();
-
-        if (profileError) {
-            console.error("Erro ao carregar perfil:", profileError);
-            return;
-        }
-
-        console.log("Nome:", profile.display_name);
-        console.log("Avatar:", profile.avatar_url);
-
-    });
-
-}
+    const profileButton = document.getElementById("profileButton");
     const createAccountButton = document.getElementById("createAccountButton");
     const loginButton = document.getElementById("loginButton");
 
 
     // =========================
-    // BUSCAR PERFIL
+    // ELEMENTOS DO PERFIL
+    // =========================
+
+    const profilePanel = document.getElementById("profilePanel");
+    const closeProfile = document.getElementById("closeProfile");
+    const profileName = document.getElementById("profileName");
+    const profileEmail = document.getElementById("profileEmail");
+    const profileAvatar = document.getElementById("profileAvatar");
+    const logoutButton = document.getElementById("logoutButton");
+    const editProfileButton = document.getElementById("editProfileButton");
+
+
+    // =========================
+    // ESCONDER PERFIL AO ABRIR
+    // =========================
+
+    if (profilePanel) {
+        profilePanel.style.display = "none";
+    }
+
+
+    // =========================
+    // BUSCAR DADOS DO USUÁRIO
     // =========================
 
     async function loadUserProfile(user) {
 
         if (!user) {
-            console.log("Nenhum usuário para carregar.");
-            return;
+            return null;
         }
 
-        console.log("Buscando perfil do usuário...");
-
-        const { data, error } = await supabaseClient
+        const { data: profile, error } = await supabaseClient
             .from("profiles")
             .select("*")
             .eq("id", user.id)
-            .single();
+            .maybeSingle();
 
 
         if (error) {
@@ -75,19 +56,43 @@ document.addEventListener("DOMContentLoaded", async () => {
                 error
             );
 
-            return;
+            return null;
         }
 
 
-        console.log("Perfil encontrado!");
-        console.log("Nome:", data.display_name);
-        console.log("Avatar:", data.avatar_url);
+        // Dados vindos do Google
+        const googleName =
+            user.user_metadata?.full_name ||
+            user.user_metadata?.name ||
+            "Aventureiro";
+
+        const googleAvatar =
+            user.user_metadata?.avatar_url ||
+            user.user_metadata?.picture ||
+            "assets/aerion-logo.png";
+
+
+        return {
+
+            name:
+                profile?.display_name ||
+                googleName,
+
+            email:
+                user.email ||
+                "",
+
+            avatar:
+                profile?.avatar_url ||
+                googleAvatar
+
+        };
 
     }
 
 
     // =========================
-    // VERIFICAR SESSÃO
+    // VERIFICAR USUÁRIO LOGADO
     // =========================
 
     const {
@@ -97,63 +102,85 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     if (session) {
 
-        console.log("Usuário está logado!");
-
-        console.log("ID:", session.user.id);
-        console.log("E-mail:", session.user.email);
-
-        await loadUserProfile(session.user);
-
-    } else {
-
-        console.log("Nenhum usuário logado.");
+        console.log(
+            "Usuário logado:",
+            session.user.email
+        );
 
     }
 
 
     // =========================
-    // ALTERAÇÕES DE AUTENTICAÇÃO
+    // BOTÃO DE PERFIL
     // =========================
 
-    supabaseClient.auth.onAuthStateChange(
-        async (event, session) => {
+    if (profileButton) {
 
-            console.log(
-                "Evento de autenticação:",
-                event
-            );
+        profileButton.addEventListener("click", async () => {
+
+            const {
+                data: { session },
+                error
+            } = await supabaseClient.auth.getSession();
 
 
-            if (session) {
+            if (error) {
 
-                console.log(
-                    "Usuário autenticado:",
-                    session.user.email
+                console.error(
+                    "Erro ao verificar sessão:",
+                    error
                 );
 
-                await loadUserProfile(session.user);
-
-            } else {
-
-                console.log(
-                    "Usuário saiu da conta."
-                );
-
+                return;
             }
 
-        }
-    );
+
+            // Se não estiver logado
+            if (!session) {
+
+                console.log(
+                    "Nenhum usuário está logado."
+                );
+
+                return;
+            }
 
 
-    // =========================
-    // MENU
-    // =========================
+            // Buscar perfil
+            const profile =
+                await loadUserProfile(session.user);
 
-    if (menuButton) {
 
-        menuButton.addEventListener("click", () => {
+            if (!profile) {
+                return;
+            }
 
-            console.log("Menu do Aerion");
+
+            // Preencher informações
+            if (profileName) {
+                profileName.textContent =
+                    profile.name;
+            }
+
+
+            if (profileEmail) {
+                profileEmail.textContent =
+                    profile.email;
+            }
+
+
+            if (profileAvatar) {
+                profileAvatar.src =
+                    profile.avatar;
+            }
+
+
+            // Abrir painel
+            if (profilePanel) {
+
+                profilePanel.style.display = "flex";
+
+            }
 
         });
 
@@ -161,14 +188,116 @@ document.addEventListener("DOMContentLoaded", async () => {
 
 
     // =========================
-    // PERFIL
+    // FECHAR PERFIL
     // =========================
 
-    if (profileButton) {
+    if (closeProfile) {
 
-        profileButton.addEventListener("click", () => {
+        closeProfile.addEventListener("click", () => {
 
-            console.log("Perfil do usuário");
+            if (profilePanel) {
+
+                profilePanel.style.display = "none";
+
+            }
+
+        });
+
+    }
+
+
+    // =========================
+    // SAIR DA CONTA
+    // =========================
+
+    if (logoutButton) {
+
+        logoutButton.addEventListener("click", async () => {
+
+            const { error } =
+                await supabaseClient.auth.signOut();
+
+
+            if (error) {
+
+                console.error(
+                    "Erro ao sair da conta:",
+                    error
+                );
+
+                return;
+            }
+
+
+            if (profilePanel) {
+
+                profilePanel.style.display = "none";
+
+            }
+
+
+            console.log(
+                "Usuário saiu da conta."
+            );
+
+        });
+
+    }
+
+
+    // =========================
+    // EDITAR PERFIL
+    // =========================
+
+    if (editProfileButton) {
+
+        editProfileButton.addEventListener("click", () => {
+
+            console.log(
+                "Editar perfil será implementado em breve."
+            );
+
+        });
+
+    }
+
+
+    // =========================
+    // LOGIN COM GOOGLE
+    // =========================
+
+    if (loginButton) {
+
+        loginButton.addEventListener("click", async () => {
+
+            console.log(
+                "Iniciando login com Google..."
+            );
+
+
+            const { error } =
+                await supabaseClient.auth.signInWithOAuth({
+
+                    provider: "google",
+
+                    options: {
+
+                        redirectTo:
+                            window.location.origin
+
+                    }
+
+                });
+
+
+            if (error) {
+
+                console.error(
+                    "Erro no login Google:",
+                    error
+                );
+
+            }
 
         });
 
@@ -184,7 +313,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         createAccountButton.addEventListener("click", () => {
 
             console.log(
-                "A criação de conta será implementada em breve."
+                "Criação de conta será implementada em breve."
             );
 
         });
@@ -193,99 +322,43 @@ document.addEventListener("DOMContentLoaded", async () => {
 
 
     // =========================
-    // LOGIN COM GOOGLE
+    // MENU
     // =========================
 
-    if (loginButton) {
+    if (menuButton) {
 
-        loginButton.addEventListener(
-            "click",
-            async () => {
+        menuButton.addEventListener("click", () => {
 
-                console.log(
-                    "Iniciando login com Google..."
-                );
+            console.log(
+                "Menu do Aerion"
+            );
 
-
-                const { data, error } =
-                    await supabaseClient.auth
-                        .signInWithOAuth({
-
-                            provider: "google",
-
-                            options: {
-                                redirectTo:
-                                    window.location.origin
-                            }
-
-                        });
-
-
-                if (error) {
-
-                    console.error(
-                        "Erro no login Google:",
-                        error
-                    );
-
-                    return;
-
-                }
-
-
-                console.log(
-                    "Login Google iniciado:",
-                    data
-                );
-
-            }
-        );
+        });
 
     }
 
-});
-const closeProfile =
-    document.getElementById("closeProfile");
 
-if (closeProfile) {
+    // =========================
+    // ALTERAÇÕES DE LOGIN
+    // =========================
 
-    closeProfile.addEventListener("click", () => {
+    supabaseClient.auth.onAuthStateChange((event, session) => {
 
-        const profilePanel =
-            document.getElementById("profilePanel");
+        console.log(
+            "Evento de autenticação:",
+            event
+        );
 
-        profilePanel.classList.remove("active");
 
-    });
+        if (session) {
 
-}
-const logoutButton =
-    document.getElementById("logoutButton");
-
-if (logoutButton) {
-
-    logoutButton.addEventListener("click", async () => {
-
-        const { error } =
-            await supabaseClient.auth.signOut();
-
-        if (error) {
-
-            console.error(
-                "Erro ao sair:",
-                error
+            console.log(
+                "Usuário autenticado:",
+                session.user.email
             );
 
-            return;
         }
-
-        console.log("Usuário saiu da conta.");
-
-        const profilePanel =
-            document.getElementById("profilePanel");
-
-        profilePanel.classList.remove("active");
 
     });
 
-}
+});
