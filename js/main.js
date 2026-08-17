@@ -1,7 +1,49 @@
 document.addEventListener("DOMContentLoaded", async () => {
 
     const menuButton = document.getElementById("menuButton");
-    const profileButton = document.getElementById("profileButton");
+    if (profileButton) {
+
+    profileButton.addEventListener("click", async () => {
+
+        const {
+            data: { session },
+            error
+        } = await supabaseClient.auth.getSession();
+
+        if (error) {
+            console.error("Erro ao verificar usuário:", error);
+            return;
+        }
+
+        if (!session) {
+            console.log("Nenhum usuário está logado.");
+            return;
+        }
+
+        const user = session.user;
+
+        console.log("Perfil do usuário:");
+        console.log("ID:", user.id);
+        console.log("E-mail:", user.email);
+
+        const { data: profile, error: profileError } =
+            await supabaseClient
+                .from("profiles")
+                .select("*")
+                .eq("id", user.id)
+                .single();
+
+        if (profileError) {
+            console.error("Erro ao carregar perfil:", profileError);
+            return;
+        }
+
+        console.log("Nome:", profile.display_name);
+        console.log("Avatar:", profile.avatar_url);
+
+    });
+
+}
     const createAccountButton = document.getElementById("createAccountButton");
     const loginButton = document.getElementById("loginButton");
 
