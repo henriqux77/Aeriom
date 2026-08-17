@@ -244,3 +244,18 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
 
 });
+const closeProfile =
+    document.getElementById("closeProfile");
+
+if (closeProfile) {
+
+    closeProfile.addEventListener("click", () => {
+
+        const profilePanel =
+            document.getElementById("profilePanel");
+
+        profilePanel.classList.remove("active");
+
+    });
+
+}
