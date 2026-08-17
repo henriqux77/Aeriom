@@ -1,3 +1,8 @@
+if (createAccountButton) {
+    createAccountButton.addEventListener("click", () => {
+        console.log("A criação de conta será implementada em breve.");
+    });
+}
 document.addEventListener("DOMContentLoaded", () => {
 
     const menuButton = document.getElementById("menuButton");
