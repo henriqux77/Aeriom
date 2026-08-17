@@ -4,23 +4,27 @@ document.addEventListener("DOMContentLoaded", () => {
     const profileButton = document.getElementById("profileButton");
     const createAccountButton = document.getElementById("createAccountButton");
     
+
 document.addEventListener("DOMContentLoaded", () => {
 
     const loginButton = document.getElementById("loginButton");
 
     loginButton.addEventListener("click", async () => {
 
-        const { error } = await supabase.auth.signInWithOAuth({
-            provider: "google",
-            options: {
-                redirectTo: window.location.origin
-            }
-        });
+        const { data, error } =
+            await supabaseClient.auth.signInWithOAuth({
+                provider: "google",
+                options: {
+                    redirectTo: window.location.origin
+                }
+            });
 
         if (error) {
-            console.error("Erro ao entrar com Google:", error);
-            alert("Não foi possível entrar. Tente novamente.");
+            console.error("Erro no login Google:", error);
+            return;
         }
+
+        console.log("Login iniciado:", data);
     });
 
 });
