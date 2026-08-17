@@ -30,3 +30,6 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 
 });
+console.log("Main.js carregado!");
+
+console.log("Supabase:", supabase);
