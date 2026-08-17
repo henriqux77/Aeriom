@@ -4,7 +4,26 @@ document.addEventListener("DOMContentLoaded", () => {
     const profileButton = document.getElementById("profileButton");
     const createAccountButton = document.getElementById("createAccountButton");
     const loginButton = document.getElementById("loginButton");
+document.addEventListener("DOMContentLoaded", () => {
 
+    const loginButton = document.getElementById("loginButton");
+
+    loginButton.addEventListener("click", async () => {
+
+        const { error } = await supabase.auth.signInWithOAuth({
+            provider: "google",
+            options: {
+                redirectTo: window.location.origin
+            }
+        });
+
+        if (error) {
+            console.error("Erro ao entrar com Google:", error);
+            alert("Não foi possível entrar. Tente novamente.");
+        }
+    });
+
+});
 
     // Menu
     menuButton.addEventListener("click", () => {
