@@ -726,53 +726,6 @@ if (registerButton) {
                 "Criando sua conta...";
 
 
-            const {
-                data,
-                error
-            } = await supabaseClient.auth
-                .signUp({
-
-                    email: email,
-
-                    password: password
-
-                });
-
-
-            if (error) {
-
-                console.error(
-                    "Erro ao criar conta:",
-                    error
-                );
-
-                authMessage.textContent =
-                    error.message;
-
-                return;
-
-            }
-
-
-            console.log(
-                "Conta criada:",
-                data
-            );
-
-
-            if (data.session) {
-
-                authMessage.textContent =
-                    "Conta criada com sucesso!";
-
-                closeAuthModal();
-
-            } else {
-
-                authMessage.textContent =
-                    "Conta criada! Verifique seu e-mail para confirmar.";
-
-            }
 
         }
     );
