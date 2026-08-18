@@ -1,49 +1,50 @@
 document.addEventListener("DOMContentLoaded", async () => {
-// Limpa os tokens OAuth da URL após o retorno do Google
-if (window.location.hash.includes("access_token")) {
-    window.history.replaceState(
-        {},
-        document.title,
-        window.location.pathname + window.location.search
-    );
-}
-const {
-    data: { session },
-    error: sessionError
-} = await supabaseClient.auth.getSession();
 
-if (sessionError) {
-    console.error("Erro ao recuperar sessão:", sessionError);
-} else if (session) {
-    console.log("Sessão recuperada com sucesso:", session.user.email);
-} else {
-    console.log("Nenhuma sessão encontrada.");
-}
     // =========================
     // BOTÕES EXISTENTES
     // =========================
 
-    const menuButton = document.getElementById("menuButton");
-    const profileButton = document.getElementById("profileButton");
-    const createAccountButton = document.getElementById("createAccountButton");
-    const loginButton = document.getElementById("loginButton");
+    const menuButton =
+        document.getElementById("menuButton");
+
+    const profileButton =
+        document.getElementById("profileButton");
+
+    const createAccountButton =
+        document.getElementById("createAccountButton");
+
+    const loginButton =
+        document.getElementById("loginButton");
 
 
     // =========================
     // ELEMENTOS DO PERFIL
     // =========================
 
-    const profilePanel = document.getElementById("profilePanel");
-    const closeProfile = document.getElementById("closeProfile");
-    const profileName = document.getElementById("profileName");
-    const profileEmail = document.getElementById("profileEmail");
-    const profileAvatar = document.getElementById("profileAvatar");
-    const logoutButton = document.getElementById("logoutButton");
-    const editProfileButton = document.getElementById("editProfileButton");
+    const profilePanel =
+        document.getElementById("profilePanel");
+
+    const closeProfile =
+        document.getElementById("closeProfile");
+
+    const profileName =
+        document.getElementById("profileName");
+
+    const profileEmail =
+        document.getElementById("profileEmail");
+
+    const profileAvatar =
+        document.getElementById("profileAvatar");
+
+    const logoutButton =
+        document.getElementById("logoutButton");
+
+    const editProfileButton =
+        document.getElementById("editProfileButton");
 
 
     // =========================
-    // ESCONDER PERFIL AO ABRIR
+    // ESCONDER PERFIL
     // =========================
 
     if (profilePanel) {
@@ -52,7 +53,40 @@ if (sessionError) {
 
 
     // =========================
-    // BUSCAR DADOS DO USUÁRIO
+    // RECUPERAR SESSÃO
+    // =========================
+
+    const {
+        data: { session },
+        error: sessionError
+    } = await supabaseClient.auth.getSession();
+
+
+    if (sessionError) {
+
+        console.error(
+            "Erro ao recuperar sessão:",
+            sessionError
+        );
+
+    } else if (session) {
+
+        console.log(
+            "Sessão recuperada com sucesso:",
+            session.user.email
+        );
+
+    } else {
+
+        console.log(
+            "Nenhuma sessão encontrada."
+        );
+
+    }
+
+
+    // =========================
+    // BUSCAR PERFIL
     // =========================
 
     async function loadUserProfile(user) {
@@ -61,7 +95,11 @@ if (sessionError) {
             return null;
         }
 
-        const { data: profile, error } = await supabaseClient
+
+        const {
+            data: profile,
+            error
+        } = await supabaseClient
             .from("profiles")
             .select("*")
             .eq("id", user.id)
@@ -79,11 +117,11 @@ if (sessionError) {
         }
 
 
-        // Dados vindos do Google
         const googleName =
             user.user_metadata?.full_name ||
             user.user_metadata?.name ||
             "Aventureiro";
+
 
         const googleAvatar =
             user.user_metadata?.avatar_url ||
@@ -111,97 +149,84 @@ if (sessionError) {
 
 
     // =========================
-    // VERIFICAR USUÁRIO LOGADO
-    // =========================
-
-    const {
-        data: { session }
-    } = await supabaseClient.auth.getSession();
-
-
-    if (session) {
-
-        console.log(
-            "Usuário logado:",
-            session.user.email
-        );
-
-    }
-
-
-    // =========================
     // BOTÃO DE PERFIL
     // =========================
 
     if (profileButton) {
 
-        profileButton.addEventListener("click", async () => {
+        profileButton.addEventListener(
+            "click",
+            async () => {
 
-            const {
-                data: { session },
-                error
-            } = await supabaseClient.auth.getSession();
-
-
-            if (error) {
-
-                console.error(
-                    "Erro ao verificar sessão:",
+                const {
+                    data: { session },
                     error
-                );
+                } = await supabaseClient.auth.getSession();
 
-                return;
+
+                if (error) {
+
+                    console.error(
+                        "Erro ao verificar sessão:",
+                        error
+                    );
+
+                    return;
+                }
+
+
+                if (!session) {
+
+                    console.log(
+                        "Nenhum usuário está logado."
+                    );
+
+                    return;
+                }
+
+
+                const profile =
+                    await loadUserProfile(session.user);
+
+
+                if (!profile) {
+                    return;
+                }
+
+
+                if (profileName) {
+
+                    profileName.textContent =
+                        profile.name;
+
+                }
+
+
+                if (profileEmail) {
+
+                    profileEmail.textContent =
+                        profile.email;
+
+                }
+
+
+                if (profileAvatar) {
+
+                    profileAvatar.src =
+                        profile.avatar;
+
+                }
+
+
+                if (profilePanel) {
+
+                    profilePanel.style.display =
+                        "flex";
+
+                }
+
             }
-
-
-            // Se não estiver logado
-            if (!session) {
-
-                console.log(
-                    "Nenhum usuário está logado."
-                );
-
-                return;
-            }
-
-
-            // Buscar perfil
-            const profile =
-                await loadUserProfile(session.user);
-
-
-            if (!profile) {
-                return;
-            }
-
-
-            // Preencher informações
-            if (profileName) {
-                profileName.textContent =
-                    profile.name;
-            }
-
-
-            if (profileEmail) {
-                profileEmail.textContent =
-                    profile.email;
-            }
-
-
-            if (profileAvatar) {
-                profileAvatar.src =
-                    profile.avatar;
-            }
-
-
-            // Abrir painel
-            if (profilePanel) {
-
-                profilePanel.style.display = "flex";
-
-            }
-
-        });
+        );
 
     }
 
@@ -212,15 +237,19 @@ if (sessionError) {
 
     if (closeProfile) {
 
-        closeProfile.addEventListener("click", () => {
+        closeProfile.addEventListener(
+            "click",
+            () => {
 
-            if (profilePanel) {
+                if (profilePanel) {
 
-                profilePanel.style.display = "none";
+                    profilePanel.style.display =
+                        "none";
+
+                }
 
             }
-
-        });
+        );
 
     }
 
@@ -231,35 +260,39 @@ if (sessionError) {
 
     if (logoutButton) {
 
-        logoutButton.addEventListener("click", async () => {
+        logoutButton.addEventListener(
+            "click",
+            async () => {
 
-            const { error } =
-                await supabaseClient.auth.signOut();
+                const { error } =
+                    await supabaseClient.auth.signOut();
 
 
-            if (error) {
+                if (error) {
 
-                console.error(
-                    "Erro ao sair da conta:",
-                    error
+                    console.error(
+                        "Erro ao sair da conta:",
+                        error
+                    );
+
+                    return;
+                }
+
+
+                if (profilePanel) {
+
+                    profilePanel.style.display =
+                        "none";
+
+                }
+
+
+                console.log(
+                    "Usuário saiu da conta."
                 );
 
-                return;
             }
-
-
-            if (profilePanel) {
-
-                profilePanel.style.display = "none";
-
-            }
-
-
-            console.log(
-                "Usuário saiu da conta."
-            );
-
-        });
+        );
 
     }
 
@@ -270,13 +303,16 @@ if (sessionError) {
 
     if (editProfileButton) {
 
-        editProfileButton.addEventListener("click", () => {
+        editProfileButton.addEventListener(
+            "click",
+            () => {
 
-            console.log(
-                "Editar perfil será implementado em breve."
-            );
+                console.log(
+                    "Editar perfil será implementado em breve."
+                );
 
-        });
+            }
+        );
 
     }
 
@@ -287,38 +323,49 @@ if (sessionError) {
 
     if (loginButton) {
 
-        loginButton.addEventListener("click", async () => {
+        loginButton.addEventListener(
+            "click",
+            async () => {
 
-            console.log(
-                "Iniciando login com Google..."
-            );
-
-
-            const { error } =
-                await supabaseClient.auth.signInWithOAuth({
-
-                    provider: "google",
-
-                    options: {
-
-                        redirectTo:
-                            window.location.origin
-
-                    }
-
-                });
+                console.log(
+                    "Iniciando login com Google..."
+                );
 
 
-            if (error) {
+                const { data, error } =
+                    await supabaseClient
+                        .auth
+                        .signInWithOAuth({
 
-                console.error(
-                    "Erro no login Google:",
-                    error
+                            provider: "google",
+
+                            options: {
+
+                                redirectTo:
+                                    window.location.origin
+
+                            }
+
+                        });
+
+
+                if (error) {
+
+                    console.error(
+                        "Erro no login Google:",
+                        error
+                    );
+
+                    return;
+                }
+
+
+                console.log(
+                    "Redirecionando para o Google..."
                 );
 
             }
-
-        });
+        );
 
     }
 
@@ -329,13 +376,16 @@ if (sessionError) {
 
     if (createAccountButton) {
 
-        createAccountButton.addEventListener("click", () => {
+        createAccountButton.addEventListener(
+            "click",
+            () => {
 
-            console.log(
-                "Criação de conta será implementada em breve."
-            );
+                console.log(
+                    "Criação de conta será implementada em breve."
+                );
 
-        });
+            }
+        );
 
     }
 
@@ -346,38 +396,49 @@ if (sessionError) {
 
     if (menuButton) {
 
-        menuButton.addEventListener("click", () => {
+        menuButton.addEventListener(
+            "click",
+            () => {
 
-            console.log(
-                "Menu do Aerion"
-            );
+                console.log(
+                    "Menu do Aerion"
+                );
 
-        });
+            }
+        );
 
     }
 
 
     // =========================
-    // ALTERAÇÕES DE LOGIN
+    // ALTERAÇÕES DE AUTENTICAÇÃO
     // =========================
 
-    supabaseClient.auth.onAuthStateChange((event, session) => {
-
-        console.log(
-            "Evento de autenticação:",
-            event
-        );
-
-
-        if (session) {
+    supabaseClient.auth.onAuthStateChange(
+        (event, session) => {
 
             console.log(
-                "Usuário autenticado:",
-                session.user.email
+                "Evento de autenticação:",
+                event
             );
 
-        }
 
-    });
+            if (session) {
+
+                console.log(
+                    "Usuário autenticado:",
+                    session.user.email
+                );
+
+            } else {
+
+                console.log(
+                    "Usuário não autenticado."
+                );
+
+            }
+
+        }
+    );
 
 });
