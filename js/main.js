@@ -1224,7 +1224,140 @@ document.addEventListener("DOMContentLoaded", async () => {
 
         }
     );
+// =====================================================
+// AÇÕES DA HOME DE ACORDO COM O LOGIN
+// =====================================================
 
+const loggedOutActions =
+    document.getElementById("loggedOutActions");
+
+const loggedInActions =
+    document.getElementById("loggedInActions");
+
+const createCharacterButton =
+    document.getElementById("createCharacterButton");
+
+const campaignButton =
+    document.getElementById("campaignButton");
+
+
+// =====================================================
+// ATUALIZAR BOTÕES DA HOME
+// =====================================================
+
+function updateHomeActions(session) {
+
+    if (!loggedOutActions || !loggedInActions) {
+        return;
+    }
+
+
+    if (session) {
+
+        // Usuário LOGADO
+
+        loggedOutActions.style.display = "none";
+        loggedInActions.style.display = "flex";
+
+        console.log(
+            "🏠 Home atualizada para usuário logado."
+        );
+
+    } else {
+
+        // Usuário NÃO LOGADO
+
+        loggedOutActions.style.display = "flex";
+        loggedInActions.style.display = "none";
+
+        console.log(
+            "🏠 Home atualizada para visitante."
+        );
+
+    }
+
+}
+
+
+// =====================================================
+// VERIFICAR SESSÃO ATUAL
+// =====================================================
+
+try {
+
+    const {
+        data: { session },
+        error
+    } = await supabaseClient.auth.getSession();
+
+
+    if (error) {
+
+        console.error(
+            "❌ Erro ao verificar sessão para a Home:",
+            error
+        );
+
+        updateHomeActions(null);
+
+    } else {
+
+        updateHomeActions(session);
+
+    }
+
+} catch (error) {
+
+    console.error(
+        "❌ Erro inesperado ao verificar sessão:",
+        error
+    );
+
+    updateHomeActions(null);
+
+}
+
+
+// =====================================================
+// CRIAR FICHA
+// =====================================================
+
+if (createCharacterButton) {
+
+    createCharacterButton.addEventListener(
+        "click",
+        () => {
+
+            console.log(
+                "✦ Abrindo criação de ficha..."
+            );
+
+            window.location.href = "ficha.html";
+
+        }
+    );
+
+}
+
+
+// =====================================================
+// ENTRAR EM CAMPANHA
+// =====================================================
+
+if (campaignButton) {
+
+    campaignButton.addEventListener(
+        "click",
+        () => {
+
+            console.log(
+                "⚔ Sistema de campanhas ainda será implementado."
+            );
+
+        }
+    );
+
+}
 
     // =====================================================
     // FINAL
@@ -1235,123 +1368,3 @@ document.addEventListener("DOMContentLoaded", async () => {
     );
 
 });
-/* =========================================================
-   AÇÕES DA PÁGINA INICIAL
-========================================================= */
-
-const loggedOutActions = document.getElementById("loggedOutActions");
-const loggedInActions = document.getElementById("loggedInActions");
-
-const createCharacterButton = document.getElementById("createCharacterButton");
-const campaignButton = document.getElementById("campaignButton");
-
-
-/* =========================================================
-   ATUALIZAR INTERFACE DE ACORDO COM O LOGIN
-========================================================= */
-
-function updateHomeActions(session) {
-
-    if (session) {
-
-        // Usuário está logado
-        loggedOutActions.style.display = "none";
-        loggedInActions.style.display = "block";
-
-    } else {
-
-        // Usuário não está logado
-        loggedOutActions.style.display = "block";
-        loggedInActions.style.display = "none";
-
-    }
-
-}
-
-
-/* =========================================================
-   VERIFICAR USUÁRIO ATUAL
-========================================================= */
-
-async function checkHomeSession() {
-
-    const {
-        data: { session },
-        error
-    } = await supabase.auth.getSession();
-
-
-    if (error) {
-
-        console.error(
-            "Erro ao verificar sessão:",
-            error
-        );
-
-        updateHomeActions(null);
-
-        return;
-    }
-
-
-    updateHomeActions(session);
-
-}
-
-
-/* =========================================================
-   ESCUTAR ALTERAÇÕES DE LOGIN
-========================================================= */
-
-supabase.auth.onAuthStateChange(
-    (event, session) => {
-
-        console.log(
-            "Estado de autenticação:",
-            event
-        );
-
-        updateHomeActions(session);
-
-    }
-);
-
-
-/* =========================================================
-   CRIAR FICHA
-========================================================= */
-
-createCharacterButton.addEventListener(
-    "click",
-    () => {
-
-        window.location.href = "ficha.html";
-
-    }
-);
-
-
-/* =========================================================
-   ENTRAR EM CAMPANHA
-========================================================= */
-
-campaignButton.addEventListener(
-    "click",
-    () => {
-
-        console.log(
-            "Sistema de campanhas ainda será implementado."
-        );
-
-        // Temporariamente não fazemos nada.
-        // A página de campanhas será criada depois.
-
-    }
-);
-
-
-/* =========================================================
-   INICIALIZAÇÃO
-========================================================= */
-
-checkHomeSession();
