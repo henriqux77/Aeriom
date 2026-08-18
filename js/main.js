@@ -318,58 +318,40 @@ document.addEventListener("DOMContentLoaded", async () => {
 
 
     // =========================
-    // LOGIN COM GOOGLE
-    // =========================
+// LOGIN COM DISCORD
+// =========================
 
-    if (loginButton) {
+if (loginButton) {
 
-        loginButton.addEventListener(
-            "click",
-            async () => {
+    loginButton.addEventListener("click", async () => {
 
-                console.log(
-                    "Iniciando login com Google..."
-                );
+        console.log("Iniciando login com Discord...");
 
-
-                const { data, error } =
-                    await supabaseClient
-                        .auth
-                        .signInWithOAuth({
-
-                            provider: "google",
-
-                            options: {
-
-                                redirectTo:
-                                    window.location.origin
-
-                            }
-
-                        });
-
-
-                if (error) {
-
-                    console.error(
-                        "Erro no login Google:",
-                        error
-                    );
-
-                    return;
+        const { data, error } =
+            await supabaseClient.auth.signInWithOAuth({
+                provider: "discord",
+                options: {
+                    redirectTo: window.location.origin
                 }
+            });
 
+        if (error) {
 
-                console.log(
-                    "Redirecionando para o Google..."
-                );
+            console.error(
+                "Erro no login Discord:",
+                error
+            );
 
-            }
+            return;
+        }
+
+        console.log(
+            "Redirecionando para o Discord..."
         );
 
-    }
+    });
 
-
+}
     // =========================
     // CRIAR CONTA
     // =========================
