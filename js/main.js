@@ -831,3 +831,22 @@ if (registerButton) {
     );
 
 });
+const { data, error } = await supabaseClient.auth.signUp({
+    email: email,
+    password: password,
+    options: {
+        emailRedirectTo: window.location.origin
+    }
+});
+
+if (error) {
+    console.error("Erro ao criar conta:", error);
+    alert(error.message);
+    return;
+}
+
+console.log("Conta criada:", data);
+
+if (data.user && !data.session) {
+    alert("Conta criada! Verifique seu e-mail para confirmar a conta.");
+}
