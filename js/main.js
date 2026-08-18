@@ -782,8 +782,6 @@ if (registerButton) {
 
         }
     );
-
-});
 const { data, error } = await supabaseClient.auth.signUp({
     email: email,
     password: password,
