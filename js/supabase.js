@@ -1,5 +1,8 @@
 const SUPABASE_URL = "https://xrofkyinattalxmirwdq.supabase.co";
-const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_CM4mEo6GOLZvsKTKLiMU9A_N1bOjqAH";
+
+const SUPABASE_PUBLISHABLE_KEY =
+    "sb_publishable_CM4mEo6GOLZvsKTKLiMU9A_N1bOjqAH";
+
 
 const supabaseClient = window.supabase.createClient(
     SUPABASE_URL,
@@ -8,10 +11,11 @@ const supabaseClient = window.supabase.createClient(
         auth: {
             persistSession: true,
             autoRefreshToken: true,
-            detectSessionInUrl: true
+            detectSessionInUrl: true,
             flowType: "pkce"
         }
     }
 );
+
 
 console.log("Aerion conectado ao Supabase!");
