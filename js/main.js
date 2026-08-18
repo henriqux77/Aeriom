@@ -1235,3 +1235,123 @@ document.addEventListener("DOMContentLoaded", async () => {
     );
 
 });
+/* =========================================================
+   AÇÕES DA PÁGINA INICIAL
+========================================================= */
+
+const loggedOutActions = document.getElementById("loggedOutActions");
+const loggedInActions = document.getElementById("loggedInActions");
+
+const createCharacterButton = document.getElementById("createCharacterButton");
+const campaignButton = document.getElementById("campaignButton");
+
+
+/* =========================================================
+   ATUALIZAR INTERFACE DE ACORDO COM O LOGIN
+========================================================= */
+
+function updateHomeActions(session) {
+
+    if (session) {
+
+        // Usuário está logado
+        loggedOutActions.style.display = "none";
+        loggedInActions.style.display = "block";
+
+    } else {
+
+        // Usuário não está logado
+        loggedOutActions.style.display = "block";
+        loggedInActions.style.display = "none";
+
+    }
+
+}
+
+
+/* =========================================================
+   VERIFICAR USUÁRIO ATUAL
+========================================================= */
+
+async function checkHomeSession() {
+
+    const {
+        data: { session },
+        error
+    } = await supabase.auth.getSession();
+
+
+    if (error) {
+
+        console.error(
+            "Erro ao verificar sessão:",
+            error
+        );
+
+        updateHomeActions(null);
+
+        return;
+    }
+
+
+    updateHomeActions(session);
+
+}
+
+
+/* =========================================================
+   ESCUTAR ALTERAÇÕES DE LOGIN
+========================================================= */
+
+supabase.auth.onAuthStateChange(
+    (event, session) => {
+
+        console.log(
+            "Estado de autenticação:",
+            event
+        );
+
+        updateHomeActions(session);
+
+    }
+);
+
+
+/* =========================================================
+   CRIAR FICHA
+========================================================= */
+
+createCharacterButton.addEventListener(
+    "click",
+    () => {
+
+        window.location.href = "ficha.html";
+
+    }
+);
+
+
+/* =========================================================
+   ENTRAR EM CAMPANHA
+========================================================= */
+
+campaignButton.addEventListener(
+    "click",
+    () => {
+
+        console.log(
+            "Sistema de campanhas ainda será implementado."
+        );
+
+        // Temporariamente não fazemos nada.
+        // A página de campanhas será criada depois.
+
+    }
+);
+
+
+/* =========================================================
+   INICIALIZAÇÃO
+========================================================= */
+
+checkHomeSession();
