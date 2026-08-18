@@ -1,5 +1,24 @@
 document.addEventListener("DOMContentLoaded", async () => {
+// Limpa os tokens OAuth da URL após o retorno do Google
+if (window.location.hash.includes("access_token")) {
+    window.history.replaceState(
+        {},
+        document.title,
+        window.location.pathname + window.location.search
+    );
+}
+const {
+    data: { session },
+    error: sessionError
+} = await supabaseClient.auth.getSession();
 
+if (sessionError) {
+    console.error("Erro ao recuperar sessão:", sessionError);
+} else if (session) {
+    console.log("Sessão recuperada com sucesso:", session.user.email);
+} else {
+    console.log("Nenhuma sessão encontrada.");
+}
     // =========================
     // BOTÕES EXISTENTES
     // =========================
