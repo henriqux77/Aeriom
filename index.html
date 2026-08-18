@@ -169,7 +169,132 @@
 
     </main>
 
+<!-- =========================
+     AUTENTICAÇÃO
+========================== -->
 
+<div id="authModal" class="auth-modal">
+
+    <div class="auth-box">
+
+        <button id="closeAuth" class="auth-close">
+            ×
+        </button>
+
+
+        <!-- =========================
+             LOGIN
+        ========================== -->
+
+        <div id="loginForm">
+
+            <h2>Entrar no Aerion</h2>
+
+            <p>Escolha como deseja entrar.</p>
+
+
+            <button id="discordLoginButton" class="auth-discord">
+                🎮 Entrar com Discord
+            </button>
+
+
+            <div class="auth-divider">
+                <span>ou</span>
+            </div>
+
+
+            <input
+                type="email"
+                id="loginEmail"
+                placeholder="E-mail"
+                autocomplete="email"
+            >
+
+
+            <input
+                type="password"
+                id="loginPassword"
+                placeholder="Senha"
+                autocomplete="current-password"
+            >
+
+
+            <button id="emailLoginButton">
+                Entrar
+            </button>
+
+
+            <button id="showRegisterButton">
+                Criar uma conta
+            </button>
+
+        </div>
+
+
+        <!-- =========================
+             CADASTRO
+        ========================== -->
+
+        <div id="registerForm" style="display: none;">
+
+            <h2>Criar conta</h2>
+
+            <p>Crie sua conta no Aerion.</p>
+
+
+            <button id="discordRegisterButton" class="auth-discord">
+                🎮 Criar conta com Discord
+            </button>
+
+
+            <div class="auth-divider">
+                <span>ou</span>
+            </div>
+
+
+            <input
+                type="email"
+                id="registerEmail"
+                placeholder="E-mail"
+                autocomplete="email"
+            >
+
+
+            <input
+                type="password"
+                id="registerPassword"
+                placeholder="Senha"
+                autocomplete="new-password"
+            >
+
+
+            <input
+                type="password"
+                id="registerPasswordConfirm"
+                placeholder="Confirmar senha"
+                autocomplete="new-password"
+            >
+
+
+            <button id="registerButton">
+                Criar conta
+            </button>
+
+
+            <button id="showLoginButton">
+                Já tenho uma conta
+            </button>
+
+        </div>
+
+
+        <!-- MENSAGEM -->
+
+        <p id="authMessage"></p>
+
+    </div>
+
+</div>
     <!-- =========================
          JAVASCRIPT
     ========================== -->
