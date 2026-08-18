@@ -314,7 +314,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
                         options: {
                             redirectTo:
-                                window.location.origin
+    "https://henriqux77.github.io/Aeriom/"
                         }
 
                     });
