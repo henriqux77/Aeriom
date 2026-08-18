@@ -982,3 +982,8 @@ document.addEventListener("DOMContentLoaded", async () => {
     );
 
 });
+const redirectUrl =
+    window.location.origin + "https://henriqux77.github.io/Aeriom/";
+options: {
+    redirectTo: redirectUrl
+}
