@@ -102,7 +102,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
         return;
     }
-
+const supabaseClient = window.supabaseClient;
 
     // =====================================================
     // RECUPERAR SESSÃO
