@@ -94,14 +94,14 @@ document.addEventListener("DOMContentLoaded", async () => {
     // VERIFICAR SE O SUPABASE ESTÁ DISPONÍVEL
     // =====================================================
 
-    if (!window.supabaseClient) {
+    if (typeof supabaseClient === "undefined") {
 
-        console.error(
-            "supabaseClient não foi encontrado. Verifique o supabase.js."
-        );
+    console.error(
+        "supabaseClient não foi encontrado. Verifique o supabase.js."
+    );
 
-        return;
-    }
+    return;
+}
 const supabaseClient = window.supabaseClient;
 
     // =====================================================
