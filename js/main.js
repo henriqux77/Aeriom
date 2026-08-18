@@ -1,4 +1,4 @@
-idocument.addEventListener("DOMContentLoaded", async () => {
+document.addEventListener("DOMContentLoaded", async () => {
 
     // =========================
     // BOTÕES EXISTENTES
