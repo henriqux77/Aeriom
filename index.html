@@ -110,25 +110,62 @@
         <!-- =========================
              AÇÕES PRINCIPAIS
         ========================== -->
-        <section class="auth-actions">
+        <!-- =========================
+     AÇÕES PRINCIPAIS
+========================== -->
 
-            <button
-                class="primary-button"
-                id="createAccountButton"
-            >
-                <span class="button-icon">◇</span>
-                <span>Criar Conta</span>
-            </button>
+<section class="auth-actions">
 
-            <button
-                class="secondary-button"
-                id="loginButton"
-            >
-                <span class="button-icon">→</span>
-                <span>Entrar</span>
-            </button>
+    <!-- VISÍVEL QUANDO NÃO ESTÁ LOGADO -->
 
-        </section>
+    <div id="loggedOutActions">
+
+        <button
+            class="primary-button"
+            id="createAccountButton"
+        >
+            <span class="button-icon">◇</span>
+            <span>Criar Conta</span>
+        </button>
+
+        <button
+            class="secondary-button"
+            id="loginButton"
+        >
+            <span class="button-icon">→</span>
+            <span>Entrar</span>
+        </button>
+
+    </div>
+
+
+    <!-- VISÍVEL QUANDO ESTÁ LOGADO -->
+
+    <div
+        id="loggedInActions"
+        style="display: none;"
+    >
+
+        <button
+            class="primary-button"
+            id="createCharacterButton"
+        >
+            <span class="button-icon">✦</span>
+            <span>Criar Ficha</span>
+        </button>
+
+
+        <button
+            class="secondary-button"
+            id="campaignButton"
+        >
+            <span class="button-icon">⚔</span>
+            <span>Entrar em Campanha</span>
+        </button>
+
+    </div>
+
+</section>
 <!-- =========================
      AUTENTICAÇÃO
 ========================== -->
