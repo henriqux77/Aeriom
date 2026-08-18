@@ -1,1 +1,1056 @@
-m
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>Aerion — Nova Ficha</title>
+
+    <link rel="stylesheet" href="css/style.css">
+
+</head>
+
+
+<body>
+
+<main class="character-creation">
+
+
+    <!-- =========================================
+         CABEÇALHO
+    ========================================== -->
+
+    <header class="creation-header">
+
+        <button
+            id="backButton"
+            class="header-button"
+            type="button"
+            aria-label="Voltar"
+        >
+            ←
+        </button>
+
+
+        <div class="creation-title">
+
+            <span>AERION</span>
+
+            <h1>Nova Ficha</h1>
+
+        </div>
+
+
+        <div class="creation-save-status">
+
+            <span id="saveStatus">
+                Salvo
+            </span>
+
+        </div>
+
+    </header>
+
+
+
+    <!-- =========================================
+         PROGRESSO
+    ========================================== -->
+
+    <section class="creation-progress">
+
+        <div class="progress-info">
+
+            <span id="stepTitle">
+                Conceito
+            </span>
+
+            <span id="stepCounter">
+                1 de 8
+            </span>
+
+        </div>
+
+
+        <div class="progress-bar">
+
+            <div
+                id="progressBar"
+                class="progress-fill"
+            ></div>
+
+        </div>
+
+    </section>
+
+
+
+    <!-- =========================================
+         ÁREA DA FICHA
+    ========================================== -->
+
+    <section class="creation-content">
+
+
+        <!-- =====================================
+             PASSO 1 — CONCEITO
+        ====================================== -->
+
+        <section
+            class="creation-step active"
+            data-step="1"
+        >
+
+            <div class="step-heading">
+
+                <span class="step-number">
+                    01
+                </span>
+
+                <div>
+
+                    <h2>Quem é seu personagem?</h2>
+
+                    <p>
+                        Antes dos números, imagine a pessoa.
+                    </p>
+
+                </div>
+
+            </div>
+
+
+            <div class="form-group">
+
+                <label for="characterName">
+                    Nome
+                </label>
+
+                <input
+                    type="text"
+                    id="characterName"
+                    placeholder="Nome do personagem"
+                    maxlength="60"
+                    autocomplete="off"
+                >
+
+            </div>
+
+
+            <div class="form-group">
+
+                <label for="characterAge">
+                    Idade
+                </label>
+
+                <input
+                    type="number"
+                    id="characterAge"
+                    placeholder="Idade"
+                    min="0"
+                    max="999"
+                >
+
+            </div>
+
+
+            <div class="form-group">
+
+                <label for="characterAppearance">
+                    Aparência
+                </label>
+
+                <textarea
+                    id="characterAppearance"
+                    placeholder="Como seu personagem é?"
+                    maxlength="1000"
+                ></textarea>
+
+            </div>
+
+
+            <div class="form-group">
+
+                <label for="characterPersonality">
+                    Personalidade
+                </label>
+
+                <textarea
+                    id="characterPersonality"
+                    placeholder="Como ele age, pensa e se comporta?"
+                    maxlength="1000"
+                ></textarea>
+
+            </div>
+
+
+            <div class="form-group">
+
+                <label for="characterOrigin">
+                    Origem
+                </label>
+
+                <input
+                    type="text"
+                    id="characterOrigin"
+                    placeholder="Cidade, vila, reino ou região"
+                    maxlength="100"
+                >
+
+            </div>
+
+
+            <div class="form-group">
+
+                <label for="characterObjective">
+                    Objetivo
+                </label>
+
+                <textarea
+                    id="characterObjective"
+                    placeholder="O que seu personagem deseja alcançar?"
+                    maxlength="500"
+                ></textarea>
+
+            </div>
+
+
+            <div class="form-group">
+
+                <label for="characterFear">
+                    Medo
+                </label>
+
+                <input
+                    type="text"
+                    id="characterFear"
+                    placeholder="Do que ele tem medo?"
+                    maxlength="200"
+                >
+
+            </div>
+
+
+            <div class="form-group">
+
+                <label for="characterBond">
+                    Vínculo importante
+                </label>
+
+                <input
+                    type="text"
+                    id="characterBond"
+                    placeholder="Pessoa, lugar, objeto ou promessa"
+                    maxlength="300"
+                >
+
+            </div>
+
+
+            <div class="form-group">
+
+                <label for="characterHistory">
+                    História curta
+                </label>
+
+                <textarea
+                    id="characterHistory"
+                    placeholder="Conte brevemente a história do personagem..."
+                    maxlength="1500"
+                ></textarea>
+
+            </div>
+
+        </section>
+
+
+
+        <!-- =====================================
+             PASSO 2 — RAÇA
+        ====================================== -->
+
+        <section
+            class="creation-step"
+            data-step="2"
+        >
+
+            <div class="step-heading">
+
+                <span class="step-number">
+                    02
+                </span>
+
+                <div>
+
+                    <h2>Escolha sua raça</h2>
+
+                    <p>
+                        Cada raça possui uma especialidade própria.
+                    </p>
+
+                </div>
+
+            </div>
+
+
+            <div
+                id="raceOptions"
+                class="selection-grid"
+            >
+
+
+                <button
+                    type="button"
+                    class="selection-card"
+                    data-race="Humano"
+                >
+
+                    <span class="selection-icon">
+                        ♙
+                    </span>
+
+                    <strong>Humano</strong>
+
+                    <small>
+                        Adaptação
+                    </small>
+
+                    <p>
+                        Uma vez por cena, pode repetir
+                        um teste recém-falhado.
+                    </p>
+
+                </button>
+
+
+                <button
+                    type="button"
+                    class="selection-card"
+                    data-race="Elfo"
+                >
+
+                    <span class="selection-icon">
+                        ✦
+                    </span>
+
+                    <strong>Elfo</strong>
+
+                    <small>
+                        Percepção Élfica
+                    </small>
+
+                    <p>
+                        Possui vantagem narrativa para
+                        perceber Mana, criaturas escondidas
+                        e alterações mágicas.
+                    </p>
+
+                </button>
+
+
+                <button
+                    type="button"
+                    class="selection-card"
+                    data-race="Anão"
+                >
+
+                    <span class="selection-icon">
+                        ◈
+                    </span>
+
+                    <strong>Anão</strong>
+
+                    <small>
+                        Forja Ancestral
+                    </small>
+
+                    <p>
+                        Identifica materiais, estruturas
+                        e armas com grande precisão.
+                    </p>
+
+                </button>
+
+
+                <button
+                    type="button"
+                    class="selection-card"
+                    data-race="Orc"
+                >
+
+                    <span class="selection-icon">
+                        ⚔
+                    </span>
+
+                    <strong>Orc</strong>
+
+                    <small>
+                        Fúria de Sangue
+                    </small>
+
+                    <p>
+                        Pode entrar em Fúria quando
+                        estiver com poucos PV.
+                    </p>
+
+                </button>
+
+
+                <button
+                    type="button"
+                    class="selection-card"
+                    data-race="Neraliano"
+                >
+
+                    <span class="selection-icon">
+                        ≋
+                    </span>
+
+                    <strong>Neraliano</strong>
+
+                    <small>
+                        Adaptação Abissal
+                    </small>
+
+                    <p>
+                        Respira e se movimenta naturalmente
+                        debaixo d'água.
+                    </p>
+
+                </button>
+
+
+                <button
+                    type="button"
+                    class="selection-card"
+                    data-race="Aureano"
+                >
+
+                    <span class="selection-icon">
+                        ◇
+                    </span>
+
+                    <strong>Aureano</strong>
+
+                    <small>
+                        Corpo Celestial
+                    </small>
+
+                    <p>
+                        Grande mobilidade em ambientes
+                        verticais e altitude.
+                    </p>
+
+                </button>
+
+            </div>
+
+        </section>
+
+
+
+        <!-- =====================================
+             PASSO 3 — CLASSE
+        ====================================== -->
+
+        <section
+            class="creation-step"
+            data-step="3"
+        >
+
+            <div class="step-heading">
+
+                <span class="step-number">
+                    03
+                </span>
+
+                <div>
+
+                    <h2>Escolha sua classe</h2>
+
+                    <p>
+                        Sua classe define seu estilo de combate
+                        e utilização de Mana.
+                    </p>
+
+                </div>
+
+            </div>
+
+
+            <div
+                id="classOptions"
+                class="selection-grid"
+            >
+
+
+                <button
+                    type="button"
+                    class="selection-card"
+                    data-class="Mágico"
+                >
+
+                    <span class="selection-icon">
+                        ✧
+                    </span>
+
+                    <strong>Mágico</strong>
+
+                    <small>
+                        +5 Controle de Mana
+                    </small>
+
+                    <p>
+                        Especialista em técnicas e
+                        manipulação de Mana.
+                    </p>
+
+                </button>
+
+
+                <button
+                    type="button"
+                    class="selection-card"
+                    data-class="Guerreiro"
+                >
+
+                    <span class="selection-icon">
+                        ⚔
+                    </span>
+
+                    <strong>Guerreiro</strong>
+
+                    <small>
+                        +1 Controle de Mana
+                    </small>
+
+                    <p>
+                        Especialista em armas e combate físico.
+                    </p>
+
+                </button>
+
+
+                <button
+                    type="button"
+                    class="selection-card"
+                    data-class="Curandeiro"
+                >
+
+                    <span class="selection-icon">
+                        ✚
+                    </span>
+
+                    <strong>Curandeiro</strong>
+
+                    <small>
+                        +2 Controle de Mana
+                    </small>
+
+                    <p>
+                        Especialista em cura, proteção
+                        e utilidade.
+                    </p>
+
+                </button>
+
+
+                <button
+                    type="button"
+                    class="selection-card"
+                    data-class="Monge"
+                >
+
+                    <span class="selection-icon">
+                        ◉
+                    </span>
+
+                    <strong>Monge</strong>
+
+                    <small>
+                        Mana corporal
+                    </small>
+
+                    <p>
+                        Conduz Mana pelo corpo para
+                        reforçar força, defesa e movimento.
+                    </p>
+
+                </button>
+
+            </div>
+
+        </section>
+
+
+
+        <!-- =====================================
+             PASSO 4 — ATRIBUTOS
+        ====================================== -->
+
+        <section
+            class="creation-step"
+            data-step="4"
+        >
+
+            <div class="step-heading">
+
+                <span class="step-number">
+                    04
+                </span>
+
+                <div>
+
+                    <h2>Distribua seus atributos</h2>
+
+                    <p>
+                        Escolha um dado para cada atributo.
+                    </p>
+
+                </div>
+
+            </div>
+
+
+            <div class="dice-pool">
+
+                <h3>Dados disponíveis</h3>
+
+                <div id="availableDice">
+
+                    <span data-die="D4">D4</span>
+                    <span data-die="D6">D6</span>
+                    <span data-die="D6">D6</span>
+                    <span data-die="D8">D8</span>
+                    <span data-die="D10">D10</span>
+                    <span data-die="D12">D12</span>
+                    <span data-die="D20">D20</span>
+                    <span data-die="D20">D20</span>
+
+                </div>
+
+            </div>
+
+
+            <div
+                id="attributeList"
+                class="attribute-list"
+            >
+
+                <!--
+                    Os atributos serão preenchidos
+                    pelo JavaScript.
+                -->
+
+            </div>
+
+
+            <p class="step-hint">
+
+                Presença, Precisão, Intelecto, Controle,
+                Percepção, Vigor, Agilidade e Força.
+
+            </p>
+
+        </section>
+
+
+
+        <!-- =====================================
+             PASSO 5 — PODER
+        ====================================== -->
+
+        <section
+            class="creation-step"
+            data-step="5"
+        >
+
+            <div class="step-heading">
+
+                <span class="step-number">
+                    05
+                </span>
+
+                <div>
+
+                    <h2>Escolha seu poder</h2>
+
+                    <p>
+                        Seu poder não define sua classe.
+                    </p>
+
+                </div>
+
+            </div>
+
+
+            <div
+                id="powerOptions"
+                class="selection-grid"
+            >
+
+                <button
+                    type="button"
+                    class="selection-card"
+                    data-power="Fogo"
+                >
+                    <strong>Fogo</strong>
+                    <small>Poder herdado</small>
+                </button>
+
+
+                <button
+                    type="button"
+                    class="selection-card"
+                    data-power="Ar"
+                >
+                    <strong>Ar</strong>
+                    <small>Poder herdado</small>
+                </button>
+
+
+                <button
+                    type="button"
+                    class="selection-card"
+                    data-power="Terra"
+                >
+                    <strong>Terra</strong>
+                    <small>Poder herdado</small>
+                </button>
+
+
+                <button
+                    type="button"
+                    class="selection-card"
+                    data-power="Água"
+                >
+                    <strong>Água</strong>
+                    <small>Poder herdado</small>
+                </button>
+
+
+                <button
+                    type="button"
+                    class="selection-card"
+                    data-power="Gelo"
+                >
+                    <strong>Gelo</strong>
+                </button>
+
+
+                <button
+                    type="button"
+                    class="selection-card"
+                    data-power="Magnetismo"
+                >
+                    <strong>Magnetismo</strong>
+                </button>
+
+
+                <button
+                    type="button"
+                    class="selection-card"
+                    data-power="Vegetação"
+                >
+                    <strong>Vegetação</strong>
+                </button>
+
+
+                <button
+                    type="button"
+                    class="selection-card"
+                    data-power="Gravidade"
+                >
+                    <strong>Gravidade</strong>
+                </button>
+
+
+                <button
+                    type="button"
+                    class="selection-card"
+                    data-power="Tecnologia"
+                >
+                    <strong>Tecnologia</strong>
+                </button>
+
+            </div>
+
+        </section>
+
+
+
+        <!-- =====================================
+             PASSO 6 — MANA
+        ====================================== -->
+
+        <section
+            class="creation-step"
+            data-step="6"
+        >
+
+            <div class="step-heading">
+
+                <span class="step-number">
+                    06
+                </span>
+
+                <div>
+
+                    <h2>Mana</h2>
+
+                    <p>
+                        Registre o controle de Mana do personagem.
+                    </p>
+
+                </div>
+
+            </div>
+
+
+            <div class="mana-card">
+
+                <div>
+
+                    <span>
+                        Controle de Mana
+                    </span>
+
+                    <strong id="manaControl">
+                        —
+                    </strong>
+
+                </div>
+
+
+                <div>
+
+                    <span>
+                        Reserva de Mana
+                    </span>
+
+                    <strong>
+                        Definida pelo Mestre
+                    </strong>
+
+                </div>
+
+            </div>
+
+
+            <div class="form-group">
+
+                <label for="manaColor">
+                    Cor da Mana
+                </label>
+
+                <select id="manaColor">
+
+                    <option value="">
+                        Escolha uma cor
+                    </option>
+
+                    <option value="azul">
+                        Azul — Mana normal
+                    </option>
+
+                    <option value="roxa">
+                        Roxa — Mana negra
+                    </option>
+
+                    <option value="dourada">
+                        Dourada — Mana boa
+                    </option>
+
+                    <option value="branca">
+                        Branca — Mana Perfeita
+                    </option>
+
+                </select>
+
+            </div>
+
+
+            <div class="rule-notice">
+
+                <strong>Importante</strong>
+
+                <p>
+                    A Reserva de Mana será definida pela
+                    fórmula oficial da campanha.
+                </p>
+
+            </div>
+
+        </section>
+
+
+
+        <!-- =====================================
+             PASSO 7 — TÉCNICAS
+        ====================================== -->
+
+        <section
+            class="creation-step"
+            data-step="7"
+        >
+
+            <div class="step-heading">
+
+                <span class="step-number">
+                    07
+                </span>
+
+                <div>
+
+                    <h2>Técnicas iniciais</h2>
+
+                    <p>
+                        Comece com técnicas compatíveis
+                        com seu poder e classe.
+                    </p>
+
+                </div>
+
+            </div>
+
+
+            <div
+                id="techniqueList"
+                class="technique-list"
+            >
+
+                <!--
+                    Técnicas serão adicionadas
+                    posteriormente.
+                -->
+
+            </div>
+
+
+            <button
+                id="addTechniqueButton"
+                class="secondary-button"
+                type="button"
+            >
+                + Adicionar técnica
+            </button>
+
+        </section>
+
+
+
+        <!-- =====================================
+             PASSO 8 — FINALIZAÇÃO
+        ====================================== -->
+
+        <section
+            class="creation-step"
+            data-step="8"
+        >
+
+            <div class="step-heading">
+
+                <span class="step-number">
+                    08
+                </span>
+
+                <div>
+
+                    <h2>Sua ficha está pronta</h2>
+
+                    <p>
+                        Confira os dados principais do personagem.
+                    </p>
+
+                </div>
+
+            </div>
+
+
+            <div
+                id="characterSummary"
+                class="character-summary"
+            >
+
+                <!-- Resumo gerado pelo JavaScript -->
+
+            </div>
+
+
+            <div class="rule-notice">
+
+                <strong>Salvamento automático</strong>
+
+                <p>
+                    Suas alterações serão salvas automaticamente.
+                    Você poderá voltar e editar sua ficha quando quiser.
+                </p>
+
+            </div>
+
+
+            <button
+                id="finishCharacterButton"
+                class="primary-button"
+                type="button"
+            >
+                Criar ficha
+            </button>
+
+        </section>
+
+
+    </section>
+
+
+
+    <!-- =========================================
+         NAVEGAÇÃO
+    ========================================== -->
+
+    <footer class="creation-navigation">
+
+        <button
+            id="previousStepButton"
+            class="secondary-button"
+            type="button"
+        >
+            ← Voltar
+        </button>
+
+
+        <button
+            id="nextStepButton"
+            class="primary-button"
+            type="button"
+        >
+            Continuar →
+        </button>
+
+    </footer>
+
+
+</main>
+
+
+
+<!-- =========================================
+     SUPABASE
+========================================== -->
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<script src="js/supabase.js"></script>
+
+<script src="js/ficha.js"></script>
+
+
+</body>
+
+</html>
