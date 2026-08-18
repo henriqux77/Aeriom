@@ -1,4 +1,4 @@
-document.addEventListener("DOMContentLoaded", async () => {
+idocument.addEventListener("DOMContentLoaded", async () => {
 
     // =========================
     // BOTÕES EXISTENTES
@@ -723,8 +723,47 @@ if (registerButton) {
 
 
             authMessage.textContent =
-                "Criando sua conta...";
+    "Criando sua conta...";
 
+const {
+    data,
+    error
+} = await supabaseClient.auth.signUp({
+    email: email,
+    password: password
+});
+
+if (error) {
+
+    console.error(
+        "Erro ao criar conta:",
+        error
+    );
+
+    authMessage.textContent =
+        error.message;
+
+    return;
+}
+
+console.log(
+    "Conta criada:",
+    data
+);
+
+if (data.session) {
+
+    authMessage.textContent =
+        "Conta criada com sucesso!";
+
+    closeAuthModal();
+
+} else {
+
+    authMessage.textContent =
+        "Conta criada, mas nenhuma sessão foi criada. Verifique a configuração de confirmação de e-mail no Supabase.";
+
+}
 
 
         }
