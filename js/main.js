@@ -1221,7 +1221,7 @@ document.addEventListener("DOMContentLoaded", async () => {
                 );
 
             }
-
+updateHomeActions(session);
         }
     );
 // =====================================================
