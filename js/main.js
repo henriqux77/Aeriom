@@ -1,8 +1,8 @@
 document.addEventListener("DOMContentLoaded", async () => {
 
-    // =========================
-    // BOTÕES EXISTENTES
-    // =========================
+    // =====================================================
+    // BOTÕES DA HOME
+    // =====================================================
 
     const menuButton =
         document.getElementById("menuButton");
@@ -17,9 +17,9 @@ document.addEventListener("DOMContentLoaded", async () => {
         document.getElementById("loginButton");
 
 
-    // =========================
-    // ELEMENTOS DO PERFIL
-    // =========================
+    // =====================================================
+    // PERFIL
+    // =====================================================
 
     const profilePanel =
         document.getElementById("profilePanel");
@@ -43,18 +43,70 @@ document.addEventListener("DOMContentLoaded", async () => {
         document.getElementById("editProfileButton");
 
 
-    // =========================
-    // ESCONDER PERFIL
-    // =========================
+    // =====================================================
+    // ESCONDER PERFIL AO CARREGAR
+    // =====================================================
 
     if (profilePanel) {
         profilePanel.style.display = "none";
     }
 
 
-    // =========================
+    // =====================================================
+    // AUTENTICAÇÃO / MODAL
+    // =====================================================
+
+    const authModal =
+        document.getElementById("authModal");
+
+    const closeAuth =
+        document.getElementById("closeAuth");
+
+    const loginForm =
+        document.getElementById("loginForm");
+
+    const registerForm =
+        document.getElementById("registerForm");
+
+    const discordLoginButton =
+        document.getElementById("discordLoginButton");
+
+    const discordRegisterButton =
+        document.getElementById("discordRegisterButton");
+
+    const emailLoginButton =
+        document.getElementById("emailLoginButton");
+
+    const registerButton =
+        document.getElementById("registerButton");
+
+    const showRegisterButton =
+        document.getElementById("showRegisterButton");
+
+    const showLoginButton =
+        document.getElementById("showLoginButton");
+
+    const authMessage =
+        document.getElementById("authMessage");
+
+
+    // =====================================================
+    // VERIFICAR SE O SUPABASE ESTÁ DISPONÍVEL
+    // =====================================================
+
+    if (!window.supabaseClient) {
+
+        console.error(
+            "supabaseClient não foi encontrado. Verifique o supabase.js."
+        );
+
+        return;
+    }
+
+
+    // =====================================================
     // RECUPERAR SESSÃO
-    // =========================
+    // =====================================================
 
     const {
         data: { session },
@@ -72,22 +124,531 @@ document.addEventListener("DOMContentLoaded", async () => {
     } else if (session) {
 
         console.log(
-            "Sessão recuperada com sucesso:",
+            "Usuário já está logado:",
             session.user.email
         );
 
     } else {
 
         console.log(
-            "Nenhuma sessão encontrada."
+            "Nenhum usuário logado."
         );
 
     }
 
 
-    // =========================
-    // BUSCAR PERFIL
-    // =========================
+    // =====================================================
+    // ABRIR MODAL DE AUTENTICAÇÃO
+    // =====================================================
+
+    function openAuth() {
+
+        if (!authModal) {
+
+            console.error(
+                "Elemento #authModal não encontrado no HTML."
+            );
+
+            return;
+        }
+
+        authModal.style.display = "flex";
+    }
+
+
+    // =====================================================
+    // FECHAR MODAL DE AUTENTICAÇÃO
+    // =====================================================
+
+    function closeAuthModal() {
+
+        if (authModal) {
+            authModal.style.display = "none";
+        }
+    }
+
+
+    // =====================================================
+    // MOSTRAR MENSAGEM
+    // =====================================================
+
+    function showAuthMessage(message) {
+
+        if (authMessage) {
+            authMessage.textContent = message;
+        }
+    }
+
+
+    // =====================================================
+    // BOTÃO ENTRAR DA HOME
+    // =====================================================
+
+    if (loginButton) {
+
+        loginButton.addEventListener(
+            "click",
+            () => {
+
+                if (loginForm) {
+                    loginForm.style.display = "block";
+                }
+
+                if (registerForm) {
+                    registerForm.style.display = "none";
+                }
+
+                showAuthMessage("");
+
+                openAuth();
+            }
+        );
+
+    }
+
+
+    // =====================================================
+    // BOTÃO CRIAR CONTA DA HOME
+    // =====================================================
+
+    if (createAccountButton) {
+
+        createAccountButton.addEventListener(
+            "click",
+            () => {
+
+                if (loginForm) {
+                    loginForm.style.display = "none";
+                }
+
+                if (registerForm) {
+                    registerForm.style.display = "block";
+                }
+
+                showAuthMessage("");
+
+                openAuth();
+            }
+        );
+
+    }
+
+
+    // =====================================================
+    // FECHAR MODAL
+    // =====================================================
+
+    if (closeAuth) {
+
+        closeAuth.addEventListener(
+            "click",
+            () => {
+
+                closeAuthModal();
+
+            }
+        );
+
+    }
+
+
+    // =====================================================
+    // IR PARA CADASTRO
+    // =====================================================
+
+    if (showRegisterButton) {
+
+        showRegisterButton.addEventListener(
+            "click",
+            () => {
+
+                if (loginForm) {
+                    loginForm.style.display = "none";
+                }
+
+                if (registerForm) {
+                    registerForm.style.display = "block";
+                }
+
+                showAuthMessage("");
+            }
+        );
+
+    }
+
+
+    // =====================================================
+    // VOLTAR PARA LOGIN
+    // =====================================================
+
+    if (showLoginButton) {
+
+        showLoginButton.addEventListener(
+            "click",
+            () => {
+
+                if (registerForm) {
+                    registerForm.style.display = "none";
+                }
+
+                if (loginForm) {
+                    loginForm.style.display = "block";
+                }
+
+                showAuthMessage("");
+            }
+        );
+
+    }
+
+
+    // =====================================================
+    // LOGIN COM DISCORD
+    // =====================================================
+
+    if (discordLoginButton) {
+
+        discordLoginButton.addEventListener(
+            "click",
+            async () => {
+
+                showAuthMessage(
+                    "Conectando ao Discord..."
+                );
+
+
+                const { error } =
+                    await supabaseClient.auth.signInWithOAuth({
+
+                        provider: "discord",
+
+                        options: {
+
+                            redirectTo:
+                                window.location.origin
+
+                        }
+
+                    });
+
+
+                if (error) {
+
+                    console.error(
+                        "Erro no login Discord:",
+                        error
+                    );
+
+                    showAuthMessage(
+                        "Não foi possível entrar com o Discord."
+                    );
+
+                }
+
+            }
+        );
+
+    }
+
+
+    // =====================================================
+    // CADASTRO COM DISCORD
+    // =====================================================
+
+    if (discordRegisterButton) {
+
+        discordRegisterButton.addEventListener(
+            "click",
+            async () => {
+
+                showAuthMessage(
+                    "Conectando ao Discord..."
+                );
+
+
+                const { error } =
+                    await supabaseClient.auth.signInWithOAuth({
+
+                        provider: "discord",
+
+                        options: {
+
+                            redirectTo:
+                                window.location.origin
+
+                        }
+
+                    });
+
+
+                if (error) {
+
+                    console.error(
+                        "Erro no cadastro Discord:",
+                        error
+                    );
+
+                    showAuthMessage(
+                        "Não foi possível criar a conta com o Discord."
+                    );
+
+                }
+
+            }
+        );
+
+    }
+
+
+    // =====================================================
+    // LOGIN COM E-MAIL E SENHA
+    // =====================================================
+
+    if (emailLoginButton) {
+
+        emailLoginButton.addEventListener(
+            "click",
+            async () => {
+
+                const emailInput =
+                    document.getElementById("loginEmail");
+
+                const passwordInput =
+                    document.getElementById("loginPassword");
+
+
+                const email =
+                    emailInput
+                        ? emailInput.value.trim()
+                        : "";
+
+                const password =
+                    passwordInput
+                        ? passwordInput.value
+                        : "";
+
+
+                if (!email || !password) {
+
+                    showAuthMessage(
+                        "Preencha o e-mail e a senha."
+                    );
+
+                    return;
+                }
+
+
+                showAuthMessage(
+                    "Entrando..."
+                );
+
+
+                const {
+                    data,
+                    error
+                } = await supabaseClient.auth
+                    .signInWithPassword({
+
+                        email: email,
+
+                        password: password
+
+                    });
+
+
+                if (error) {
+
+                    console.error(
+                        "Erro no login:",
+                        error
+                    );
+
+                    showAuthMessage(
+                        error.message
+                    );
+
+                    return;
+                }
+
+
+                console.log(
+                    "Login realizado:",
+                    data.user.email
+                );
+
+
+                showAuthMessage(
+                    "Login realizado com sucesso!"
+                );
+
+
+                closeAuthModal();
+
+            }
+        );
+
+    }
+
+
+    // =====================================================
+    // CRIAR CONTA COM E-MAIL E SENHA
+    // =====================================================
+
+    if (registerButton) {
+
+        registerButton.addEventListener(
+            "click",
+            async () => {
+
+                const emailInput =
+                    document.getElementById("registerEmail");
+
+                const passwordInput =
+                    document.getElementById("registerPassword");
+
+                const confirmPasswordInput =
+                    document.getElementById(
+                        "registerPasswordConfirm"
+                    );
+
+
+                const email =
+                    emailInput
+                        ? emailInput.value.trim()
+                        : "";
+
+                const password =
+                    passwordInput
+                        ? passwordInput.value
+                        : "";
+
+                const confirmPassword =
+                    confirmPasswordInput
+                        ? confirmPasswordInput.value
+                        : "";
+
+
+                // -----------------------------
+                // VALIDAR CAMPOS
+                // -----------------------------
+
+                if (
+                    !email ||
+                    !password ||
+                    !confirmPassword
+                ) {
+
+                    showAuthMessage(
+                        "Preencha todos os campos."
+                    );
+
+                    return;
+                }
+
+
+                // -----------------------------
+                // CONFIRMAR SENHA
+                // -----------------------------
+
+                if (password !== confirmPassword) {
+
+                    showAuthMessage(
+                        "As senhas não são iguais."
+                    );
+
+                    return;
+                }
+
+
+                // -----------------------------
+                // TAMANHO DA SENHA
+                // -----------------------------
+
+                if (password.length < 6) {
+
+                    showAuthMessage(
+                        "A senha precisa ter pelo menos 6 caracteres."
+                    );
+
+                    return;
+                }
+
+
+                showAuthMessage(
+                    "Criando sua conta..."
+                );
+
+
+                // -----------------------------
+                // CRIAR USUÁRIO
+                // -----------------------------
+
+                const {
+                    data,
+                    error
+                } = await supabaseClient.auth.signUp({
+
+                    email: email,
+
+                    password: password
+
+                });
+
+
+                // -----------------------------
+                // ERRO
+                // -----------------------------
+
+                if (error) {
+
+                    console.error(
+                        "Erro ao criar conta:",
+                        error
+                    );
+
+                    showAuthMessage(
+                        error.message
+                    );
+
+                    return;
+                }
+
+
+                // -----------------------------
+                // SUCESSO
+                // -----------------------------
+
+                console.log(
+                    "Conta criada:",
+                    data
+                );
+
+
+                if (data.session) {
+
+                    showAuthMessage(
+                        "Conta criada com sucesso!"
+                    );
+
+                    closeAuthModal();
+
+                } else {
+
+                    showAuthMessage(
+                        "Conta criada! A confirmação de e-mail ainda está ativada no Supabase."
+                    );
+
+                }
+
+            }
+        );
+
+    }
+
+
+    // =====================================================
+    // CARREGAR PERFIL
+    // =====================================================
 
     async function loadUserProfile(user) {
 
@@ -113,44 +674,41 @@ document.addEventListener("DOMContentLoaded", async () => {
                 error
             );
 
-            return null;
         }
 
 
-        const googleName =
+        const name =
+            profile?.display_name ||
             user.user_metadata?.full_name ||
             user.user_metadata?.name ||
+            user.user_metadata?.global_name ||
             "Aventureiro";
 
 
-        const googleAvatar =
+        const avatar =
+            profile?.avatar_url ||
             user.user_metadata?.avatar_url ||
             user.user_metadata?.picture ||
-            "assets/aerion-logo.png";
+            user.user_metadata?.avatar ||
+            "";
 
 
         return {
 
-            name:
-                profile?.display_name ||
-                googleName,
+            name: name,
 
-            email:
-                user.email ||
-                "",
+            email: user.email || "",
 
-            avatar:
-                profile?.avatar_url ||
-                googleAvatar
+            avatar: avatar
 
         };
 
     }
 
 
-    // =========================
+    // =====================================================
     // BOTÃO DE PERFIL
-    // =========================
+    // =====================================================
 
     if (profileButton) {
 
@@ -177,16 +735,20 @@ document.addEventListener("DOMContentLoaded", async () => {
 
                 if (!session) {
 
-                    console.log(
-                        "Nenhum usuário está logado."
+                    showAuthMessage(
+                        "Você precisa entrar em uma conta primeiro."
                     );
+
+                    openAuth();
 
                     return;
                 }
 
 
                 const profile =
-                    await loadUserProfile(session.user);
+                    await loadUserProfile(
+                        session.user
+                    );
 
 
                 if (!profile) {
@@ -212,8 +774,25 @@ document.addEventListener("DOMContentLoaded", async () => {
 
                 if (profileAvatar) {
 
-                    profileAvatar.src =
-                        profile.avatar;
+                    if (profile.avatar) {
+
+                        profileAvatar.src =
+                            profile.avatar;
+
+                        profileAvatar.style.display =
+                            "block";
+
+                    } else {
+
+                        // Evita imagem quebrada
+                        profileAvatar.removeAttribute(
+                            "src"
+                        );
+
+                        profileAvatar.style.display =
+                            "none";
+
+                    }
 
                 }
 
@@ -231,9 +810,9 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
 
 
-    // =========================
+    // =====================================================
     // FECHAR PERFIL
-    // =========================
+    // =====================================================
 
     if (closeProfile) {
 
@@ -254,9 +833,9 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
 
 
-    // =========================
+    // =====================================================
     // SAIR DA CONTA
-    // =========================
+    // =====================================================
 
     if (logoutButton) {
 
@@ -297,9 +876,9 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
 
 
-    // =========================
+    // =====================================================
     // EDITAR PERFIL
-    // =========================
+    // =====================================================
 
     if (editProfileButton) {
 
@@ -317,463 +896,9 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
 
 
-   // =========================
-// AUTENTICAÇÃO
-// =========================
-
-const authModal =
-    document.getElementById("authModal");
-
-const closeAuth =
-    document.getElementById("closeAuth");
-
-const loginForm =
-    document.getElementById("loginForm");
-
-const registerForm =
-    document.getElementById("registerForm");
-
-const discordLoginButton =
-    document.getElementById("discordLoginButton");
-
-const discordRegisterButton =
-    document.getElementById("discordRegisterButton");
-
-const emailLoginButton =
-    document.getElementById("emailLoginButton");
-
-const registerButton =
-    document.getElementById("registerButton");
-
-const showRegisterButton =
-    document.getElementById("showRegisterButton");
-
-const showLoginButton =
-    document.getElementById("showLoginButton");
-
-const authMessage =
-    document.getElementById("authMessage");
-
-
-// =========================
-// ABRIR AUTENTICAÇÃO
-// =========================
-
-function openAuth() {
-
-    if (authModal) {
-
-        authModal.style.display = "flex";
-
-    }
-
-}
-
-
-// =========================
-// FECHAR AUTENTICAÇÃO
-// =========================
-
-function closeAuthModal() {
-
-    if (authModal) {
-
-        authModal.style.display = "none";
-
-    }
-
-}
-
-
-if (closeAuth) {
-
-    closeAuth.addEventListener(
-        "click",
-        closeAuthModal
-    );
-
-}
-
-
-// =========================
-// BOTÃO ENTRAR DA HOME
-// =========================
-
-if (loginButton) {
-
-    loginButton.addEventListener(
-        "click",
-        () => {
-
-            loginForm.style.display = "block";
-            registerForm.style.display = "none";
-
-            authMessage.textContent = "";
-
-            openAuth();
-
-        }
-    );
-
-}
-
-
-// =========================
-// BOTÃO CRIAR CONTA DA HOME
-// =========================
-
-if (createAccountButton) {
-
-    createAccountButton.addEventListener(
-        "click",
-        () => {
-
-            loginForm.style.display = "none";
-            registerForm.style.display = "block";
-
-            authMessage.textContent = "";
-
-            openAuth();
-
-        }
-    );
-
-}
-
-
-// =========================
-// IR PARA CADASTRO
-// =========================
-
-if (showRegisterButton) {
-
-    showRegisterButton.addEventListener(
-        "click",
-        () => {
-
-            loginForm.style.display = "none";
-            registerForm.style.display = "block";
-
-            authMessage.textContent = "";
-
-        }
-    );
-
-}
-
-
-// =========================
-// VOLTAR PARA LOGIN
-// =========================
-
-if (showLoginButton) {
-
-    showLoginButton.addEventListener(
-        "click",
-        () => {
-
-            registerForm.style.display = "none";
-            loginForm.style.display = "block";
-
-            authMessage.textContent = "";
-
-        }
-    );
-
-}
-
-
-// =========================
-// DISCORD — LOGIN
-// =========================
-
-if (discordLoginButton) {
-
-    discordLoginButton.addEventListener(
-        "click",
-        async () => {
-
-            authMessage.textContent =
-                "Conectando ao Discord...";
-
-
-            const { error } =
-                await supabaseClient
-                    .auth
-                    .signInWithOAuth({
-
-                        provider: "discord",
-
-                        options: {
-
-                            redirectTo:
-                                window.location.origin
-
-                        }
-
-                    });
-
-
-            if (error) {
-
-                console.error(
-                    "Erro no Discord:",
-                    error
-                );
-
-                authMessage.textContent =
-                    "Não foi possível entrar com o Discord.";
-
-            }
-
-        }
-    );
-
-}
-
-
-// =========================
-// DISCORD — CADASTRO
-// =========================
-
-if (discordRegisterButton) {
-
-    discordRegisterButton.addEventListener(
-        "click",
-        async () => {
-
-            authMessage.textContent =
-                "Conectando ao Discord...";
-
-
-            const { error } =
-                await supabaseClient
-                    .auth
-                    .signInWithOAuth({
-
-                        provider: "discord",
-
-                        options: {
-
-                            redirectTo:
-                                window.location.origin
-
-                        }
-
-                    });
-
-
-            if (error) {
-
-                console.error(
-                    "Erro no Discord:",
-                    error
-                );
-
-                authMessage.textContent =
-                    "Não foi possível criar a conta com Discord.";
-
-            }
-
-        }
-    );
-
-}
-
-
-// =========================
-// LOGIN COM E-MAIL
-// =========================
-
-if (emailLoginButton) {
-
-    emailLoginButton.addEventListener(
-        "click",
-        async () => {
-
-            const email =
-                document
-                    .getElementById("loginEmail")
-                    .value
-                    .trim();
-
-            const password =
-                document
-                    .getElementById("loginPassword")
-                    .value;
-
-
-            if (!email || !password) {
-
-                authMessage.textContent =
-                    "Preencha o e-mail e a senha.";
-
-                return;
-
-            }
-
-
-            authMessage.textContent =
-                "Entrando...";
-
-
-            const {
-                data,
-                error
-            } = await supabaseClient.auth
-                .signInWithPassword({
-
-                    email: email,
-
-                    password: password
-
-                });
-
-
-            if (error) {
-
-                console.error(
-                    "Erro no login:",
-                    error
-                );
-
-                authMessage.textContent =
-                    "E-mail ou senha incorretos.";
-
-                return;
-
-            }
-
-
-            console.log(
-                "Login realizado:",
-                data.user.email
-            );
-
-
-            authMessage.textContent =
-                "Login realizado com sucesso!";
-
-
-            closeAuthModal();
-
-        }
-    );
-
-}
-
-
-// =========================
-// CRIAR CONTA COM E-MAIL
-// =========================
-
-if (registerButton) {
-
-    registerButton.addEventListener(
-        "click",
-        async () => {
-
-            const email =
-                document
-                    .getElementById("registerEmail")
-                    .value
-                    .trim();
-
-            const password =
-                document
-                    .getElementById("registerPassword")
-                    .value;
-
-            const confirmPassword =
-                document
-                    .getElementById("registerPasswordConfirm")
-                    .value;
-
-
-            if (!email ||
-                !password ||
-                !confirmPassword) {
-
-                authMessage.textContent =
-                    "Preencha todos os campos.";
-
-                return;
-
-            }
-
-
-            if (password !== confirmPassword) {
-
-                authMessage.textContent =
-                    "As senhas não são iguais.";
-
-                return;
-
-            }
-
-
-            if (password.length < 6) {
-
-                authMessage.textContent =
-                    "A senha precisa ter pelo menos 6 caracteres.";
-
-                return;
-
-            }
-
-
-            authMessage.textContent =
-    "Criando sua conta...";
-
-const {
-    data,
-    error
-} = await supabaseClient.auth.signUp({
-    email: email,
-    password: password
-});
-
-if (error) {
-
-    console.error(
-        "Erro ao criar conta:",
-        error
-    );
-
-    authMessage.textContent =
-        error.message;
-
-    return;
-}
-
-console.log(
-    "Conta criada:",
-    data
-);
-
-if (data.session) {
-
-    authMessage.textContent =
-        "Conta criada com sucesso!";
-
-    closeAuthModal();
-
-} else {
-
-    authMessage.textContent =
-        "Conta criada, mas nenhuma sessão foi criada. Verifique a configuração de confirmação de e-mail no Supabase.";
-
-}
-
-
-        }
-    );
-
-}
-
-    // =========================
+    // =====================================================
     // MENU
-    // =========================
+    // =====================================================
 
     if (menuButton) {
 
@@ -791,9 +916,9 @@ if (data.session) {
     }
 
 
-    // =========================
-    // ALTERAÇÕES DE AUTENTICAÇÃO
-    // =========================
+    // =====================================================
+    // ALTERAÇÃO DE AUTENTICAÇÃO
+    // =====================================================
 
     supabaseClient.auth.onAuthStateChange(
         (event, session) => {
@@ -821,22 +946,14 @@ if (data.session) {
 
         }
     );
-const { data, error } = await supabaseClient.auth.signUp({
-    email: email,
-    password: password,
-    options: {
-        emailRedirectTo: window.location.origin
-    }
+
+
+    // =====================================================
+    // FINAL
+    // =====================================================
+
+    console.log(
+        "Aerion main.js carregado corretamente."
+    );
+
 });
-
-if (error) {
-    console.error("Erro ao criar conta:", error);
-    alert(error.message);
-    return;
-}
-
-console.log("Conta criada:", data);
-
-if (data.user && !data.session) {
-    alert("Conta criada! Verifique seu e-mail para confirmar a conta.");
-}
