@@ -2108,55 +2108,40 @@ async function salvarFichaNoSupabase() {
     // =====================================================
     // FINALIZAR FICHA
     // =====================================================
+if (finishCharacterButton) {
 
-    const finishCharacterButton =
-        document.getElementById(
-            "finishCharacterButton"
-        );
+    finishCharacterButton.addEventListener(
+        "click",
+        async () => {
 
-
-    if (finishCharacterButton) {
-
-        finishCharacterButton.addEventListener(
-            "click",
-            async () => {
-
-                if (
-                    !validateCurrentStep()
-                ) {
-
-                    return;
-
-                }
-
-
-                savingStatus();
-
-
-                character.createdAt =
-                    character.createdAt ||
-                    new Date().toISOString();
-
-
-                character.updatedAt =
-                    new Date().toISOString();
-
-
-                saveDraft();
-
-
-         
-
-
-                console.log(
-                    "📜 Ficha:",
-                    character
-                );
-
+            if (!validateCurrentStep()) {
+                return;
             }
-        );
 
-    }
+
+            const sucesso =
+                await salvarFichaNoSupabase();
+
+
+            if (!sucesso) {
+                return;
+            }
+
+
+            alert(
+                "Ficha criada e salva com sucesso!"
+            );
+
+
+            console.log(
+                "📜 Ficha:",
+                character
+            );
+
+        }
+    );
+
+}
 
 
     // =====================================================
