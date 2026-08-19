@@ -1,4 +1,161 @@
 document.addEventListener("DOMContentLoaded", async () => {
+    "use strict";
+
+    const lista = document.getElementById("charactersList");
+    const loading = document.getElementById("loadingCharacters");
+    const empty = document.getElementById("emptyCharacters");
+    const novo = document.getElementById("newCharacterButton");
+    const emptyNovo = document.getElementById("emptyNewCharacterButton");
+    const back = document.getElementById("backButton");
+
+    const {
+        data: { session }
+    } = await supabaseClient.auth.getSession();
+
+    if (!session) {
+        window.location.href = "index.html";
+        return;
+    }
+
+    if (back) {
+        back.addEventListener("click", () => {
+            window.location.href = "index.html";
+        });
+    }
+
+    function formatDate(value) {
+        if (!value) return "Sem atualização";
+
+        const date = new Date(value);
+        if (Number.isNaN(date.getTime())) return "Sem atualização";
+
+        return date.toLocaleDateString("pt-BR", {
+            day: "2-digit",
+            month: "2-digit",
+            year: "numeric"
+        });
+    }
+
+    function escapeHtml(value) {
+        return String(value ?? "")
+            .replaceAll("&", "&amp;")
+            .replaceAll("<", "&lt;")
+            .replaceAll(">", "&gt;")
+            .replaceAll('"', "&quot;")
+            .replaceAll("'", "&#039;");
+    }
+
+    async function carregarFichas() {
+        loading.style.display = "block";
+        empty.style.display = "none";
+        lista.innerHTML = "";
+
+        const { data, error } = await supabaseClient
+            .from("characters")
+            .select("id,name,race,class,power,updated_at")
+            .eq("user_id", session.user.id)
+            .order("updated_at", { ascending: false });
+
+        loading.style.display = "none";
+
+        if (error) {
+            console.error("Erro ao carregar fichas:", error);
+            lista.innerHTML = `
+                <div class="characters-message">
+                    <h3>Erro ao carregar fichas.</h3>
+                    <p>Tente recarregar a página.</p>
+                </div>
+            `;
+            return;
+        }
+
+        if (!data || data.length === 0) {
+            empty.style.display = "block";
+            return;
+        }
+
+        data.forEach((ficha) => {
+            const card = document.createElement("article");
+            card.className = "character-card";
+            card.innerHTML = `
+                <div class="character-card-main">
+                    <div class="character-card-avatar">A</div>
+
+                    <div class="character-card-info">
+                        <h3>${escapeHtml(ficha.name || "Sem nome")}</h3>
+                        <p>
+                            ${escapeHtml(ficha.race || "Sem raça")}
+                            <span>•</span>
+                            ${escapeHtml(ficha.class || "Sem classe")}
+                        </p>
+
+                        ${ficha.power ? `<small>${escapeHtml(ficha.power)}</small>` : ""}
+                    </div>
+                </div>
+
+                <div class="character-card-footer">
+                    <small>Atualizada em ${formatDate(ficha.updated_at)}</small>
+
+                    <div class="character-card-actions">
+                        <button type="button" class="character-edit" data-id="${escapeHtml(ficha.id)}">
+                            Editar
+                        </button>
+
+                        <button type="button" class="character-delete" data-id="${escapeHtml(ficha.id)}">
+                            Excluir
+                        </button>
+                    </div>
+                </div>
+            `;
+
+            card.querySelector(".character-edit").addEventListener("click", () => {
+                localStorage.setItem("aerion_character_id", ficha.id);
+                window.location.href = "ficha-view.html";
+            });
+
+            card.querySelector(".character-delete").addEventListener("click", async () => {
+                const confirmed = window.confirm(
+                    `Excluir a ficha "${ficha.name || "Sem nome"}"? Essa ação não pode ser desfeita.`
+                );
+
+                if (!confirmed) return;
+
+                const { error: deleteError } = await supabaseClient
+                    .from("characters")
+                    .delete()
+                    .eq("id", ficha.id)
+                    .eq("user_id", session.user.id);
+
+                if (deleteError) {
+                    console.error("Erro ao excluir ficha:", deleteError);
+                    window.alert("Não foi possível excluir a ficha.");
+                    return;
+                }
+
+                await carregarFichas();
+            });
+
+            card.addEventListener("dblclick", () => {
+                localStorage.setItem("aerion_character_id", ficha.id);
+                window.location.href = "ficha-view.html";
+            });
+
+            lista.appendChild(card);
+        });
+    }
+
+    function novaFicha() {
+        localStorage.removeItem("aerion_character_id");
+        localStorage.removeItem("aerion_character_draft");
+        window.location.href = "ficha.html";
+    }
+
+    novo?.addEventListener("click", novaFicha);
+    emptyNovo?.addEventListener("click", novaFicha);
+
+    carregarFichas();
+});
+document.addEventListener("DOMContentLoaded", async () => {
 
     const lista =
         document.getElementById("charactersList");
