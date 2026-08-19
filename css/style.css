@@ -2277,3 +2277,212 @@ img {
         scroll-behavior: auto !important;
     }
 }
+CSS para "fichas.html"
+
+/* ========================================
+   AERION - LISTA DE FICHAS
+======================================== */
+
+.characters-page {
+    min-height: 100vh;
+}
+
+
+.characters-content {
+    width: min(1100px, 92%);
+    margin: 0 auto;
+    padding: 40px 0 80px;
+}
+
+
+.characters-heading {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 24px;
+    margin-bottom: 35px;
+}
+
+
+.characters-heading h2 {
+    margin: 8px 0;
+}
+
+
+.characters-heading p {
+    margin: 0;
+    opacity: 0.7;
+}
+
+
+.characters-grid {
+    display: grid;
+    grid-template-columns:
+        repeat(auto-fit, minmax(280px, 1fr));
+
+    gap: 20px;
+}
+
+
+.character-card {
+    padding: 24px;
+    border-radius: 16px;
+
+    border: 1px solid rgba(255,255,255,0.08);
+
+    background: rgba(255,255,255,0.03);
+
+    transition:
+        transform 0.2s ease,
+        border-color 0.2s ease;
+}
+
+
+.character-card:hover {
+    transform: translateY(-3px);
+
+    border-color:
+        rgba(255,255,255,0.18);
+}
+
+
+.character-card-header {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-bottom: 24px;
+}
+
+
+.character-avatar {
+    width: 52px;
+    height: 52px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    border-radius: 50%;
+
+    font-size: 22px;
+    font-weight: bold;
+
+    border: 1px solid rgba(255,255,255,0.12);
+
+    background: rgba(255,255,255,0.06);
+}
+
+
+.character-card-title {
+    min-width: 0;
+}
+
+
+.character-card-title h3 {
+    margin: 0 0 5px;
+
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+
+.character-card-title span {
+    font-size: 12px;
+    opacity: 0.55;
+}
+
+
+.character-card-info {
+    display: grid;
+
+    grid-template-columns:
+        repeat(2, 1fr);
+
+    gap: 12px;
+
+    margin-bottom: 24px;
+}
+
+
+.character-info-item {
+    padding: 12px;
+
+    border-radius: 10px;
+
+    background:
+        rgba(255,255,255,0.03);
+}
+
+
+.character-info-item span {
+    display: block;
+
+    margin-bottom: 4px;
+
+    font-size: 11px;
+
+    opacity: 0.55;
+
+    text-transform: uppercase;
+}
+
+
+.character-info-item strong {
+    font-size: 14px;
+}
+
+
+.character-card-actions {
+    display: flex;
+    gap: 10px;
+}
+
+
+.character-card-actions button {
+    flex: 1;
+}
+
+
+.characters-message {
+    padding: 50px 20px;
+
+    text-align: center;
+
+    border-radius: 16px;
+
+    border: 1px solid rgba(255,255,255,0.08);
+
+    background:
+        rgba(255,255,255,0.03);
+}
+
+
+.characters-message h3 {
+    margin-top: 0;
+}
+
+
+@media (max-width: 650px) {
+
+    .characters-content {
+        padding-top: 25px;
+    }
+
+
+    .characters-heading {
+        align-items: stretch;
+        flex-direction: column;
+    }
+
+
+    .characters-heading button {
+        width: 100%;
+    }
+
+
+    .character-card-actions {
+        flex-direction: column;
+    }
+
+}
