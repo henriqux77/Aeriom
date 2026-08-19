@@ -1,1 +1,290 @@
-.
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aerion — Ficha</title>
+
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/ficha-view.css">
+</head>
+
+<body class="aerion-sheet-body">
+
+<main class="aerion-sheet">
+
+    <header class="sheet-topbar">
+        <button id="backButton" class="sheet-icon-button" type="button" aria-label="Voltar">
+            ←
+        </button>
+
+        <div class="sheet-brand">
+            <span>AERION</span>
+            <strong id="sheetMode">Ficha</strong>
+        </div>
+
+        <div class="sheet-save">
+            <span id="saveIndicator" class="save-indicator saved">Salvo</span>
+        </div>
+    </header>
+
+    <section id="sheetLoading" class="sheet-state">
+        <div class="sheet-loader"></div>
+        <p>Carregando ficha...</p>
+    </section>
+
+    <section id="sheetError" class="sheet-state sheet-error" hidden>
+        <h2>Não foi possível carregar a ficha</h2>
+        <p id="sheetErrorText">A ficha não foi encontrada.</p>
+        <button id="backErrorButton" class="sheet-button" type="button">Voltar para minhas fichas</button>
+    </section>
+
+    <section id="sheetContent" hidden>
+
+        <section class="sheet-hero">
+            <div class="sheet-avatar" id="characterAvatar" aria-hidden="true">A</div>
+
+            <div class="sheet-identity">
+                <label for="characterName">PERSONAGEM</label>
+                <input id="characterName" class="sheet-name-input" type="text" maxlength="60" placeholder="Nome do personagem">
+
+                <div class="sheet-tags">
+                    <span id="raceTag">—</span>
+                    <span id="classTag">—</span>
+                    <span id="powerTag">—</span>
+                </div>
+
+                <div class="sheet-meta">
+                    <label for="characterAge">IDADE</label>
+                    <input id="characterAge" type="number" min="0" max="999" placeholder="—">
+                    <span class="sheet-dot">•</span>
+                    <span id="updatedLabel">—</span>
+                </div>
+            </div>
+        </section>
+
+        <section class="sheet-section active" data-section="informacoes">
+            <div class="section-heading">
+                <div>
+                    <span class="section-kicker">01</span>
+                    <h2>Informações</h2>
+                </div>
+                <span class="section-description">Dados principais do personagem</span>
+            </div>
+
+            <div class="sheet-grid two">
+                <label class="sheet-field">
+                    <span>Raça</span>
+                    <input id="characterRace" type="text" maxlength="80">
+                </label>
+
+                <label class="sheet-field">
+                    <span>Classe</span>
+                    <input id="characterClass" type="text" maxlength="80">
+                </label>
+
+                <label class="sheet-field">
+                    <span>Habilidade racial</span>
+                    <input id="racialAbility" type="text" maxlength="120">
+                </label>
+
+                <label class="sheet-field">
+                    <span>Bônus de classe</span>
+                    <input id="classBonus" type="text" maxlength="120">
+                </label>
+
+                <label class="sheet-field">
+                    <span>Poder</span>
+                    <input id="characterPower" type="text" maxlength="100">
+                </label>
+
+                <label class="sheet-field">
+                    <span>Origem</span>
+                    <input id="characterOrigin" type="text" maxlength="120">
+                </label>
+            </div>
+        </section>
+
+        <section class="sheet-section" data-section="descricao">
+            <div class="section-heading">
+                <div>
+                    <span class="section-kicker">02</span>
+                    <h2>Descrição</h2>
+                </div>
+                <span class="section-description">Quem é esse personagem?</span>
+            </div>
+
+            <div class="sheet-grid">
+                <label class="sheet-field">
+                    <span>Aparência</span>
+                    <textarea id="characterAppearance" maxlength="1000"></textarea>
+                </label>
+
+                <label class="sheet-field">
+                    <span>Personalidade</span>
+                    <textarea id="characterPersonality" maxlength="1000"></textarea>
+                </label>
+
+                <label class="sheet-field">
+                    <span>Objetivo</span>
+                    <textarea id="characterObjective" maxlength="500"></textarea>
+                </label>
+
+                <label class="sheet-field">
+                    <span>Medo</span>
+                    <textarea id="characterFear" maxlength="200"></textarea>
+                </label>
+
+                <label class="sheet-field">
+                    <span>Vínculo</span>
+                    <textarea id="characterBond" maxlength="300"></textarea>
+                </label>
+
+                <label class="sheet-field">
+                    <span>História</span>
+                    <textarea id="characterHistory" maxlength="1500"></textarea>
+                </label>
+            </div>
+        </section>
+
+        <section class="sheet-section" data-section="atributos">
+            <div class="section-heading">
+                <div>
+                    <span class="section-kicker">03</span>
+                    <h2>Atributos</h2>
+                </div>
+                <span class="section-description">Dados usados nos testes</span>
+            </div>
+
+            <div id="attributesGrid" class="attributes-grid"></div>
+        </section>
+
+        <section class="sheet-section" data-section="mana">
+            <div class="section-heading">
+                <div>
+                    <span class="section-kicker">04</span>
+                    <h2>Mana</h2>
+                </div>
+                <span class="section-description">Energia e poder do personagem</span>
+            </div>
+
+            <div class="sheet-grid two">
+                <label class="sheet-field">
+                    <span>Cor da Mana</span>
+                    <select id="manaColor">
+                        <option value="">Não definida</option>
+                        <option value="azul">Azul</option>
+                        <option value="roxa">Roxa</option>
+                        <option value="dourada">Dourada</option>
+                        <option value="branca">Branca</option>
+                    </select>
+                </label>
+
+                <label class="sheet-field">
+                    <span>Controle de Mana</span>
+                    <input id="manaControl" type="text" maxlength="50">
+                </label>
+
+                <label class="sheet-field">
+                    <span>Reserva de Mana</span>
+                    <input id="manaReserve" type="text" maxlength="50">
+                </label>
+            </div>
+        </section>
+
+        <section class="sheet-section" data-section="tecnicas">
+            <div class="section-heading">
+                <div>
+                    <span class="section-kicker">05</span>
+                    <h2>Técnicas</h2>
+                </div>
+                <span class="section-description">Técnicas e magias conhecidas</span>
+            </div>
+
+            <div id="techniquesList" class="techniques-list"></div>
+            <p id="noTechniques" class="empty-section" hidden>Nenhuma técnica cadastrada.</p>
+        </section>
+
+        <section class="sheet-section placeholder-section" data-section="pericias">
+            <div class="section-heading">
+                <div>
+                    <span class="section-kicker">06</span>
+                    <h2>Perícias</h2>
+                </div>
+                <span class="section-description">Em desenvolvimento</span>
+            </div>
+            <p>Esta área ficará pronta quando o sistema de perícias for definido.</p>
+        </section>
+
+        <section class="sheet-section placeholder-section" data-section="combate">
+            <div class="section-heading">
+                <div>
+                    <span class="section-kicker">07</span>
+                    <h2>Combate</h2>
+                </div>
+                <span class="section-description">Em desenvolvimento</span>
+            </div>
+            <p>PV, defesa, ações e demais regras de combate entrarão aqui.</p>
+        </section>
+
+        <section class="sheet-section placeholder-section" data-section="inventario">
+            <div class="section-heading">
+                <div>
+                    <span class="section-kicker">08</span>
+                    <h2>Inventário</h2>
+                </div>
+                <span class="section-description">Em desenvolvimento</span>
+            </div>
+            <p>Itens, armas, armaduras, recursos e equipamentos entrarão aqui.</p>
+        </section>
+
+        <section class="sheet-section placeholder-section" data-section="habilidades">
+            <div class="section-heading">
+                <div>
+                    <span class="section-kicker">09</span>
+                    <h2>Habilidades</h2>
+                </div>
+                <span class="section-description">Em desenvolvimento</span>
+            </div>
+            <p>Habilidades adquiridas durante a campanha entrarão aqui.</p>
+        </section>
+
+        <section class="sheet-section placeholder-section" data-section="rituais">
+            <div class="section-heading">
+                <div>
+                    <span class="section-kicker">10</span>
+                    <h2>Rituais</h2>
+                </div>
+                <span class="section-description">Em desenvolvimento</span>
+            </div>
+            <p>Rituais e sistemas relacionados serão adicionados posteriormente.</p>
+        </section>
+
+    </section>
+
+    <div id="quickMenu" class="quick-menu" aria-hidden="true">
+        <button class="quick-item" type="button" data-target="informacoes"><b>01</b><span>Informações</span></button>
+        <button class="quick-item" type="button" data-target="descricao"><b>02</b><span>Descrição</span></button>
+        <button class="quick-item" type="button" data-target="atributos"><b>03</b><span>Atributos</span></button>
+        <button class="quick-item" type="button" data-target="mana"><b>04</b><span>Mana</span></button>
+        <button class="quick-item" type="button" data-target="tecnicas"><b>05</b><span>Técnicas</span></button>
+        <button class="quick-item" type="button" data-target="pericias"><b>06</b><span>Perícias</span></button>
+        <button class="quick-item" type="button" data-target="combate"><b>07</b><span>Combate</span></button>
+        <button class="quick-item" type="button" data-target="inventario"><b>08</b><span>Inventário</span></button>
+        <button class="quick-item" type="button" data-target="habilidades"><b>09</b><span>Habilidades</span></button>
+        <button class="quick-item" type="button" data-target="rituais"><b>10</b><span>Rituais</span></button>
+    </div>
+
+    <button id="quickActionButton" class="quick-action-button" type="button" aria-label="Abrir navegação rápida" aria-expanded="false">
+        <span>A</span>
+    </button>
+
+</main>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="js/supabase.js?v=3"></script>
+<script src="js/auth.js?v=3"></script>
+<script src="js/ficha-view.js?v=1"></script>
+
+</body>
+</html>
