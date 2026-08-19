@@ -1,9 +1,22 @@
 /* =========================================================
-   AERION — Tela inicial
-   Estilos mobile-first para o HTML fornecido
+   AERION — style.css COMPLETO
+   Página Principal + Criação de Ficha
+   Reconstrução total preservando identidade e funcionalidades
+========================================================= */
+
+/* =========================================================
+   1. RESET E VARIÁVEIS
 ========================================================= */
 
 @import url("https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700&family=Libre+Baskerville:wght@400;700&display=swap");
+
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
 
 :root {
     color-scheme: dark;
@@ -12,6 +25,7 @@
     --black-soft: #0b0909;
     --surface: #100d0d;
     --surface-light: #171010;
+    --surface-lighter: #1e1512;
     --line: rgba(202, 92, 44, 0.32);
     --line-bright: rgba(239, 112, 53, 0.62);
     --cream: #ead7b6;
@@ -25,16 +39,12 @@
     --body-font: "Libre Baskerville", Georgia, serif;
 }
 
-*,
-*::before,
-*::after {
-    box-sizing: border-box;
-}
-
 html {
     min-width: 320px;
     background: var(--black);
     scroll-behavior: smooth;
+    -webkit-text-size-adjust: 100%;
+    -webkit-tap-highlight-color: transparent;
 }
 
 body {
@@ -48,28 +58,42 @@ body {
     color: var(--cream);
     font-family: var(--body-font);
     -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
     text-rendering: optimizeLegibility;
 }
 
 button,
-a {
+input,
+select,
+textarea {
+    font: inherit;
+    color: inherit;
     -webkit-tap-highlight-color: transparent;
 }
 
 button {
-    font: inherit;
+    cursor: pointer;
+    border: none;
+    background: none;
 }
 
 button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible,
 a:focus-visible {
     outline: 2px solid var(--gold);
-    outline-offset: 4px;
+    outline-offset: 2px;
 }
 
 img {
     display: block;
     max-width: 100%;
 }
+
+/* =========================================================
+   2. PÁGINA PRINCIPAL — HOME
+========================================================= */
 
 .home {
     position: relative;
@@ -102,7 +126,7 @@ img {
 }
 
 /* =========================================================
-   Cabeçalho
+   3. CABEÇALHO PRINCIPAL
 ========================================================= */
 
 .header {
@@ -217,7 +241,7 @@ img {
 }
 
 /* =========================================================
-   Hero
+   4. HERO
 ========================================================= */
 
 .hero {
@@ -265,7 +289,7 @@ img {
 }
 
 /* =========================================================
-   Identidade
+   5. IDENTIDADE / LOGO PRINCIPAL
 ========================================================= */
 
 .intro {
@@ -283,7 +307,7 @@ img {
 }
 
 /* =========================================================
-   Ações
+   6. AÇÕES DE AUTENTICAÇÃO
 ========================================================= */
 
 .auth-actions {
@@ -352,6 +376,10 @@ img {
     filter: saturate(1.16) brightness(1.08);
 }
 
+.primary-button:active {
+    transform: translateY(2px);
+}
+
 .secondary-button {
     border: 1px solid rgba(132, 57, 36, 0.55);
     background:
@@ -371,9 +399,14 @@ img {
         0 0.35rem 1.2rem rgba(129, 36, 19, 0.22);
 }
 
-.primary-button:active,
 .secondary-button:active {
     transform: translateY(2px);
+}
+
+.secondary-button:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+    pointer-events: none;
 }
 
 .button-icon {
@@ -392,7 +425,7 @@ img {
 }
 
 /* =========================================================
-   Funcionalidades
+   7. FUNCIONALIDADES (CARDS)
 ========================================================= */
 
 .features {
@@ -496,91 +529,9 @@ img {
 }
 
 /* =========================================================
-   Telas maiores
+   8. MODAL DE AUTENTICAÇÃO
 ========================================================= */
 
-@media (min-width: 40rem) {
-    .home {
-        padding-right: 1.5rem;
-        padding-left: 1.5rem;
-    }
-
-    .header {
-        width: calc(100% + 3rem);
-        min-height: 6.5rem;
-        margin-left: -1.5rem;
-        padding-right: 1.5rem;
-        padding-left: 1.5rem;
-    }
-
-    .header::after {
-        right: 1.5rem;
-        left: 1.5rem;
-    }
-
-    .header-logo {
-        width: 12rem;
-    }
-
-    .hero {
-        margin-right: -0.5rem;
-        margin-left: -0.5rem;
-    }
-
-    .hero-image {
-        aspect-ratio: 1.9 / 1;
-    }
-
-    .intro {
-        padding-top: 2.1rem;
-    }
-
-    .main-logo {
-        width: 17rem;
-    }
-
-    .auth-actions {
-        margin-top: 1.8rem;
-    }
-
-    .features {
-        width: 25rem;
-        margin-top: 5rem;
-    }
-}
-
-@media (min-width: 60rem) {
-    .home {
-        width: min(100%, 50rem);
-        padding-bottom: 4rem;
-    }
-
-    .header {
-        min-height: 7rem;
-    }
-
-    .hero {
-        margin-top: 2.6rem;
-    }
-
-    .feature-card {
-        min-height: 9.2rem;
-    }
-}
-
-@media (prefers-reduced-motion: reduce) {
-    *,
-    *::before,
-    *::after {
-        scroll-behavior: auto !important;
-        transition-duration: 0.01ms !important;
-        animation-duration: 0.01ms !important;
-        animation-iteration-count: 1 !important;
-    }
-      }
-/* ============================================
-   MODAL DE AUTENTICAÇÃO
-============================================ */
 .auth-modal {
     position: fixed;
     inset: 0;
@@ -626,7 +577,6 @@ img {
     overflow-y: auto;
 }
 
-/* Borda ornamental */
 .auth-box::before {
     content: '';
     position: absolute;
@@ -640,8 +590,8 @@ img {
     position: absolute;
     top: 16px;
     right: 16px;
-    background: none;
-    border: none;
+    background: rgba(180, 70, 30, 0.04);
+    border: 1px solid rgba(180, 70, 30, 0.06);
     color: #8a6a5a;
     font-size: 28px;
     cursor: pointer;
@@ -653,8 +603,6 @@ img {
     border-radius: 12px;
     transition: all 0.25s ease;
     font-family: 'Georgia', serif;
-    background: rgba(180, 70, 30, 0.04);
-    border: 1px solid rgba(180, 70, 30, 0.06);
 }
 
 .auth-close:active {
@@ -663,9 +611,6 @@ img {
     border-color: rgba(180, 70, 30, 0.15);
 }
 
-/* ============================================
-   TÍTULOS E TEXTOS
-============================================ */
 .auth-box h2 {
     font-size: 24px;
     color: #e8d4c0;
@@ -695,9 +640,6 @@ img {
     letter-spacing: 0.3px;
 }
 
-/* ============================================
-   BOTÃO DISCORD
-============================================ */
 .auth-discord {
     display: flex;
     align-items: center;
@@ -712,7 +654,6 @@ img {
     letter-spacing: 0.5px;
     cursor: pointer;
     transition: all 0.3s ease;
-    border: none;
     background: linear-gradient(145deg, #2d1a10, #1a0e08);
     color: #d4b8a0;
     box-shadow:
@@ -728,9 +669,6 @@ img {
     border-color: rgba(180, 100, 60, 0.20);
 }
 
-/* ============================================
-   DIVIDER
-============================================ */
 .auth-divider {
     display: flex;
     align-items: center;
@@ -755,9 +693,6 @@ img {
     font-family: 'Georgia', serif;
 }
 
-/* ============================================
-   CAMPOS DE INPUT
-============================================ */
 .auth-box input {
     width: 100%;
     padding: 16px 18px;
@@ -793,9 +728,6 @@ img {
     border-color: rgba(180, 70, 30, 0.15);
 }
 
-/* ============================================
-   BOTÕES DE AÇÃO (Login / Registrar)
-============================================ */
 .auth-box #emailLoginButton,
 .auth-box #registerButton {
     width: 100%;
@@ -828,9 +760,6 @@ img {
     box-shadow: 0 2px 10px rgba(180, 50, 10, 0.15);
 }
 
-/* ============================================
-   BOTÕES SECUNDÁRIOS (alternar formulário)
-============================================ */
 .auth-box #showRegisterButton,
 .auth-box #showLoginButton {
     width: 100%;
@@ -856,9 +785,6 @@ img {
     transform: scale(0.97);
 }
 
-/* ============================================
-   MENSAGEM DE STATUS
-============================================ */
 #authMessage {
     text-align: center;
     font-size: 14px;
@@ -884,9 +810,6 @@ img {
     border-color: rgba(60, 180, 40, 0.06);
 }
 
-/* ============================================
-   SCROLLBAR DO MODAL
-============================================ */
 .auth-box::-webkit-scrollbar {
     width: 4px;
 }
@@ -900,104 +823,6 @@ img {
     border-radius: 4px;
 }
 
-/* ============================================
-   RESPONSIVIDADE
-============================================ */
-@media (min-width: 600px) {
-    .auth-box {
-        padding: 40px 32px 32px;
-        border-radius: 32px;
-        max-width: 460px;
-    }
-
-    .auth-box::before {
-        inset: 8px;
-        border-radius: 24px;
-    }
-
-    .auth-box h2 {
-        font-size: 28px;
-    }
-
-    .auth-box input {
-        padding: 18px 20px;
-        font-size: 16px;
-        border-radius: 14px;
-    }
-
-    .auth-discord {
-        padding: 18px 24px;
-        font-size: 17px;
-        min-height: 60px;
-        border-radius: 16px;
-    }
-
-    .auth-box #emailLoginButton,
-    .auth-box #registerButton {
-        padding: 20px;
-        font-size: 18px;
-        min-height: 64px;
-        border-radius: 16px;
-    }
-
-    .auth-close {
-        top: 20px;
-        right: 20px;
-        width: 48px;
-        height: 48px;
-        font-size: 30px;
-    }
-}
-
-@media (max-width: 400px) {
-    .auth-box {
-        padding: 24px 16px 20px;
-        border-radius: 24px;
-    }
-
-    .auth-box h2 {
-        font-size: 20px;
-    }
-
-    .auth-box input {
-        padding: 14px 16px;
-        font-size: 14px;
-    }
-
-    .auth-discord {
-        padding: 14px 16px;
-        font-size: 14px;
-        min-height: 50px;
-    }
-
-    .auth-box #emailLoginButton,
-    .auth-box #registerButton {
-        padding: 16px;
-        font-size: 15px;
-        min-height: 54px;
-    }
-
-    .auth-close {
-        top: 12px;
-        right: 12px;
-        width: 40px;
-        height: 40px;
-        font-size: 24px;
-    }
-}
-
-/* ============================================
-   ACESSIBILIDADE
-============================================ */
-.auth-box button:focus-visible,
-.auth-box input:focus-visible {
-    outline: 2px solid #d4946a;
-    outline-offset: 3px;
-}
-
-/* ============================================
-   ANIMAÇÃO DE ENTRADA PARA BOTÕES
-============================================ */
 .auth-discord,
 .auth-box input,
 .auth-box #emailLoginButton,
@@ -1023,14 +848,12 @@ img {
         opacity: 1;
         transform: translateY(0);
     }
-}/* =========================================================
-   PERFIL AERION — Painel de Perfil
-   Estilos exclusivos para o perfil do usuário
+}
+
+/* =========================================================
+   9. PERFIL AERION
 ========================================================= */
 
-/* ============================================
-   PAINEL PRINCIPAL DO PERFIL
-============================================ */
 .profile-panel {
     position: fixed;
     inset: 0;
@@ -1045,7 +868,6 @@ img {
     animation: profileFadeIn 0.35s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-/* Efeito de profundidade no backdrop */
 .profile-panel::before {
     content: '';
     position: fixed;
@@ -1067,9 +889,6 @@ img {
     }
 }
 
-/* ============================================
-   BOTÃO FECHAR (×)
-============================================ */
 .profile-close {
     position: fixed;
     top: 20px;
@@ -1108,9 +927,6 @@ img {
     border-color: rgba(180, 70, 30, 0.55);
 }
 
-/* ============================================
-   CAIXA CENTRAL DO PERFIL
-============================================ */
 .profile-content {
     background: linear-gradient(170deg, #160e09, #0a0705);
     border: 1px solid rgba(180, 70, 30, 0.18);
@@ -1141,7 +957,6 @@ img {
     }
 }
 
-/* Borda ornamental interna */
 .profile-content::before {
     content: '';
     position: absolute;
@@ -1151,7 +966,6 @@ img {
     pointer-events: none;
 }
 
-/* Cantoneiras ornamentais */
 .profile-content::after {
     content: '';
     position: absolute;
@@ -1165,15 +979,11 @@ img {
         linear-gradient(315deg, rgba(200, 100, 50, 0.2) 0%, transparent 20%) bottom right / 40px 40px no-repeat;
 }
 
-/* Garante que o conteúdo fique acima das camadas decorativas */
 .profile-content > * {
     position: relative;
     z-index: 1;
 }
 
-/* ============================================
-   AVATAR DO USUÁRIO
-============================================ */
 .profile-avatar {
     width: 100px;
     height: 100px;
@@ -1192,7 +1002,6 @@ img {
     transition: all 0.3s ease;
 }
 
-/* Efeito hover sutil no avatar */
 .profile-avatar:hover {
     border-color: rgba(200, 100, 50, 0.55);
     box-shadow:
@@ -1202,7 +1011,6 @@ img {
         inset 0 0 20px rgba(0, 0, 0, 0.3);
 }
 
-/* Fallback quando src está vazio */
 .profile-avatar[src=""] {
     background: linear-gradient(145deg, #2a1a10, #1a0e08);
     border: 2px solid rgba(200, 100, 50, 0.35);
@@ -1212,7 +1020,6 @@ img {
         inset 0 0 20px rgba(0, 0, 0, 0.3);
 }
 
-/* Símbolo quando não há imagem */
 .profile-avatar[src=""]::after {
     content: '♙';
     position: absolute;
@@ -1225,9 +1032,6 @@ img {
     text-shadow: 0 2px 10px rgba(180, 50, 10, 0.3);
 }
 
-/* ============================================
-   NOME DO USUÁRIO
-============================================ */
 #profileName {
     font-size: 26px;
     font-family: 'Cinzel', Georgia, serif;
@@ -1240,7 +1044,6 @@ img {
     animation: profileElementIn 0.45s ease 0.15s backwards;
 }
 
-/* Linha decorativa abaixo do nome */
 #profileName::after {
     content: '';
     display: block;
@@ -1251,9 +1054,6 @@ img {
     border-radius: 2px;
 }
 
-/* ============================================
-   EMAIL DO USUÁRIO
-============================================ */
 #profileEmail {
     font-size: 14px;
     font-family: 'Libre Baskerville', Georgia, serif;
@@ -1265,9 +1065,6 @@ img {
     animation: profileElementIn 0.45s ease 0.25s backwards;
 }
 
-/* ============================================
-   BOTÃO EDITAR PERFIL
-============================================ */
 #editProfileButton {
     width: 100%;
     padding: 16px 20px;
@@ -1310,9 +1107,6 @@ img {
         inset 0 1px 0 rgba(0, 0, 0, 0.3);
 }
 
-/* ============================================
-   BOTÃO SAIR DA CONTA
-============================================ */
 #logoutButton {
     width: 100%;
     padding: 16px 20px;
@@ -1354,9 +1148,6 @@ img {
         inset 0 1px 0 rgba(0, 0, 0, 0.4);
 }
 
-/* ============================================
-   ANIMAÇÃO DE ELEMENTOS INTERNOS
-============================================ */
 @keyframes profileElementIn {
     from {
         opacity: 0;
@@ -1368,9 +1159,6 @@ img {
     }
 }
 
-/* ============================================
-   SCROLLBAR DO PAINEL
-============================================ */
 .profile-content::-webkit-scrollbar {
     width: 4px;
 }
@@ -1388,205 +1176,10 @@ img {
     background: #4a3020;
 }
 
-/* ============================================
-   RESPONSIVIDADE
-============================================ */
-@media (min-width: 600px) {
-    .profile-content {
-        padding: 48px 32px 36px;
-        border-radius: 32px;
-        max-width: 460px;
-    }
-
-    .profile-content::before {
-        inset: 10px;
-        border-radius: 22px;
-    }
-
-    .profile-content::after {
-        border-radius: 32px;
-    }
-
-    .profile-avatar {
-        width: 120px;
-        height: 120px;
-        margin-bottom: 28px;
-    }
-
-    #profileName {
-        font-size: 30px;
-    }
-
-    #profileEmail {
-        font-size: 15px;
-        margin-bottom: 36px;
-    }
-
-    #editProfileButton,
-    #logoutButton {
-        padding: 18px 24px;
-        font-size: 16px;
-        min-height: 56px;
-        border-radius: 16px;
-    }
-
-    .profile-close {
-        top: 24px;
-        right: 24px;
-        width: 48px;
-        height: 48px;
-        font-size: 30px;
-        border-radius: 14px;
-    }
-}
-
-@media (max-width: 400px) {
-    .profile-content {
-        padding: 32px 16px 24px;
-        border-radius: 24px;
-    }
-
-    .profile-avatar {
-        width: 80px;
-        height: 80px;
-        margin-bottom: 16px;
-    }
-
-    #profileName {
-        font-size: 22px;
-    }
-
-    #profileEmail {
-        font-size: 13px;
-        margin-bottom: 24px;
-    }
-
-    #editProfileButton,
-    #logoutButton {
-        padding: 14px 16px;
-        font-size: 14px;
-        min-height: 48px;
-        border-radius: 12px;
-    }
-
-    .profile-close {
-        top: 12px;
-        right: 12px;
-        width: 40px;
-        height: 40px;
-        font-size: 24px;
-        border-radius: 10px;
-    }
-}
-
-/* ============================================
-   ACESSIBILIDADE
-============================================ */
-.profile-panel button:focus-visible {
-    outline: 2px solid #d4946a;
-    outline-offset: 3px;
-}
-
-/* Suporte para prefers-reduced-motion */
-@media (prefers-reduced-motion: reduce) {
-    .profile-panel,
-    .profile-content,
-    .profile-close,
-    #editProfileButton,
-    #logoutButton,
-    .profile-avatar,
-    #profileName,
-    #profileEmail {
-        animation-duration: 0.01ms;
-        transition-duration: 0.01ms;
-    }
-}/* =========================================================
-   AERION — CRIAÇÃO DE PERSONAGEM
-   ficha.css — Estilos da página de criação de ficha
+/* =========================================================
+   10. CRIAÇÃO DE PERSONAGEM
 ========================================================= */
 
-/* ============================================
-   RESET E VARIÁVEIS
-============================================ */
-*,
-*::before,
-*::after {
-    box-sizing: border-box;
-    margin: 0;
-    padding: 0;
-}
-
-:root {
-    --black: #050505;
-    --black-soft: #0b0909;
-    --surface: #100d0d;
-    --surface-light: #171010;
-    --surface-lighter: #1e1512;
-    --line: rgba(202, 92, 44, 0.32);
-    --line-bright: rgba(239, 112, 53, 0.62);
-    --cream: #ead7b6;
-    --cream-muted: #ad9575;
-    --gold: #e8a05d;
-    --orange: #f06a2f;
-    --fire: #bc301c;
-    --red-deep: #5b120d;
-
-    --display-font: "Cinzel", Georgia, serif;
-    --body-font: "Libre Baskerville", Georgia, serif;
-}
-
-html {
-    min-width: 320px;
-    background: var(--black);
-    -webkit-text-size-adjust: 100%;
-    -webkit-tap-highlight-color: transparent;
-}
-
-body {
-    min-width: 320px;
-    min-height: 100vh;
-    background:
-        radial-gradient(circle at 50% 28%, rgba(92, 21, 14, 0.15), transparent 28rem),
-        linear-gradient(180deg, #030303 0%, #080606 55%, #030303 100%);
-    color: var(--cream);
-    font-family: var(--body-font);
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
-    text-rendering: optimizeLegibility;
-    overflow-x: hidden;
-}
-
-button,
-input,
-select,
-textarea {
-    font: inherit;
-    color: inherit;
-    -webkit-tap-highlight-color: transparent;
-}
-
-button {
-    cursor: pointer;
-    border: none;
-    background: none;
-}
-
-button:focus-visible,
-input:focus-visible,
-select:focus-visible,
-textarea:focus-visible {
-    outline: 2px solid var(--gold);
-    outline-offset: 2px;
-}
-
-img {
-    display: block;
-    max-width: 100%;
-}
-
-/* ============================================
-   PÁGINA DE CRIAÇÃO
-============================================ */
 .character-creation {
     position: relative;
     width: min(100%, 42rem);
@@ -1595,9 +1188,6 @@ img {
     padding: 0 1rem 8rem;
 }
 
-/* ============================================
-   CABEÇALHO DA CRIAÇÃO
-============================================ */
 .creation-header {
     position: sticky;
     top: 0;
@@ -1688,9 +1278,10 @@ img {
     color: var(--cream-muted);
 }
 
-/* ============================================
-   PROGRESSO DA CRIAÇÃO
-============================================ */
+/* =========================================================
+   11. PROGRESSO DA CRIAÇÃO
+========================================================= */
+
 .creation-progress {
     margin: 1.5rem 0 2rem;
 }
@@ -1739,16 +1330,14 @@ img {
     box-shadow: 0 0 12px rgba(240, 106, 47, 0.4);
 }
 
-/* ============================================
-   ÁREA DE CONTEÚDO
-============================================ */
+/* =========================================================
+   12. ETAPAS DA FICHA
+========================================================= */
+
 .creation-content {
     position: relative;
 }
 
-/* ============================================
-   ETAPAS
-============================================ */
 .creation-step {
     display: none;
     animation: stepFadeIn 0.35s ease;
@@ -1769,9 +1358,6 @@ img {
     }
 }
 
-/* ============================================
-   CABEÇALHO DA ETAPA
-============================================ */
 .step-heading {
     display: flex;
     align-items: flex-start;
@@ -1810,9 +1396,10 @@ img {
     line-height: 1.5;
 }
 
-/* ============================================
-   CAMPOS DE FORMULÁRIO
-============================================ */
+/* =========================================================
+   13. CAMPOS DE FORMULÁRIO DA FICHA
+========================================================= */
+
 .form-group {
     margin-bottom: 1.25rem;
 }
@@ -1891,9 +1478,10 @@ img {
     cursor: pointer;
 }
 
-/* ============================================
-   GRID DE SELEÇÃO (RAÇAS, CLASSES, PODERES)
-============================================ */
+/* =========================================================
+   14. GRID DE SELEÇÃO (RAÇAS, CLASSES, PODERES)
+========================================================= */
+
 .selection-grid {
     display: grid;
     grid-template-columns: 1fr;
@@ -2017,9 +1605,10 @@ img {
     pointer-events: none;
 }
 
-/* ============================================
-   DADOS DISPONÍVEIS (DICE POOL)
-============================================ */
+/* =========================================================
+   15. DADOS DISPONÍVEIS (DICE POOL)
+========================================================= */
+
 .dice-pool {
     margin-bottom: 1.5rem;
     padding: 1rem 1.1rem;
@@ -2064,9 +1653,10 @@ img {
         inset 0 1px 0 rgba(255, 200, 150, 0.1);
 }
 
-/* ============================================
-   LISTA DE ATRIBUTOS
-============================================ */
+/* =========================================================
+   16. LISTA DE ATRIBUTOS
+========================================================= */
+
 .attribute-list {
     display: flex;
     flex-direction: column;
@@ -2129,9 +1719,10 @@ img {
     line-height: 1.6;
 }
 
-/* ============================================
-   MANA
-============================================ */
+/* =========================================================
+   17. MANA
+========================================================= */
+
 .mana-card {
     display: grid;
     grid-template-columns: 1fr;
@@ -2187,9 +1778,10 @@ img {
     line-height: 1.5;
 }
 
-/* ============================================
-   TÉCNICAS
-============================================ */
+/* =========================================================
+   18. TÉCNICAS
+========================================================= */
+
 .technique-list {
     display: flex;
     flex-direction: column;
@@ -2254,9 +1846,10 @@ img {
     transform: scale(0.95);
 }
 
-/* ============================================
-   RESUMO DO PERSONAGEM
-============================================ */
+/* =========================================================
+   19. RESUMO DO PERSONAGEM
+========================================================= */
+
 .character-summary {
     display: flex;
     flex-direction: column;
@@ -2293,104 +1886,10 @@ img {
     word-break: break-word;
 }
 
-/* ============================================
-   BOTÕES PRIMÁRIOS E SECUNDÁRIOS
-============================================ */
-.primary-button,
-.secondary-button {
-    position: relative;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: 0.7rem;
-    width: 100%;
-    min-height: 3.45rem;
-    padding: 0.65rem 1.05rem;
-    border-radius: 0.75rem;
-    color: var(--cream);
-    cursor: pointer;
-    font-family: var(--display-font);
-    font-size: 0.8rem;
-    font-weight: 600;
-    letter-spacing: 0.075em;
-    text-transform: uppercase;
-    transition:
-        border-color 180ms ease,
-        box-shadow 180ms ease,
-        filter 180ms ease,
-        transform 180ms ease;
-}
+/* =========================================================
+   20. NAVEGAÇÃO DA FICHA
+========================================================= */
 
-.primary-button::before,
-.secondary-button::before {
-    position: absolute;
-    inset: 0.22rem;
-    border: 1px solid rgba(255, 193, 113, 0.16);
-    border-radius: 0.56rem;
-    content: '';
-    pointer-events: none;
-}
-
-.primary-button {
-    border: 1px solid #ad321c;
-    background:
-        linear-gradient(
-            180deg,
-            rgba(224, 75, 34, 0.9) 0%,
-            rgba(134, 27, 16, 0.98) 52%,
-            rgba(73, 13, 11, 0.98) 100%
-        );
-    box-shadow:
-        inset 0 1px 0 rgba(255, 174, 94, 0.4),
-        inset 0 -0.35rem 0 rgba(41, 6, 5, 0.34),
-        0 0.35rem 1.3rem rgba(139, 31, 15, 0.3);
-}
-
-.primary-button:hover {
-    border-color: #f08042;
-    box-shadow:
-        inset 0 1px 0 rgba(255, 212, 142, 0.48),
-        inset 0 -0.35rem 0 rgba(41, 6, 5, 0.27),
-        0 0.35rem 1.6rem rgba(193, 48, 20, 0.45);
-    filter: saturate(1.16) brightness(1.08);
-}
-
-.primary-button:active {
-    transform: translateY(2px);
-}
-
-.secondary-button {
-    border: 1px solid rgba(132, 57, 36, 0.55);
-    background:
-        linear-gradient(180deg, rgba(31, 20, 17, 0.92), rgba(9, 8, 8, 0.98)),
-        var(--surface);
-    box-shadow:
-        inset 0 1px 0 rgba(244, 156, 88, 0.11),
-        inset 0 -0.35rem 0 rgba(0, 0, 0, 0.3);
-    color: #cbb99d;
-}
-
-.secondary-button:hover {
-    border-color: var(--line-bright);
-    color: var(--cream);
-    box-shadow:
-        inset 0 1px 0 rgba(244, 156, 88, 0.17),
-        0 0.35rem 1.2rem rgba(129, 36, 19, 0.22);
-}
-
-.secondary-button:active {
-    transform: translateY(2px);
-}
-
-.secondary-button:disabled {
-    opacity: 0.4;
-    cursor: not-allowed;
-    pointer-events: none;
-}
-
-/* ============================================
-   NAVEGAÇÃO ENTRE ETAPAS
-============================================ */
 .creation-navigation {
     position: fixed;
     bottom: 0;
@@ -2414,10 +1913,59 @@ img {
     font-size: 0.75rem;
 }
 
-/* ============================================
-   RESPONSIVIDADE
-============================================ */
-@media (min-width: 600px) {
+/* =========================================================
+   21. RESPONSIVIDADE
+========================================================= */
+
+@media (min-width: 40rem) {
+    .home {
+        padding-right: 1.5rem;
+        padding-left: 1.5rem;
+    }
+
+    .header {
+        width: calc(100% + 3rem);
+        min-height: 6.5rem;
+        margin-left: -1.5rem;
+        padding-right: 1.5rem;
+        padding-left: 1.5rem;
+    }
+
+    .header::after {
+        right: 1.5rem;
+        left: 1.5rem;
+    }
+
+    .header-logo {
+        width: 12rem;
+    }
+
+    .hero {
+        margin-right: -0.5rem;
+        margin-left: -0.5rem;
+    }
+
+    .hero-image {
+        aspect-ratio: 1.9 / 1;
+    }
+
+    .intro {
+        padding-top: 2.1rem;
+    }
+
+    .main-logo {
+        width: 17rem;
+    }
+
+    .auth-actions {
+        margin-top: 1.8rem;
+    }
+
+    .features {
+        width: 25rem;
+        margin-top: 5rem;
+    }
+
     .character-creation {
         padding-right: 1.5rem;
         padding-left: 1.5rem;
@@ -2450,9 +1998,117 @@ img {
         padding-right: 1.5rem;
         padding-left: 1.5rem;
     }
+
+    .profile-content {
+        padding: 48px 32px 36px;
+        border-radius: 32px;
+        max-width: 460px;
+    }
+
+    .profile-content::before {
+        inset: 10px;
+        border-radius: 22px;
+    }
+
+    .profile-content::after {
+        border-radius: 32px;
+    }
+
+    .profile-avatar {
+        width: 120px;
+        height: 120px;
+        margin-bottom: 28px;
+    }
+
+    #profileName {
+        font-size: 30px;
+    }
+
+    #profileEmail {
+        font-size: 15px;
+        margin-bottom: 36px;
+    }
+
+    #editProfileButton,
+    #logoutButton {
+        padding: 18px 24px;
+        font-size: 16px;
+        min-height: 56px;
+        border-radius: 16px;
+    }
+
+    .profile-close {
+        top: 24px;
+        right: 24px;
+        width: 48px;
+        height: 48px;
+        font-size: 30px;
+        border-radius: 14px;
+    }
+
+    .auth-box {
+        padding: 40px 32px 32px;
+        border-radius: 32px;
+        max-width: 460px;
+    }
+
+    .auth-box::before {
+        inset: 8px;
+        border-radius: 24px;
+    }
+
+    .auth-box h2 {
+        font-size: 28px;
+    }
+
+    .auth-box input {
+        padding: 18px 20px;
+        font-size: 16px;
+        border-radius: 14px;
+    }
+
+    .auth-discord {
+        padding: 18px 24px;
+        font-size: 17px;
+        min-height: 60px;
+        border-radius: 16px;
+    }
+
+    .auth-box #emailLoginButton,
+    .auth-box #registerButton {
+        padding: 20px;
+        font-size: 18px;
+        min-height: 64px;
+        border-radius: 16px;
+    }
+
+    .auth-close {
+        top: 20px;
+        right: 20px;
+        width: 48px;
+        height: 48px;
+        font-size: 30px;
+    }
 }
 
-@media (min-width: 900px) {
+@media (min-width: 60rem) {
+    .home {
+        width: min(100%, 50rem);
+        padding-bottom: 4rem;
+    }
+
+    .header {
+        min-height: 7rem;
+    }
+
+    .hero {
+        margin-top: 2.6rem;
+    }
+
+    .feature-card {
+        min-height: 9.2rem;
+    }
+
     .selection-grid {
         grid-template-columns: repeat(3, 1fr);
     }
@@ -2468,7 +2124,79 @@ img {
     }
 }
 
-@media (max-width: 360px) {
+@media (max-width: 400px) {
+    .auth-box {
+        padding: 24px 16px 20px;
+        border-radius: 24px;
+    }
+
+    .auth-box h2 {
+        font-size: 20px;
+    }
+
+    .auth-box input {
+        padding: 14px 16px;
+        font-size: 14px;
+    }
+
+    .auth-discord {
+        padding: 14px 16px;
+        font-size: 14px;
+        min-height: 50px;
+    }
+
+    .auth-box #emailLoginButton,
+    .auth-box #registerButton {
+        padding: 16px;
+        font-size: 15px;
+        min-height: 54px;
+    }
+
+    .auth-close {
+        top: 12px;
+        right: 12px;
+        width: 40px;
+        height: 40px;
+        font-size: 24px;
+    }
+
+    .profile-content {
+        padding: 32px 16px 24px;
+        border-radius: 24px;
+    }
+
+    .profile-avatar {
+        width: 80px;
+        height: 80px;
+        margin-bottom: 16px;
+    }
+
+    #profileName {
+        font-size: 22px;
+    }
+
+    #profileEmail {
+        font-size: 13px;
+        margin-bottom: 24px;
+    }
+
+    #editProfileButton,
+    #logoutButton {
+        padding: 14px 16px;
+        font-size: 14px;
+        min-height: 48px;
+        border-radius: 12px;
+    }
+
+    .profile-close {
+        top: 12px;
+        right: 12px;
+        width: 40px;
+        height: 40px;
+        font-size: 24px;
+        border-radius: 10px;
+    }
+
     .character-creation {
         padding-left: 0.75rem;
         padding-right: 0.75rem;
@@ -2535,14 +2263,17 @@ img {
     }
 }
 
-/* ============================================
-   ACESSIBILIDADE
-============================================ */
+/* =========================================================
+   22. ACESSIBILIDADE
+========================================================= */
+
 @media (prefers-reduced-motion: reduce) {
     *,
     *::before,
     *::after {
         animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
         transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
     }
 }
