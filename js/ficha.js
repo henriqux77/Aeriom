@@ -250,7 +250,247 @@ document.addEventListener("DOMContentLoaded", async () => {
     // =====================================================
 
     let currentStep = 1;
+Carregamento de ficha existente
 
+// =====================================================
+// FICHA EXISTENTE
+// =====================================================
+
+const CHARACTER_ID_KEY =
+    "aerion_character_id";
+
+
+const existingCharacterId =
+    localStorage.getItem(
+        CHARACTER_ID_KEY
+    );
+
+
+// =====================================================
+// CARREGAR FICHA DO SUPABASE
+// =====================================================
+
+async function carregarFichaDoSupabase() {
+
+    if (!existingCharacterId) {
+
+        console.log(
+            "📝 Criando uma nova ficha."
+        );
+
+        return false;
+
+    }
+
+
+    try {
+
+        console.log(
+            "🔎 Carregando ficha:",
+            existingCharacterId
+        );
+
+
+        const {
+            data: { user },
+            error: userError
+        } =
+            await supabaseClient.auth.getUser();
+
+
+        if (userError || !user) {
+
+            console.error(
+                "❌ Usuário não encontrado."
+            );
+
+            window.location.href =
+                "index.html";
+
+            return false;
+
+        }
+
+
+        const {
+            data,
+            error
+        } =
+            await supabaseClient
+                .from("characters")
+                .select("*")
+                .eq(
+                    "id",
+                    existingCharacterId
+                )
+                .eq(
+                    "user_id",
+                    user.id
+                )
+                .single();
+
+
+        if (error) {
+
+            console.error(
+                "❌ Erro ao carregar ficha:",
+                error
+            );
+
+
+            alert(
+                "Não foi possível carregar esta ficha."
+            );
+
+
+            localStorage.removeItem(
+                CHARACTER_ID_KEY
+            );
+
+
+            window.location.href =
+                "fichas.html";
+
+
+            return false;
+
+        }
+
+
+        // =========================================
+        // PREENCHER PERSONAGEM
+        // =========================================
+
+        character.id =
+            data.id;
+
+
+        character.name =
+            data.name || "";
+
+
+        character.age =
+            data.age ?? "";
+
+
+        character.appearance =
+            data.appearance || "";
+
+
+        character.personality =
+            data.personality || "";
+
+
+        character.origin =
+            data.origin || "";
+
+
+        character.objective =
+            data.objective || "";
+
+
+        character.fear =
+            data.fear || "";
+
+
+        character.bond =
+            data.bond || "";
+
+
+        character.history =
+            data.history || "";
+
+
+        character.race =
+            data.race || "";
+
+
+        character.racialAbility =
+            data.racial_ability || "";
+
+
+        character.class =
+            data.class || "";
+
+
+        character.classBonus =
+            data.class_bonus || "";
+
+
+        character.power =
+            data.power || "";
+
+
+        character.attributes =
+            data.attributes || {
+
+                Presença: "",
+                Precisão: "",
+                Intelecto: "",
+                Controle: "",
+                Percepção: "",
+                Vigor: "",
+                Agilidade: "",
+                Força: ""
+
+            };
+
+
+        character.mana =
+            data.mana || {
+
+                control: "",
+                reserve: null,
+                color: ""
+
+            };
+
+
+        character.techniques =
+            Array.isArray(
+                data.techniques
+            )
+                ? data.techniques
+                : [];
+
+
+        character.createdAt =
+            data.created_at;
+
+
+        character.updatedAt =
+            data.updated_at;
+
+
+        // =========================================
+        // RECONSTRUIR DADOS
+        // =========================================
+
+        rebuildAvailableDice();
+
+
+        console.log(
+            "✅ Ficha carregada:",
+            character
+        );
+
+
+        return true;
+
+
+    } catch (error) {
+
+        console.error(
+            "❌ Erro inesperado:",
+            error
+        );
+
+
+        return false;
+
+    }
+
+}
 
     // =====================================================
     // CARREGAR RASCUNHO
@@ -2200,12 +2440,36 @@ if (finishCharacterButton) {
 
     }
 
+Nova inicialização da "ficha.js"
 
-    // =====================================================
-    // INICIALIZAÇÃO
-    // =====================================================
+// =====================================================
+// INICIALIZAÇÃO
+// =====================================================
 
-    loadDraft();
+async function inicializarFicha() {
+
+    // ---------------------------------------------
+    // Se existe ID, carregar do Supabase
+    // ---------------------------------------------
+
+    if (existingCharacterId) {
+
+        await carregarFichaDoSupabase();
+
+    } else {
+
+        // -----------------------------------------
+        // Nova ficha
+        // -----------------------------------------
+
+        loadDraft();
+
+    }
+
+
+    // ---------------------------------------------
+    // Renderizar interface
+    // ---------------------------------------------
 
     renderAttributes();
 
@@ -2219,7 +2483,10 @@ if (finishCharacterButton) {
 
 
     console.log(
-        "🚀 ficha.js carregado corretamente."
+        "🚀 ficha.js inicializado corretamente."
     );
 
-});
+}
+
+
+await inicializarFicha();
