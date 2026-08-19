@@ -250,7 +250,6 @@ document.addEventListener("DOMContentLoaded", async () => {
     // =====================================================
 
     let currentStep = 1;
-Carregamento de ficha existente
 
 // =====================================================
 // FICHA EXISTENTE
