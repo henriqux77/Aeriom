@@ -1869,7 +1869,241 @@ document.addEventListener("DOMContentLoaded", async () => {
             );
 
     }
+// =====================================================
+// SALVAR FICHA NO SUPABASE
+// =====================================================
 
+async function salvarFichaNoSupabase() {
+
+    try {
+
+        saveStatus.textContent = "Salvando...";
+
+
+        // ---------------------------------------------
+        // PEGAR USUÁRIO LOGADO
+        // ---------------------------------------------
+
+        const {
+            data: { user },
+            error: userError
+        } = await supabaseClient.auth.getUser();
+
+
+        if (userError) {
+
+            console.error(
+                "Erro ao obter usuário:",
+                userError
+            );
+
+            alert(
+                "Não foi possível identificar sua conta."
+            );
+
+            return false;
+
+        }
+
+
+        if (!user) {
+
+            alert(
+                "Você precisa estar logado para salvar a ficha."
+            );
+
+            window.location.href = "index.html";
+
+            return false;
+
+        }
+
+
+        // ---------------------------------------------
+        // PREPARAR DADOS
+        // ---------------------------------------------
+
+        const fichaData = {
+
+            user_id: user.id,
+
+            name: character.name.trim(),
+
+            age:
+                character.age
+                    ? Number(character.age)
+                    : null,
+
+            appearance:
+                character.appearance,
+
+            personality:
+                character.personality,
+
+            origin:
+                character.origin,
+
+            objective:
+                character.objective,
+
+            fear:
+                character.fear,
+
+            bond:
+                character.bond,
+
+            history:
+                character.history,
+
+            race:
+                character.race,
+
+            racial_ability:
+                character.racialAbility,
+
+            class:
+                character.class,
+
+            class_bonus:
+                character.classBonus,
+
+            attributes:
+                character.attributes,
+
+            power:
+                character.power,
+
+            mana:
+                character.mana,
+
+            techniques:
+                character.techniques,
+
+            updated_at:
+                new Date().toISOString()
+
+        };
+
+
+        // ---------------------------------------------
+        // CRIAR OU ATUALIZAR
+        // ---------------------------------------------
+
+        let result;
+
+
+        if (character.id) {
+
+            // =========================================
+            // ATUALIZAR FICHA EXISTENTE
+            // =========================================
+
+            result =
+                await supabaseClient
+                    .from("characters")
+                    .update(fichaData)
+                    .eq("id", character.id)
+                    .eq("user_id", user.id)
+                    .select()
+                    .single();
+
+
+        } else {
+
+            // =========================================
+            // CRIAR NOVA FICHA
+            // =========================================
+
+            result =
+                await supabaseClient
+                    .from("characters")
+                    .insert(fichaData)
+                    .select()
+                    .single();
+
+        }
+
+
+        // ---------------------------------------------
+        // VERIFICAR ERRO
+        // ---------------------------------------------
+
+        if (result.error) {
+
+            console.error(
+                "Erro ao salvar ficha:",
+                result.error
+            );
+
+            alert(
+                "Erro ao salvar a ficha no banco de dados."
+            );
+
+            saveStatus.textContent =
+                "Erro ao salvar";
+
+            return false;
+
+        }
+
+
+        // ---------------------------------------------
+        // GUARDAR ID DA FICHA
+        // ---------------------------------------------
+
+        character.id =
+            result.data.id;
+
+
+        character.createdAt =
+            result.data.created_at;
+
+        character.updatedAt =
+            result.data.updated_at;
+
+
+        // ---------------------------------------------
+        // MANTER RASCUNHO LOCAL
+        // ---------------------------------------------
+
+        localStorage.setItem(
+            STORAGE_KEY,
+            JSON.stringify(character)
+        );
+
+
+        saveStatus.textContent =
+            "Salvo";
+
+
+        console.log(
+            "✅ Ficha salva no Supabase:",
+            result.data
+        );
+
+
+        return true;
+
+
+    } catch (error) {
+
+        console.error(
+            "Erro inesperado ao salvar ficha:",
+            error
+        );
+
+        saveStatus.textContent =
+            "Erro ao salvar";
+
+        alert(
+            "Ocorreu um erro ao salvar a ficha."
+        );
+
+        return false;
+
+    }
+
+}
 
     // =====================================================
     // FINALIZAR FICHA
