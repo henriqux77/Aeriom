@@ -2344,10 +2344,35 @@ async function salvarFichaNoSupabase() {
     }
 
 }
+// =====================================================
+// FINALIZAR FICHA
+// =====================================================
 
-    // =====================================================
-    // FINALIZAR FICHA
-    // =====================================================
+const finishCharacterButton =
+    document.getElementById(
+        "finishCharacterButton"
+    );
+
+
+// =====================================================
+// ALTERAR TEXTO DO BOTÃO AO EDITAR
+// =====================================================
+
+if (
+    finishCharacterButton &&
+    existingCharacterId
+) {
+
+    finishCharacterButton.textContent =
+        "Salvar alterações";
+
+}
+
+
+// =====================================================
+// CLIQUE NO BOTÃO
+// =====================================================
+
 if (finishCharacterButton) {
 
     finishCharacterButton.addEventListener(
@@ -2368,9 +2393,19 @@ if (finishCharacterButton) {
             }
 
 
-            alert(
-                "Ficha criada e salva com sucesso!"
-            );
+            if (existingCharacterId) {
+
+                alert(
+                    "Alterações salvas com sucesso!"
+                );
+
+            } else {
+
+                alert(
+                    "Ficha criada e salva com sucesso!"
+                );
+
+            }
 
 
             console.log(
@@ -2382,8 +2417,6 @@ if (finishCharacterButton) {
     );
 
 }
-
-
     // =====================================================
     // VERIFICAR LOGIN
     // =====================================================
