@@ -6,14 +6,20 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     const TOTAL_STEPS = 8;
 
-    const STORAGE_KEY = "aerion_character_draft";
+    const STORAGE_KEY =
+        "aerion_character_draft";
+
+    const CHARACTER_ID_KEY =
+        "aerion_character_id";
 
 
     // =====================================================
     // SUPABASE
     // =====================================================
 
-    const supabaseClient = window.supabaseClient;
+    const supabaseClient =
+        window.supabaseClient;
+
 
     if (!supabaseClient) {
 
@@ -31,28 +37,67 @@ document.addEventListener("DOMContentLoaded", async () => {
     // =====================================================
 
     const steps =
-        document.querySelectorAll(".creation-step");
+        document.querySelectorAll(
+            ".creation-step"
+        );
+
 
     const stepTitle =
-        document.getElementById("stepTitle");
+        document.getElementById(
+            "stepTitle"
+        );
+
 
     const stepCounter =
-        document.getElementById("stepCounter");
+        document.getElementById(
+            "stepCounter"
+        );
+
 
     const progressBar =
-        document.getElementById("progressBar");
+        document.getElementById(
+            "progressBar"
+        );
+
 
     const previousStepButton =
-        document.getElementById("previousStepButton");
+        document.getElementById(
+            "previousStepButton"
+        );
+
 
     const nextStepButton =
-        document.getElementById("nextStepButton");
+        document.getElementById(
+            "nextStepButton"
+        );
+
 
     const backButton =
-        document.getElementById("backButton");
+        document.getElementById(
+            "backButton"
+        );
+
 
     const saveStatus =
-        document.getElementById("saveStatus");
+        document.getElementById(
+            "saveStatus"
+        );
+
+
+    const finishCharacterButton =
+        document.getElementById(
+            "finishCharacterButton"
+        );
+
+
+    // =====================================================
+    // ID DA FICHA EXISTENTE
+    // =====================================================
+
+    let existingCharacterId =
+        localStorage.getItem(
+            CHARACTER_ID_KEY
+        );
 
 
     // =====================================================
@@ -242,7 +287,8 @@ document.addEventListener("DOMContentLoaded", async () => {
     ];
 
 
-    let availableDice = [...startingDice];
+    let availableDice =
+        [...startingDice];
 
 
     // =====================================================
@@ -251,245 +297,326 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     let currentStep = 1;
 
-// =====================================================
-// FICHA EXISTENTE
-// =====================================================
 
-const CHARACTER_ID_KEY =
-    "aerion_character_id";
+    // =====================================================
+    // FUNÇÃO DE ESCAPAR HTML
+    // =====================================================
 
+    function escapeHTML(value) {
 
-const existingCharacterId =
-    localStorage.getItem(
-        CHARACTER_ID_KEY
-    );
+        return String(value)
 
+            .replace(
+                /&/g,
+                "&amp;"
+            )
 
-// =====================================================
-// CARREGAR FICHA DO SUPABASE
-// =====================================================
+            .replace(
+                /</g,
+                "&lt;"
+            )
 
-async function carregarFichaDoSupabase() {
+            .replace(
+                />/g,
+                "&gt;"
+            )
 
-    if (!existingCharacterId) {
+            .replace(
+                /"/g,
+                "&quot;"
+            )
 
-        console.log(
-            "📝 Criando uma nova ficha."
-        );
-
-        return false;
+            .replace(
+                /'/g,
+                "&#039;"
+            );
 
     }
 
 
-    try {
+    // =====================================================
+    // RECONSTRUIR DADOS DISPONÍVEIS
+    // =====================================================
 
-        console.log(
-            "🔎 Carregando ficha:",
-            existingCharacterId
+    function rebuildAvailableDice() {
+
+        availableDice =
+            [...startingDice];
+
+
+        Object.values(
+            character.attributes
+        ).forEach(
+            (die) => {
+
+                if (!die) {
+
+                    return;
+
+                }
+
+
+                const index =
+                    availableDice.indexOf(
+                        die
+                    );
+
+
+                if (index !== -1) {
+
+                    availableDice.splice(
+                        index,
+                        1
+                    );
+
+                }
+
+            }
         );
 
-
-        const {
-            data: { user },
-            error: userError
-        } =
-            await supabaseClient.auth.getUser();
+    }
 
 
-        if (userError || !user) {
+    // =====================================================
+    // CARREGAR FICHA DO SUPABASE
+    // =====================================================
 
-            console.error(
-                "❌ Usuário não encontrado."
+    async function carregarFichaDoSupabase() {
+
+        if (!existingCharacterId) {
+
+            console.log(
+                "📝 Criando uma nova ficha."
             );
 
-            window.location.href =
-                "index.html";
-
-            return false;
+            return true;
 
         }
 
 
-        const {
-            data,
-            error
-        } =
-            await supabaseClient
-                .from("characters")
-                .select("*")
-                .eq(
-                    "id",
-                    existingCharacterId
-                )
-                .eq(
-                    "user_id",
-                    user.id
-                )
-                .single();
+        try {
+
+            console.log(
+                "🔎 Carregando ficha:",
+                existingCharacterId
+            );
 
 
-        if (error) {
+            const {
+                data: { user },
+                error: userError
+            } =
+                await supabaseClient.auth.getUser();
+
+
+            if (
+                userError ||
+                !user
+            ) {
+
+                console.error(
+                    "❌ Usuário não encontrado.",
+                    userError
+                );
+
+
+                window.location.href =
+                    "index.html";
+
+
+                return false;
+
+            }
+
+
+            const {
+                data,
+                error
+            } =
+                await supabaseClient
+
+                    .from("characters")
+
+                    .select("*")
+
+                    .eq(
+                        "id",
+                        existingCharacterId
+                    )
+
+                    .eq(
+                        "user_id",
+                        user.id
+                    )
+
+                    .single();
+
+
+            if (
+                error ||
+                !data
+            ) {
+
+                console.error(
+                    "❌ Erro ao carregar ficha:",
+                    error
+                );
+
+
+                alert(
+                    "Não foi possível carregar esta ficha."
+                );
+
+
+                localStorage.removeItem(
+                    CHARACTER_ID_KEY
+                );
+
+
+                existingCharacterId =
+                    null;
+
+
+                window.location.href =
+                    "fichas.html";
+
+
+                return false;
+
+            }
+
+
+            // =========================================
+            // PREENCHER PERSONAGEM
+            // =========================================
+
+            character.id =
+                data.id;
+
+
+            character.name =
+                data.name || "";
+
+
+            character.age =
+                data.age ?? "";
+
+
+            character.appearance =
+                data.appearance || "";
+
+
+            character.personality =
+                data.personality || "";
+
+
+            character.origin =
+                data.origin || "";
+
+
+            character.objective =
+                data.objective || "";
+
+
+            character.fear =
+                data.fear || "";
+
+
+            character.bond =
+                data.bond || "";
+
+
+            character.history =
+                data.history || "";
+
+
+            character.race =
+                data.race || "";
+
+
+            character.racialAbility =
+                data.racial_ability || "";
+
+
+            character.class =
+                data.class || "";
+
+
+            character.classBonus =
+                data.class_bonus || "";
+
+
+            character.power =
+                data.power || "";
+
+
+            character.attributes =
+                data.attributes || {
+
+                    Presença: "",
+                    Precisão: "",
+                    Intelecto: "",
+                    Controle: "",
+                    Percepção: "",
+                    Vigor: "",
+                    Agilidade: "",
+                    Força: ""
+
+                };
+
+
+            character.mana =
+                data.mana || {
+
+                    control: "",
+                    reserve: null,
+                    color: ""
+
+                };
+
+
+            character.techniques =
+                Array.isArray(
+                    data.techniques
+                )
+                    ? data.techniques
+                    : [];
+
+
+            character.createdAt =
+                data.created_at || null;
+
+
+            character.updatedAt =
+                data.updated_at || null;
+
+
+            rebuildAvailableDice();
+
+
+            console.log(
+                "✅ Ficha carregada:",
+                character
+            );
+
+
+            return true;
+
+
+        } catch (error) {
 
             console.error(
-                "❌ Erro ao carregar ficha:",
+                "❌ Erro inesperado ao carregar ficha:",
                 error
             );
 
 
-            alert(
-                "Não foi possível carregar esta ficha."
-            );
-
-
-            localStorage.removeItem(
-                CHARACTER_ID_KEY
-            );
-
-
-            window.location.href =
-                "fichas.html";
-
-
             return false;
 
         }
 
-
-        // =========================================
-        // PREENCHER PERSONAGEM
-        // =========================================
-
-        character.id =
-            data.id;
-
-
-        character.name =
-            data.name || "";
-
-
-        character.age =
-            data.age ?? "";
-
-
-        character.appearance =
-            data.appearance || "";
-
-
-        character.personality =
-            data.personality || "";
-
-
-        character.origin =
-            data.origin || "";
-
-
-        character.objective =
-            data.objective || "";
-
-
-        character.fear =
-            data.fear || "";
-
-
-        character.bond =
-            data.bond || "";
-
-
-        character.history =
-            data.history || "";
-
-
-        character.race =
-            data.race || "";
-
-
-        character.racialAbility =
-            data.racial_ability || "";
-
-
-        character.class =
-            data.class || "";
-
-
-        character.classBonus =
-            data.class_bonus || "";
-
-
-        character.power =
-            data.power || "";
-
-
-        character.attributes =
-            data.attributes || {
-
-                Presença: "",
-                Precisão: "",
-                Intelecto: "",
-                Controle: "",
-                Percepção: "",
-                Vigor: "",
-                Agilidade: "",
-                Força: ""
-
-            };
-
-
-        character.mana =
-            data.mana || {
-
-                control: "",
-                reserve: null,
-                color: ""
-
-            };
-
-
-        character.techniques =
-            Array.isArray(
-                data.techniques
-            )
-                ? data.techniques
-                : [];
-
-
-        character.createdAt =
-            data.created_at;
-
-
-        character.updatedAt =
-            data.updated_at;
-
-
-        // =========================================
-        // RECONSTRUIR DADOS
-        // =========================================
-
-        rebuildAvailableDice();
-
-
-        console.log(
-            "✅ Ficha carregada:",
-            character
-        );
-
-
-        return true;
-
-
-    } catch (error) {
-
-        console.error(
-            "❌ Erro inesperado:",
-            error
-        );
-
-
-        return false;
-
     }
 
-}
 
     // =====================================================
     // CARREGAR RASCUNHO
@@ -498,7 +625,9 @@ async function carregarFichaDoSupabase() {
     function loadDraft() {
 
         const saved =
-            localStorage.getItem(STORAGE_KEY);
+            localStorage.getItem(
+                STORAGE_KEY
+            );
 
 
         if (!saved) {
@@ -645,74 +774,6 @@ async function carregarFichaDoSupabase() {
 
 
     // =====================================================
-    // MOSTRAR ETAPA
-    // =====================================================
-
-    function showStep(step) {
-
-        if (
-            step < 1 ||
-            step > TOTAL_STEPS
-        ) {
-
-            return;
-
-        }
-
-
-        currentStep = step;
-
-
-        steps.forEach(
-            (element) => {
-
-                const elementStep =
-                    Number(
-                        element.dataset.step
-                    );
-
-
-                if (
-                    elementStep === currentStep
-                ) {
-
-                    element.classList.add(
-                        "active"
-                    );
-
-                } else {
-
-                    element.classList.remove(
-                        "active"
-                    );
-
-                }
-
-            }
-        );
-
-
-        updateProgress();
-
-
-        updateNavigation();
-
-
-        updateStepContent();
-
-
-        window.scrollTo({
-
-            top: 0,
-
-            behavior: "smooth"
-
-        });
-
-    }
-
-
-    // =====================================================
     // TÍTULOS DAS ETAPAS
     // =====================================================
 
@@ -801,6 +862,251 @@ async function carregarFichaDoSupabase() {
 
         }
 
+
+        if (finishCharacterButton) {
+
+            if (
+                currentStep === TOTAL_STEPS
+            ) {
+
+                finishCharacterButton.style.display =
+                    "block";
+
+            } else {
+
+                finishCharacterButton.style.display =
+                    "";
+
+            }
+
+        }
+
+    }
+
+
+    // =====================================================
+    // MOSTRAR ETAPA
+    // =====================================================
+
+    function showStep(step) {
+
+        if (
+            step < 1 ||
+            step > TOTAL_STEPS
+        ) {
+
+            return;
+
+        }
+
+
+        currentStep =
+            step;
+
+
+        steps.forEach(
+            (element) => {
+
+                const elementStep =
+                    Number(
+                        element.dataset.step
+                    );
+
+
+                if (
+                    elementStep ===
+                    currentStep
+                ) {
+
+                    element.classList.add(
+                        "active"
+                    );
+
+                } else {
+
+                    element.classList.remove(
+                        "active"
+                    );
+
+                }
+
+            }
+        );
+
+
+        updateProgress();
+
+        updateNavigation();
+
+        updateStepContent();
+
+
+        window.scrollTo({
+
+            top: 0,
+
+            behavior: "smooth"
+
+        });
+
+    }
+
+
+    // =====================================================
+    // VALIDAR ETAPA
+    // =====================================================
+
+    function validateCurrentStep() {
+
+        // ---------------------------------------------
+        // CONCEITO
+        // ---------------------------------------------
+
+        if (
+            currentStep === 1
+        ) {
+
+            if (
+                !character.name.trim()
+            ) {
+
+                alert(
+                    "Digite o nome do personagem."
+                );
+
+                return false;
+
+            }
+
+        }
+
+
+        // ---------------------------------------------
+        // RAÇA
+        // ---------------------------------------------
+
+        if (
+            currentStep === 2
+        ) {
+
+            if (
+                !character.race
+            ) {
+
+                alert(
+                    "Escolha uma raça."
+                );
+
+                return false;
+
+            }
+
+        }
+
+
+        // ---------------------------------------------
+        // CLASSE
+        // ---------------------------------------------
+
+        if (
+            currentStep === 3
+        ) {
+
+            if (
+                !character.class
+            ) {
+
+                alert(
+                    "Escolha uma classe."
+                );
+
+                return false;
+
+            }
+
+        }
+
+
+        // ---------------------------------------------
+        // ATRIBUTOS
+        // ---------------------------------------------
+
+        if (
+            currentStep === 4
+        ) {
+
+            const missing =
+                attributes.filter(
+                    (attribute) =>
+                        !character.attributes[
+                            attribute
+                        ]
+                );
+
+
+            if (
+                missing.length > 0
+            ) {
+
+                alert(
+                    "Distribua todos os oito dados antes de continuar."
+                );
+
+                return false;
+
+            }
+
+        }
+
+
+        // ---------------------------------------------
+        // PODER
+        // ---------------------------------------------
+
+        if (
+            currentStep === 5
+        ) {
+
+            if (
+                !character.power
+            ) {
+
+                alert(
+                    "Escolha um poder."
+                );
+
+                return false;
+
+            }
+
+        }
+
+
+        // ---------------------------------------------
+        // MANA
+        // ---------------------------------------------
+
+        if (
+            currentStep === 6
+        ) {
+
+            if (
+                !character.mana.color
+            ) {
+
+                alert(
+                    "Escolha a cor da Mana."
+                );
+
+                return false;
+
+            }
+
+        }
+
+
+        return true;
+
     }
 
 
@@ -808,39 +1114,38 @@ async function carregarFichaDoSupabase() {
     // PRÓXIMA ETAPA
     // =====================================================
 
-    // =====================================================
-// ATUALIZAR NAVEGAÇÃO
-// =====================================================
-
-function updateNavigation() {
-
-    if (previousStepButton) {
-
-        previousStepButton.disabled =
-            currentStep === 1;
-
-    }
-
-
     if (nextStepButton) {
 
-        if (
-            currentStep === TOTAL_STEPS
-        ) {
+        nextStepButton.addEventListener(
+            "click",
+            () => {
 
-            nextStepButton.style.display =
-                "none";
+                if (
+                    !validateCurrentStep()
+                ) {
 
-        } else {
+                    return;
 
-            nextStepButton.style.display =
-                "block";
+                }
 
-        }
+
+                if (
+                    currentStep <
+                    TOTAL_STEPS
+                ) {
+
+                    showStep(
+                        currentStep + 1
+                    );
+
+                }
+
+            }
+        );
 
     }
 
-}
+
     // =====================================================
     // ETAPA ANTERIOR
     // =====================================================
@@ -886,7 +1191,7 @@ function updateNavigation() {
                 if (confirmed) {
 
                     window.location.href =
-                        "index.html";
+                        "fichas.html";
 
                 }
 
@@ -961,6 +1266,7 @@ function updateNavigation() {
                     character[property] =
                         element.value;
 
+
                     scheduleSave();
 
                 }
@@ -996,7 +1302,9 @@ function updateNavigation() {
 
 
                     character.racialAbility =
-                        races[race]?.ability || "";
+                        races[
+                            race
+                        ]?.ability || "";
 
 
                     raceButtons.forEach(
@@ -1073,7 +1381,6 @@ function updateNavigation() {
 
                     updateManaControl();
 
-
                     scheduleSave();
 
                 }
@@ -1081,49 +1388,6 @@ function updateNavigation() {
 
         }
     );
-
-
-    // =====================================================
-    // RECONSTRUIR DADOS DISPONÍVEIS
-    // =====================================================
-
-    function rebuildAvailableDice() {
-
-        availableDice =
-            [...startingDice];
-
-
-        Object.values(
-            character.attributes
-        ).forEach(
-            (die) => {
-
-                if (!die) {
-
-                    return;
-
-                }
-
-
-                const index =
-                    availableDice.indexOf(
-                        die
-                    );
-
-
-                if (index !== -1) {
-
-                    availableDice.splice(
-                        index,
-                        1
-                    );
-
-                }
-
-            }
-        );
-
-    }
 
 
     // =====================================================
@@ -1233,12 +1497,15 @@ function updateNavigation() {
                                 a.substring(1)
                             );
 
+
                         const valueB =
                             Number(
                                 b.substring(1)
                             );
 
-                        return valueA - valueB;
+
+                        return valueA -
+                            valueB;
 
                     }
                 );
@@ -1262,7 +1529,8 @@ function updateNavigation() {
 
 
                         if (
-                            die === currentValue
+                            die ===
+                            currentValue
                         ) {
 
                             option.selected =
@@ -1326,11 +1594,13 @@ function updateNavigation() {
 
                         character.attributes[
                             attribute
-                        ] = newValue;
+                        ] =
+                            newValue;
 
+
+                        rebuildAvailableDice();
 
                         renderAttributes();
-
 
                         scheduleSave();
 
@@ -1396,9 +1666,11 @@ function updateNavigation() {
             complete.textContent =
                 "Todos os dados distribuídos";
 
+
             container.appendChild(
                 complete
             );
+
 
             return;
 
@@ -1627,7 +1899,10 @@ function updateNavigation() {
                         </strong>
 
                         <small>
-                            Nível ${technique.level}
+                            Nível
+                            ${escapeHTML(
+                                technique.level
+                            )}
                         </small>
 
                     </div>
@@ -1676,7 +1951,6 @@ function updateNavigation() {
 
 
                             renderTechniques();
-
 
                             scheduleSave();
 
@@ -1751,7 +2025,6 @@ function updateNavigation() {
 
                 renderTechniques();
 
-
                 scheduleSave();
 
             }
@@ -1782,214 +2055,75 @@ function updateNavigation() {
         container.innerHTML = `
 
             <div class="summary-item">
+
                 <span>Nome</span>
+
                 <strong>
                     ${escapeHTML(
                         character.name ||
                         "Não definido"
                     )}
                 </strong>
+
             </div>
 
+
             <div class="summary-item">
+
                 <span>Raça</span>
+
                 <strong>
                     ${escapeHTML(
                         character.race ||
                         "Não definida"
                     )}
                 </strong>
+
             </div>
 
+
             <div class="summary-item">
+
                 <span>Classe</span>
+
                 <strong>
                     ${escapeHTML(
                         character.class ||
                         "Não definida"
                     )}
                 </strong>
+
             </div>
 
+
             <div class="summary-item">
+
                 <span>Poder</span>
+
                 <strong>
                     ${escapeHTML(
                         character.power ||
                         "Não definido"
                     )}
                 </strong>
+
             </div>
 
+
             <div class="summary-item">
+
                 <span>Mana</span>
+
                 <strong>
                     ${escapeHTML(
                         character.mana.color ||
                         "Não definida"
                     )}
                 </strong>
+
             </div>
 
         `;
-
-    }
-
-
-    // =====================================================
-    // VALIDAÇÃO
-    // =====================================================
-
-    function validateCurrentStep() {
-
-        // ---------------------------------------------
-        // CONCEITO
-        // ---------------------------------------------
-
-        if (
-            currentStep === 1
-        ) {
-
-            if (
-                !character.name.trim()
-            ) {
-
-                alert(
-                    "Digite o nome do personagem."
-                );
-
-                return false;
-
-            }
-
-        }
-
-
-        // ---------------------------------------------
-        // RAÇA
-        // ---------------------------------------------
-
-        if (
-            currentStep === 2
-        ) {
-
-            if (
-                !character.race
-            ) {
-
-                alert(
-                    "Escolha uma raça."
-                );
-
-                return false;
-
-            }
-
-        }
-
-
-        // ---------------------------------------------
-        // CLASSE
-        // ---------------------------------------------
-
-        if (
-            currentStep === 3
-        ) {
-
-            if (
-                !character.class
-            ) {
-
-                alert(
-                    "Escolha uma classe."
-                );
-
-                return false;
-
-            }
-
-        }
-
-
-        // ---------------------------------------------
-        // ATRIBUTOS
-        // ---------------------------------------------
-
-        if (
-            currentStep === 4
-        ) {
-
-            const missing =
-                attributes.filter(
-                    (attribute) =>
-                        !character.attributes[
-                            attribute
-                        ]
-                );
-
-
-            if (
-                missing.length > 0
-            ) {
-
-                alert(
-                    "Distribua todos os oito dados antes de continuar."
-                );
-
-                return false;
-
-            }
-
-        }
-
-
-        // ---------------------------------------------
-        // PODER
-        // ---------------------------------------------
-
-        if (
-            currentStep === 5
-        ) {
-
-            if (
-                !character.power
-            ) {
-
-                alert(
-                    "Escolha um poder."
-                );
-
-                return false;
-
-            }
-
-        }
-
-
-        // ---------------------------------------------
-        // MANA
-        // ---------------------------------------------
-
-        if (
-            currentStep === 6
-        ) {
-
-            if (
-                !character.mana.color
-            ) {
-
-                alert(
-                    "Escolha a cor da Mana."
-                );
-
-                return false;
-
-            }
-
-        }
-
-
-        return true;
 
     }
 
@@ -2000,7 +2134,9 @@ function updateNavigation() {
 
     function updateStepContent() {
 
-        // Raça
+        // ---------------------------------------------
+        // RAÇA
+        // ---------------------------------------------
 
         raceButtons.forEach(
             (button) => {
@@ -2015,7 +2151,9 @@ function updateNavigation() {
         );
 
 
-        // Classe
+        // ---------------------------------------------
+        // CLASSE
+        // ---------------------------------------------
 
         classButtons.forEach(
             (button) => {
@@ -2030,7 +2168,9 @@ function updateNavigation() {
         );
 
 
-        // Poder
+        // ---------------------------------------------
+        // PODER
+        // ---------------------------------------------
 
         powerButtons.forEach(
             (button) => {
@@ -2045,12 +2185,16 @@ function updateNavigation() {
         );
 
 
-        // Atributos
+        // ---------------------------------------------
+        // ATRIBUTOS
+        // ---------------------------------------------
 
         renderAttributes();
 
 
-        // Mana
+        // ---------------------------------------------
+        // MANA
+        // ---------------------------------------------
 
         updateManaControl();
 
@@ -2063,12 +2207,16 @@ function updateNavigation() {
         }
 
 
-        // Técnicas
+        // ---------------------------------------------
+        // TÉCNICAS
+        // ---------------------------------------------
 
         renderTechniques();
 
 
-        // Resumo
+        // ---------------------------------------------
+        // RESUMO
+        // ---------------------------------------------
 
         renderSummary();
 
@@ -2076,347 +2224,379 @@ function updateNavigation() {
 
 
     // =====================================================
-    // ESCAPAR HTML
+    // SALVAR FICHA NO SUPABASE
     // =====================================================
 
-    function escapeHTML(value) {
+    async function salvarFichaNoSupabase() {
 
-        return String(value)
+        try {
 
-            .replace(
-                /&/g,
-                "&amp;"
-            )
+            if (saveStatus) {
 
-            .replace(
-                /</g,
-                "&lt;"
-            )
+                saveStatus.textContent =
+                    "Salvando...";
 
-            .replace(
-                />/g,
-                "&gt;"
-            )
-
-            .replace(
-                /"/g,
-                "&quot;"
-            )
-
-            .replace(
-                /'/g,
-                "&#039;"
-            );
-
-    }
-// =====================================================
-// SALVAR FICHA NO SUPABASE
-// =====================================================
-
-async function salvarFichaNoSupabase() {
-
-    try {
-
-        saveStatus.textContent = "Salvando...";
-
-
-        // ---------------------------------------------
-        // PEGAR USUÁRIO LOGADO
-        // ---------------------------------------------
-
-        const {
-            data: { user },
-            error: userError
-        } = await supabaseClient.auth.getUser();
-
-
-        if (userError) {
-
-            console.error(
-                "Erro ao obter usuário:",
-                userError
-            );
-
-            alert(
-                "Não foi possível identificar sua conta."
-            );
-
-            return false;
-
-        }
-
-
-        if (!user) {
-
-            alert(
-                "Você precisa estar logado para salvar a ficha."
-            );
-
-            window.location.href = "index.html";
-
-            return false;
-
-        }
-
-
-        // ---------------------------------------------
-        // PREPARAR DADOS
-        // ---------------------------------------------
-
-        const fichaData = {
-
-            user_id: user.id,
-
-            name: character.name.trim(),
-
-            age:
-                character.age
-                    ? Number(character.age)
-                    : null,
-
-            appearance:
-                character.appearance,
-
-            personality:
-                character.personality,
-
-            origin:
-                character.origin,
-
-            objective:
-                character.objective,
-
-            fear:
-                character.fear,
-
-            bond:
-                character.bond,
-
-            history:
-                character.history,
-
-            race:
-                character.race,
-
-            racial_ability:
-                character.racialAbility,
-
-            class:
-                character.class,
-
-            class_bonus:
-                character.classBonus,
-
-            attributes:
-                character.attributes,
-
-            power:
-                character.power,
-
-            mana:
-                character.mana,
-
-            techniques:
-                character.techniques,
-
-            updated_at:
-                new Date().toISOString()
-
-        };
-
-
-        // ---------------------------------------------
-        // CRIAR OU ATUALIZAR
-        // ---------------------------------------------
-
-        let result;
-
-
-        if (character.id) {
-
-            // =========================================
-            // ATUALIZAR FICHA EXISTENTE
-            // =========================================
-
-            result =
-                await supabaseClient
-                    .from("characters")
-                    .update(fichaData)
-                    .eq("id", character.id)
-                    .eq("user_id", user.id)
-                    .select()
-                    .single();
-
-
-        } else {
-
-            // =========================================
-            // CRIAR NOVA FICHA
-            // =========================================
-
-            result =
-                await supabaseClient
-                    .from("characters")
-                    .insert(fichaData)
-                    .select()
-                    .single();
-
-        }
-
-
-        // ---------------------------------------------
-        // VERIFICAR ERRO
-        // ---------------------------------------------
-
-        if (result.error) {
-
-            console.error(
-                "Erro ao salvar ficha:",
-                result.error
-            );
-
-            alert(
-                "Erro ao salvar a ficha no banco de dados."
-            );
-
-            saveStatus.textContent =
-                "Erro ao salvar";
-
-            return false;
-
-        }
-
-
-        // ---------------------------------------------
-        // GUARDAR ID DA FICHA
-        // ---------------------------------------------
-
-        character.id =
-            result.data.id;
-
-
-        character.createdAt =
-            result.data.created_at;
-
-        character.updatedAt =
-            result.data.updated_at;
-
-
-        // ---------------------------------------------
-        // MANTER RASCUNHO LOCAL
-        // ---------------------------------------------
-
-        localStorage.setItem(
-            STORAGE_KEY,
-            JSON.stringify(character)
-        );
-
-
-        saveStatus.textContent =
-            "Salvo";
-
-
-        console.log(
-            "✅ Ficha salva no Supabase:",
-            result.data
-        );
-
-
-        return true;
-
-
-    } catch (error) {
-
-        console.error(
-            "Erro inesperado ao salvar ficha:",
-            error
-        );
-
-        saveStatus.textContent =
-            "Erro ao salvar";
-
-        alert(
-            "Ocorreu um erro ao salvar a ficha."
-        );
-
-        return false;
-
-    }
-
-}
-// =====================================================
-// FINALIZAR FICHA
-// =====================================================
-
-const finishCharacterButton =
-    document.getElementById(
-        "finishCharacterButton"
-    );
-
-
-// =====================================================
-// ALTERAR TEXTO DO BOTÃO AO EDITAR
-// =====================================================
-
-if (
-    finishCharacterButton &&
-    existingCharacterId
-) {
-
-    finishCharacterButton.textContent =
-        "Salvar alterações";
-
-}
-
-
-// =====================================================
-// CLIQUE NO BOTÃO
-// =====================================================
-
-if (finishCharacterButton) {
-
-    finishCharacterButton.addEventListener(
-        "click",
-        async () => {
-
-            if (!validateCurrentStep()) {
-                return;
             }
 
 
-            const sucesso =
-                await salvarFichaNoSupabase();
+            // ---------------------------------------------
+            // PEGAR USUÁRIO LOGADO
+            // ---------------------------------------------
+
+            const {
+                data: { user },
+                error: userError
+            } =
+                await supabaseClient.auth.getUser();
 
 
-            if (!sucesso) {
-                return;
-            }
+            if (
+                userError ||
+                !user
+            ) {
 
+                console.error(
+                    "Erro ao obter usuário:",
+                    userError
+                );
 
-            if (existingCharacterId) {
 
                 alert(
-                    "Alterações salvas com sucesso!"
+                    "Você precisa estar logado para salvar a ficha."
                 );
+
+
+                return false;
+
+            }
+
+
+            // ---------------------------------------------
+            // PREPARAR DADOS
+            // ---------------------------------------------
+
+            const fichaData = {
+
+                user_id:
+                    user.id,
+
+                name:
+                    character.name.trim(),
+
+                age:
+                    character.age
+                        ? Number(
+                            character.age
+                        )
+                        : null,
+
+                appearance:
+                    character.appearance,
+
+                personality:
+                    character.personality,
+
+                origin:
+                    character.origin,
+
+                objective:
+                    character.objective,
+
+                fear:
+                    character.fear,
+
+                bond:
+                    character.bond,
+
+                history:
+                    character.history,
+
+                race:
+                    character.race,
+
+                racial_ability:
+                    character.racialAbility,
+
+                class:
+                    character.class,
+
+                class_bonus:
+                    character.classBonus,
+
+                attributes:
+                    character.attributes,
+
+                power:
+                    character.power,
+
+                mana:
+                    character.mana,
+
+                techniques:
+                    character.techniques,
+
+                updated_at:
+                    new Date().toISOString()
+
+            };
+
+
+            // ---------------------------------------------
+            // CRIAR OU ATUALIZAR
+            // ---------------------------------------------
+
+            let result;
+
+
+            if (character.id) {
+
+                console.log(
+                    "✏️ Atualizando ficha:",
+                    character.id
+                );
+
+
+                result =
+                    await supabaseClient
+
+                        .from("characters")
+
+                        .update(
+                            fichaData
+                        )
+
+                        .eq(
+                            "id",
+                            character.id
+                        )
+
+                        .eq(
+                            "user_id",
+                            user.id
+                        )
+
+                        .select()
+
+                        .single();
 
             } else {
 
-                alert(
-                    "Ficha criada e salva com sucesso!"
+                console.log(
+                    "🆕 Criando nova ficha."
                 );
+
+
+                result =
+                    await supabaseClient
+
+                        .from("characters")
+
+                        .insert(
+                            fichaData
+                        )
+
+                        .select()
+
+                        .single();
+
+            }
+
+
+            // ---------------------------------------------
+            // VERIFICAR ERRO
+            // ---------------------------------------------
+
+            if (
+                result.error ||
+                !result.data
+            ) {
+
+                console.error(
+                    "❌ Erro ao salvar ficha:",
+                    result.error
+                );
+
+
+                alert(
+                    "Erro ao salvar a ficha no banco de dados."
+                );
+
+
+                if (saveStatus) {
+
+                    saveStatus.textContent =
+                        "Erro ao salvar";
+
+                }
+
+
+                return false;
+
+            }
+
+
+            // ---------------------------------------------
+            // GUARDAR DADOS RETORNADOS
+            // ---------------------------------------------
+
+            character.id =
+                result.data.id;
+
+
+            character.createdAt =
+                result.data.created_at ||
+                character.createdAt;
+
+
+            character.updatedAt =
+                result.data.updated_at ||
+                new Date().toISOString();
+
+
+            // ---------------------------------------------
+            // GUARDAR ID DA FICHA
+            // ---------------------------------------------
+
+            localStorage.setItem(
+                CHARACTER_ID_KEY,
+                character.id
+            );
+
+
+            existingCharacterId =
+                character.id;
+
+
+            // ---------------------------------------------
+            // MANTER RASCUNHO LOCAL
+            // ---------------------------------------------
+
+            localStorage.setItem(
+                STORAGE_KEY,
+                JSON.stringify(character)
+            );
+
+
+            if (saveStatus) {
+
+                saveStatus.textContent =
+                    "Salvo";
+
+            }
+
+
+            // ---------------------------------------------
+            // ATUALIZAR TEXTO DO BOTÃO
+            // ---------------------------------------------
+
+            if (finishCharacterButton) {
+
+                finishCharacterButton.textContent =
+                    "Salvar alterações";
 
             }
 
 
             console.log(
-                "📜 Ficha:",
-                character
+                "✅ Ficha salva no Supabase:",
+                result.data
             );
 
-        }
-    );
 
-}
+            return true;
+
+
+        } catch (error) {
+
+            console.error(
+                "❌ Erro inesperado ao salvar ficha:",
+                error
+            );
+
+
+            if (saveStatus) {
+
+                saveStatus.textContent =
+                    "Erro ao salvar";
+
+            }
+
+
+            alert(
+                "Ocorreu um erro ao salvar a ficha."
+            );
+
+
+            return false;
+
+        }
+
+    }
+
+
+    // =====================================================
+    // FINALIZAR / SALVAR FICHA
+    // =====================================================
+
+    if (finishCharacterButton) {
+
+        if (character.id) {
+
+            finishCharacterButton.textContent =
+                "Salvar alterações";
+
+        } else if (existingCharacterId) {
+
+            finishCharacterButton.textContent =
+                "Salvar alterações";
+
+        }
+
+
+        finishCharacterButton.addEventListener(
+            "click",
+            async () => {
+
+                if (
+                    !validateCurrentStep()
+                ) {
+
+                    return;
+
+                }
+
+
+                const sucesso =
+                    await salvarFichaNoSupabase();
+
+
+                if (!sucesso) {
+
+                    return;
+
+                }
+
+
+                if (character.id) {
+
+                    alert(
+                        "Ficha salva com sucesso!"
+                    );
+
+                }
+
+
+                console.log(
+                    "📜 Ficha:",
+                    character
+                );
+
+            }
+        );
+
+    }
+
+
     // =====================================================
     // VERIFICAR LOGIN
     // =====================================================
@@ -2427,8 +2607,7 @@ if (finishCharacterButton) {
             data: { session },
             error
         } =
-            await supabaseClient.auth
-                .getSession();
+            await supabaseClient.auth.getSession();
 
 
         if (error) {
@@ -2437,6 +2616,7 @@ if (finishCharacterButton) {
                 "❌ Erro ao verificar sessão:",
                 error
             );
+
 
             return;
 
@@ -2460,9 +2640,10 @@ if (finishCharacterButton) {
 
 
         console.log(
-            "👤 Criando ficha para:",
+            "👤 Ficha para:",
             session.user.email
         );
+
 
     } catch (error) {
 
@@ -2471,55 +2652,105 @@ if (finishCharacterButton) {
             error
         );
 
-    }
 
-Nova inicialização da "ficha.js"
-
-// =====================================================
-// INICIALIZAÇÃO
-// =====================================================
-
-async function inicializarFicha() {
-
-    // ---------------------------------------------
-    // Se existe ID, carregar do Supabase
-    // ---------------------------------------------
-
-    if (existingCharacterId) {
-
-        await carregarFichaDoSupabase();
-
-    } else {
-
-        // -----------------------------------------
-        // Nova ficha
-        // -----------------------------------------
-
-        loadDraft();
+        return;
 
     }
 
 
-    // ---------------------------------------------
-    // Renderizar interface
-    // ---------------------------------------------
+    // =====================================================
+    // INICIALIZAÇÃO
+    // =====================================================
 
-    renderAttributes();
+    async function inicializarFicha() {
 
-    renderTechniques();
-
-    updateManaControl();
-
-    updateStepContent();
-
-    showStep(1);
+        let carregamentoOK =
+            true;
 
 
-    console.log(
-        "🚀 ficha.js inicializado corretamente."
-    );
+        // ---------------------------------------------
+        // FICHA EXISTENTE
+        // ---------------------------------------------
 
-}
+        if (existingCharacterId) {
+
+            carregamentoOK =
+                await carregarFichaDoSupabase();
+
+        } else {
+
+            // -----------------------------------------
+            // NOVA FICHA
+            // -----------------------------------------
+
+            loadDraft();
+
+        }
 
 
-await inicializarFicha();
+        if (!carregamentoOK) {
+
+            return;
+
+        }
+
+
+        // ---------------------------------------------
+        // RENDERIZAR INTERFACE
+        // ---------------------------------------------
+
+        renderAttributes();
+
+        renderTechniques();
+
+        updateManaControl();
+
+        updateStepContent();
+
+        updateProgress();
+
+        updateNavigation();
+
+        showStep(1);
+
+
+        // ---------------------------------------------
+        // TEXTO DO BOTÃO
+        // ---------------------------------------------
+
+        if (
+            finishCharacterButton
+        ) {
+
+            if (
+                character.id ||
+                existingCharacterId
+            ) {
+
+                finishCharacterButton.textContent =
+                    "Salvar alterações";
+
+            } else {
+
+                finishCharacterButton.textContent =
+                    "Criar ficha";
+
+            }
+
+        }
+
+
+        console.log(
+            "🚀 ficha.js inicializado corretamente."
+        );
+
+    }
+
+
+    // =====================================================
+    // INICIAR
+    // =====================================================
+
+    await inicializarFicha();
+
+});
