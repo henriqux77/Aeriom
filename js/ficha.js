@@ -809,38 +809,39 @@ async function carregarFichaDoSupabase() {
     // PRÓXIMA ETAPA
     // =====================================================
 
-    if (nextStepButton) {
+    // =====================================================
+// ATUALIZAR NAVEGAÇÃO
+// =====================================================
 
-        nextStepButton.addEventListener(
-            "click",
-            () => {
+function updateNavigation() {
 
-                if (
-                    !validateCurrentStep()
-                ) {
+    if (previousStepButton) {
 
-                    return;
-
-                }
-
-
-                if (
-                    currentStep <
-                    TOTAL_STEPS
-                ) {
-
-                    showStep(
-                        currentStep + 1
-                    );
-
-                }
-
-            }
-        );
+        previousStepButton.disabled =
+            currentStep === 1;
 
     }
 
 
+    if (nextStepButton) {
+
+        if (
+            currentStep === TOTAL_STEPS
+        ) {
+
+            nextStepButton.style.display =
+                "none";
+
+        } else {
+
+            nextStepButton.style.display =
+                "block";
+
+        }
+
+    }
+
+}
     // =====================================================
     // ETAPA ANTERIOR
     // =====================================================
