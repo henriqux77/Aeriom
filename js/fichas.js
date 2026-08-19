@@ -1,5 +1,39 @@
 document.addEventListener("DOMContentLoaded", async () => {
 
+    const lista =
+        document.getElementById("charactersList");
+
+    const novo =
+        document.getElementById("newCharacterButton");
+
+    const emptyNovo =
+        document.getElementById(
+            "emptyNewCharacterButton"
+        );
+
+    const loading =
+        document.getElementById(
+            "loadingCharacters"
+        );
+
+    const empty =
+        document.getElementById(
+            "emptyCharacters"
+        );
+
+    if (!lista) {
+
+        console.error(
+            "❌ #charactersList não encontrado."
+        );
+
+        return;
+    }
+
+    // resto...
+});
+document.addEventListener("DOMContentLoaded", async () => {
+
     // =====================================================
     // ELEMENTOS DA PÁGINA
     // =====================================================
