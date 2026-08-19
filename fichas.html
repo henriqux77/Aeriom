@@ -1,0 +1,176 @@
+"fichas.html"
+
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>Aerion — Minhas Fichas</title>
+
+    <link rel="stylesheet" href="css/style.css">
+
+</head>
+
+
+<body>
+
+<main class="characters-page">
+
+
+    <!-- =========================================
+         CABEÇALHO
+    ========================================== -->
+
+    <header class="creation-header">
+
+        <button
+            id="backButton"
+            class="header-button"
+            type="button"
+        >
+            ←
+        </button>
+
+
+        <div class="creation-title">
+
+            <span>AERION</span>
+
+            <h1>Minhas Fichas</h1>
+
+        </div>
+
+
+        <div class="creation-save-status">
+
+            <span id="userEmail">
+                Carregando...
+            </span>
+
+        </div>
+
+    </header>
+
+
+
+    <!-- =========================================
+         CONTEÚDO
+    ========================================== -->
+
+    <section class="characters-content">
+
+
+        <div class="characters-heading">
+
+            <div>
+
+                <span class="step-number">
+                    AERION
+                </span>
+
+                <h2>
+                    Seus personagens
+                </h2>
+
+                <p>
+                    Todas as fichas criadas nesta conta
+                    aparecem aqui.
+                </p>
+
+            </div>
+
+
+            <button
+                id="newCharacterButton"
+                class="primary-button"
+                type="button"
+            >
+                + Nova ficha
+            </button>
+
+        </div>
+
+
+
+        <!-- =====================================
+             CARREGANDO
+        ====================================== -->
+
+        <div
+            id="loadingCharacters"
+            class="characters-message"
+        >
+            Carregando suas fichas...
+        </div>
+
+
+
+        <!-- =====================================
+             LISTA DE FICHAS
+        ====================================== -->
+
+        <div
+            id="charactersList"
+            class="characters-grid"
+        ></div>
+
+
+
+        <!-- =====================================
+             NENHUMA FICHA
+        ====================================== -->
+
+        <div
+            id="emptyCharacters"
+            class="characters-message"
+            style="display: none;"
+        >
+
+            <h3>
+                Você ainda não possui fichas.
+            </h3>
+
+            <p>
+                Crie seu primeiro personagem para
+                começar sua aventura.
+            </p>
+
+            <button
+                id="emptyNewCharacterButton"
+                class="primary-button"
+                type="button"
+            >
+                Criar primeira ficha
+            </button>
+
+        </div>
+
+
+    </section>
+
+</main>
+
+
+
+<!-- =========================================
+     SUPABASE
+========================================== -->
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<script src="js/supabase.js?v=3"></script>
+
+<script src="js/auth.js?v=3"></script>
+
+<script src="js/fichas.js?v=1"></script>
+
+</body>
+
+</html>
