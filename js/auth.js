@@ -46,7 +46,7 @@ async function exigirLogin() {
     const session = await verificarSessao();
 
     if (!session) {
-        window.location.href = "window.location.href = "index.html";
+        window.location.href = "index.html";
         return null;
     }
 
@@ -66,7 +66,7 @@ async function fazerLogout() {
         return false;
     }
 
-    window.location.href = "login.html";
+    window.location.href = "index.html";
     return true;
 }
 
