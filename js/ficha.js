@@ -2145,9 +2145,7 @@ async function salvarFichaNoSupabase() {
                 saveDraft();
 
 
-                alert(
-                    "Ficha criada! O salvamento no banco será conectado na próxima etapa."
-                );
+         
 
 
                 console.log(
