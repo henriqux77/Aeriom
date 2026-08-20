@@ -1221,7 +1221,7 @@ document.addEventListener("DOMContentLoaded", async () => {
                 );
 
             }
-updateHomeActions(session);
+            updateHomeActions(session);
         }
     );
 // =====================================================
@@ -1331,6 +1331,10 @@ if (createCharacterButton) {
             console.log(
                 "✦ Abrindo criação de ficha..."
             );
+
+            // Limpa as variáveis do localStorage antes do redirecionamento
+            localStorage.removeItem("aerion_character_id");
+            localStorage.removeItem("aerion_character_draft");
 
             window.location.href = "ficha.html";
 
