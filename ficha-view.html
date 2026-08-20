@@ -39,61 +39,79 @@
         <button id="backErrorButton" class="sheet-button" type="button">Voltar para minhas fichas</button>
     </section>
 
-    <section id="sheetContent" hidden>
+  <section class="sheet-hero">
 
-        <section class="sheet-hero">
-            <div class="sheet-avatar" id="characterAvatar" aria-hidden="true">A</div>
-<div class="character-avatar" id="characterAvatar">
+    <div class="character-avatar" id="characterAvatar">
 
-    <img
-        id="characterAvatarImage"
-        alt="Avatar do personagem"
-        hidden
-    >
+        <img
+            id="characterAvatarImage"
+            alt="Avatar do personagem"
+            hidden
+        >
 
-    <div
-        id="characterAvatarFallback"
-        class="avatar-fallback"
-    >
-        A
+        <div
+            id="characterAvatarFallback"
+            class="avatar-fallback"
+        >
+            A
+        </div>
+
+        <button
+            type="button"
+            id="avatarUploadButton"
+            class="avatar-upload-button"
+        >
+            Alterar imagem
+        </button>
+
+        <input
+            type="file"
+            id="avatarInput"
+            accept="image/png,image/jpeg,image/webp"
+            hidden
+        >
+
     </div>
 
-    <button
-        type="button"
-        id="avatarUploadButton"
-        class="avatar-upload-button"
-    >
-        Alterar imagem
-    </button>
+    <div class="sheet-identity">
 
-    <input
-        type="file"
-        id="avatarInput"
-        accept="image/png,image/jpeg,image/webp"
-        hidden
-    >
+        <label for="characterName">PERSONAGEM</label>
 
-</div>
-            <div class="sheet-identity">
-                <label for="characterName">PERSONAGEM</label>
-                <input id="characterName" class="sheet-name-input" type="text" maxlength="60" placeholder="Nome do personagem">
+        <input
+            id="characterName"
+            class="sheet-name-input"
+            type="text"
+            maxlength="60"
+            placeholder="Nome do personagem"
+        >
 
-                <div class="sheet-tags">
-                    <span id="raceTag">—</span>
-                    <span id="classTag">—</span>
-                    <span id="powerTag">—</span>
-                </div>
+        <div class="sheet-tags">
+            <span id="raceTag">—</span>
+            <span id="classTag">—</span>
+            <span id="powerTag">—</span>
+        </div>
 
-                <div class="sheet-meta">
-                    <label for="characterAge">IDADE</label>
-                    <input id="characterAge" type="number" min="0" max="999" placeholder="—">
-                    <span class="sheet-dot">•</span>
-                    <span id="updatedLabel">—</span>
-                </div>
-            </div>
-        </section>
+        <div class="sheet-meta">
 
-        <section class="sheet-section active" data-section="informacoes">
+            <label for="characterAge">IDADE</label>
+
+            <input
+                id="characterAge"
+                type="number"
+                min="0"
+                max="999"
+                placeholder="—"
+            >
+
+            <span class="sheet-dot">•</span>
+
+            <span id="updatedLabel">—</span>
+
+        </div>
+
+    </div>
+
+</section>      <section class="sheet-section active" data-section="informacoes">
             <div class="section-heading">
                 <div>
                     <span class="section-kicker">01</span>
