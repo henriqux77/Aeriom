@@ -26,7 +26,7 @@
                 <p>Junte-se a uma aventura ou crie a sua própria.</p>
             </div>
             <div class="header-actions">
-                <button id="joinCampaignBtn" class="secondary-button" type="button">Entrar via Convite</button>
+                <button id="openJoinModalBtn" class="secondary-button" type="button">Entrar via Convite</button>
                 <button id="createCampaignBtn" class="primary-button" type="button">+ Criar Campanha</button>
             </div>
         </div>
@@ -47,31 +47,53 @@
     </section>
 </main>
 
-<!-- MODAL DE CRIAÇÃO DE CAMPANHA -->
+<!-- MODAL: CRIAR CAMPANHA -->
 <div id="createCampaignModal" class="auth-modal">
     <div class="auth-box">
         <button id="closeCreateModal" class="auth-close">×</button>
         <h2>Forjar Nova Campanha</h2>
         <p>Defina a fundação do seu mundo.</p>
-
         <form id="createCampaignForm">
             <div class="form-group">
                 <label for="campaignCover">Capa da Aventura</label>
                 <input type="file" id="campaignCover" accept="image/png,image/jpeg,image/webp" required style="padding: 10px; background: rgba(20, 12, 8, 0.6);">
             </div>
-
             <input type="text" id="campaignName" placeholder="Nome da Campanha" required maxlength="100">
             <textarea id="campaignDesc" placeholder="Descrição ou premissa da aventura..." style="width:100%; padding:16px 18px; border-radius:12px; background:rgba(20,12,8,0.6); border:1px solid rgba(180,70,30,0.08); color:#e8dcc8; margin-bottom:14px; min-height:80px; font-family:'Georgia',serif;" maxlength="500"></textarea>
-
             <button type="submit" id="submitCampaignBtn" class="primary-button" style="width:100%">Criar Mundo</button>
         </form>
     </div>
 </div>
 
+<!-- MODAL: ENTRAR VIA CONVITE -->
+<div id="joinCampaignModal" class="auth-modal">
+    <div class="auth-box">
+        <button id="closeJoinModal" class="auth-close">×</button>
+        <h2>Entrar na Aventura</h2>
+        <p>Insira o código fornecido pelo seu Mestre.</p>
+        <form id="joinCampaignForm">
+            <input type="text" id="inviteCodeInput" placeholder="EX: AERIOM-XXXX" required style="text-transform: uppercase;">
+            <p id="joinMessage" style="color: #d46a4a; font-size: 0.85rem; margin-top: -5px; margin-bottom: 15px;"></p>
+            <button type="submit" id="submitJoinBtn" class="primary-button" style="width:100%">Validar Convite</button>
+        </form>
+    </div>
+</div>
+
+<!-- MODAL: ESCOLHER FICHA -->
+<div id="selectCharacterModal" class="auth-modal">
+    <div class="auth-box" style="max-width: 600px;">
+        <h2>Sua Ficha na Campanha</h2>
+        <p>Escolha qual personagem entrará neste mundo.</p>
+        <div id="userCharactersList" style="display: flex; flex-direction: column; gap: 10px; max-height: 400px; overflow-y: auto; margin-bottom: 20px;">
+            <p style="text-align: center; color: var(--cream-muted);">Buscando fichas...</p>
+        </div>
+    </div>
+</div>
+
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="js/supabase.js?v=5"></script>
-<script src="js/auth.js?v=5"></script>
-<script src="js/campanhas.js?v=1"></script>
+<script src="js/supabase.js?v=6"></script>
+<script src="js/auth.js?v=6"></script>
+<script src="js/campanhas.js?v=2"></script>
 
 </body>
 </html>
