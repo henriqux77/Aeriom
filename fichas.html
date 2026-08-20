@@ -1,5 +1,4 @@
-"fichas.html"
-
+<!-- fichas.html -->
 <!DOCTYPE html>
 <html lang="pt-BR">
 
@@ -12,9 +11,17 @@
         content="width=device-width, initial-scale=1.0"
     >
 
+    <meta
+        name="theme-color"
+        content="#080707"
+    >
+
     <title>Aerion — Minhas Fichas</title>
 
-    <link rel="stylesheet" href="css/style.css">
+    <link
+        rel="stylesheet"
+        href="css/style.css"
+    >
 
 </head>
 
@@ -23,10 +30,9 @@
 
 <main class="characters-page">
 
-
-    <!-- =========================================
+    <!-- =====================================================
          CABEÇALHO
-    ========================================== -->
+    ====================================================== -->
 
     <header class="creation-header">
 
@@ -34,6 +40,7 @@
             id="backButton"
             class="header-button"
             type="button"
+            aria-label="Voltar"
         >
             ←
         </button>
@@ -48,28 +55,28 @@
         </div>
 
 
-        <div class="creation-save-status">
-
-            <span id="userEmail">
-                Carregando...
-            </span>
-
-        </div>
+        <!--
+            O e-mail foi removido.
+            Não há mais informações da conta
+            aparecendo no cabeçalho.
+        -->
 
     </header>
 
 
-
-    <!-- =========================================
-         CONTEÚDO
-    ========================================== -->
+    <!-- =====================================================
+         CONTEÚDO PRINCIPAL
+    ====================================================== -->
 
     <section class="characters-content">
 
+        <!-- =================================================
+             TÍTULO
+        ================================================== -->
 
         <div class="characters-heading">
 
-            <div>
+            <div class="characters-heading-text">
 
                 <span class="step-number">
                     AERION
@@ -98,23 +105,25 @@
         </div>
 
 
-
-        <!-- =====================================
+        <!-- =================================================
              CARREGANDO
-        ====================================== -->
+        ================================================== -->
 
         <div
             id="loadingCharacters"
             class="characters-message"
         >
-            Carregando suas fichas...
+            <div class="characters-loader"></div>
+
+            <p>
+                Carregando suas fichas...
+            </p>
         </div>
 
 
-
-        <!-- =====================================
-             LISTA DE FICHAS
-        ====================================== -->
+        <!-- =================================================
+             LISTA DE PERSONAGENS
+        ================================================== -->
 
         <div
             id="charactersList"
@@ -122,16 +131,19 @@
         ></div>
 
 
-
-        <!-- =====================================
+        <!-- =================================================
              NENHUMA FICHA
-        ====================================== -->
+        ================================================== -->
 
         <div
             id="emptyCharacters"
-            class="characters-message"
-            style="display: none;"
+            class="characters-message empty-characters"
+            hidden
         >
+
+            <div class="empty-characters-icon">
+                +
+            </div>
 
             <h3>
                 Você ainda não possui fichas.
@@ -158,18 +170,25 @@
 </main>
 
 
-
-<!-- =========================================
+<!-- =========================================================
      SUPABASE
-========================================== -->
+========================================================== -->
 
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script
+    src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"
+></script>
 
-<script src="js/supabase.js?v=3"></script>
+<script
+    src="js/supabase.js?v=3"
+></script>
 
-<script src="js/auth.js?v=3"></script>
+<script
+    src="js/auth.js?v=3"
+></script>
 
-<script src="js/fichas.js?v=1"></script>
+<script
+    src="js/fichas.js?v=2"
+></script>
 
 </body>
 
