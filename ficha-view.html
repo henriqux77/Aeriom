@@ -43,7 +43,37 @@
 
         <section class="sheet-hero">
             <div class="sheet-avatar" id="characterAvatar" aria-hidden="true">A</div>
+<div class="character-avatar" id="characterAvatar">
 
+    <img
+        id="characterAvatarImage"
+        alt="Avatar do personagem"
+        hidden
+    >
+
+    <div
+        id="characterAvatarFallback"
+        class="avatar-fallback"
+    >
+        A
+    </div>
+
+    <button
+        type="button"
+        id="avatarUploadButton"
+        class="avatar-upload-button"
+    >
+        Alterar imagem
+    </button>
+
+    <input
+        type="file"
+        id="avatarInput"
+        accept="image/png,image/jpeg,image/webp"
+        hidden
+    >
+
+</div>
             <div class="sheet-identity">
                 <label for="characterName">PERSONAGEM</label>
                 <input id="characterName" class="sheet-name-input" type="text" maxlength="60" placeholder="Nome do personagem">
