@@ -13,7 +13,6 @@ document.addEventListener("DOMContentLoaded", async () => {
     const emptyNovo = document.getElementById("emptyNewCharacterButton");
 
     const backButton = document.getElementById("backButton");
-    const userEmail = document.getElementById("userEmail");
 
     let currentUser = null;
 
@@ -305,8 +304,7 @@ document.addEventListener("DOMContentLoaded", async () => {
             }
 
 
-            // Se essa era a ficha atualmente armazenada,
-            // remove o ID.
+            // Se essa era a ficha atualmente armazenada, remove o ID.
             const fichaAtual = localStorage.getItem(
                 "aerion_character_id"
             );
@@ -354,7 +352,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         const nome = ficha.name || "Sem nome";
         const race = ficha.race || "Sem raça";
         const classe = ficha.class || "Sem classe";
-        const poder = ficha.power || "";
+        const poder = ficha.power || "Nenhum";
 
         const nomeHTML = escapeHTML(nome);
         const raceHTML = escapeHTML(race);
@@ -369,72 +367,45 @@ document.addEventListener("DOMContentLoaded", async () => {
             formatDate(ficha.updated_at)
         );
 
+        // Tratamento do Avatar (Imagem ou Letra Inicial)
+        const avatarHTML = ficha.avatar_url
+            ? `<img src="${escapeHTML(ficha.avatar_url)}" alt="${nomeHTML}" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;" onerror="this.outerHTML='${inicial}'">`
+            : inicial;
+
 
         // =====================================================
-        // CONTEÚDO DO CARD
+        // CONTEÚDO DO CARD (Sincronizado com style.css)
         // =====================================================
 
         card.innerHTML = `
-            <div class="character-card-main">
-
-                <div class="character-card-avatar">
-                    ${inicial}
+            <div class="character-card-header">
+                <div class="character-avatar">
+                    ${avatarHTML}
                 </div>
-
-                <div class="character-card-info">
-
-                    <h3>
-                        ${nomeHTML}
-                    </h3>
-
-                    <p>
-                        ${raceHTML}
-
-                        <span>•</span>
-
-                        ${classeHTML}
-                    </p>
-
-                    ${
-                        poder
-                            ? `
-                                <small>
-                                    ${poderHTML}
-                                </small>
-                              `
-                            : ""
-                    }
-
+                <div class="character-card-title">
+                    <h3>${nomeHTML}</h3>
+                    <span>${raceHTML} • ${classeHTML}</span>
                 </div>
-
             </div>
 
-            <div class="character-card-footer">
-
-                <small>
-                    Atualizada em ${dataAtualizacao}
-                </small>
-
-                <div class="character-card-actions">
-
-                    <button
-                        type="button"
-                        class="character-edit"
-                        aria-label="Editar ${nomeHTML}"
-                    >
-                        Editar
-                    </button>
-
-                    <button
-                        type="button"
-                        class="character-delete"
-                        aria-label="Excluir ${nomeHTML}"
-                    >
-                        Excluir
-                    </button>
-
+            <div class="character-card-info">
+                <div class="character-info-item">
+                    <span>Atualização</span>
+                    <strong>${dataAtualizacao}</strong>
                 </div>
+                <div class="character-info-item">
+                    <span>Poder</span>
+                    <strong>${poderHTML}</strong>
+                </div>
+            </div>
 
+            <div class="character-card-actions">
+                <button type="button" class="secondary-button character-edit" aria-label="Editar ${nomeHTML}">
+                    Editar
+                </button>
+                <button type="button" class="secondary-button character-delete" aria-label="Excluir ${nomeHTML}" style="border-color: rgba(180, 40, 10, 0.4); color: #d46a4a;">
+                    Excluir
+                </button>
             </div>
         `;
 
@@ -443,20 +414,14 @@ document.addEventListener("DOMContentLoaded", async () => {
         // BOTÃO EDITAR
         // =====================================================
 
-        const editar = card.querySelector(
-            ".character-edit"
-        );
+        const editar = card.querySelector(".character-edit");
 
         if (editar) {
-            editar.addEventListener(
-                "click",
-                (event) => {
-                    event.preventDefault();
-                    event.stopPropagation();
-
-                    abrirFicha(ficha.id);
-                }
-            );
+            editar.addEventListener("click", (event) => {
+                event.preventDefault();
+                event.stopPropagation();
+                abrirFicha(ficha.id);
+            });
         }
 
 
@@ -464,43 +429,30 @@ document.addEventListener("DOMContentLoaded", async () => {
         // BOTÃO EXCLUIR
         // =====================================================
 
-        const excluir = card.querySelector(
-            ".character-delete"
-        );
+        const excluir = card.querySelector(".character-delete");
 
         if (excluir) {
-            excluir.addEventListener(
-                "click",
-                async (event) => {
-                    event.preventDefault();
-                    event.stopPropagation();
-
-                    await excluirFicha(ficha);
-                }
-            );
+            excluir.addEventListener("click", async (event) => {
+                event.preventDefault();
+                event.stopPropagation();
+                await excluirFicha(ficha);
+            });
         }
 
 
         // =====================================================
-        // CLIQUE NO CARD
+        // CLIQUE NO CARD (Abre a ficha)
         // =====================================================
 
-        card.addEventListener(
-            "click",
-            (event) => {
-                const clicouEmBotao =
-                    event.target.closest(
-                        ".character-card-actions"
-                    );
+        card.addEventListener("click", (event) => {
+            const clicouEmBotao = event.target.closest(".character-card-actions");
 
-                if (clicouEmBotao) {
-                    return;
-                }
-
-                abrirFicha(ficha.id);
+            if (clicouEmBotao) {
+                return;
             }
-        );
 
+            abrirFicha(ficha.id);
+        });
 
         return card;
     }
@@ -523,6 +475,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
 
         try {
+            // Adicionado 'avatar_url' ao select
             const {
                 data,
                 error
@@ -536,19 +489,12 @@ document.addEventListener("DOMContentLoaded", async () => {
                     race,
                     class,
                     power,
+                    avatar_url,
                     updated_at,
                     created_at
                 `)
-                .eq(
-                    "user_id",
-                    currentUser.id
-                )
-                .order(
-                    "updated_at",
-                    {
-                        ascending: false
-                    }
-                );
+                .eq("user_id", currentUser.id)
+                .order("updated_at", { ascending: false });
 
 
             // =================================================
@@ -593,7 +539,6 @@ document.addEventListener("DOMContentLoaded", async () => {
 
             data.forEach((ficha) => {
                 const card = criarCard(ficha);
-
                 lista.appendChild(card);
             });
 
@@ -659,22 +604,10 @@ document.addEventListener("DOMContentLoaded", async () => {
 
             currentUser = session.user;
 
-
-            // =================================================
-            // MOSTRAR E-MAIL
-            // =================================================
-
-            if (userEmail) {
-                userEmail.textContent =
-                    currentUser.email || "Usuário";
-            }
-
-
             console.log(
                 "Aeriom: usuário autenticado:",
                 currentUser.id
             );
-
 
             return true;
 
@@ -702,7 +635,6 @@ document.addEventListener("DOMContentLoaded", async () => {
             "click",
             (event) => {
                 event.preventDefault();
-
                 window.location.href = "index.html";
             }
         );
@@ -718,7 +650,6 @@ document.addEventListener("DOMContentLoaded", async () => {
             "click",
             (event) => {
                 event.preventDefault();
-
                 novaFicha();
             }
         );
@@ -734,7 +665,6 @@ document.addEventListener("DOMContentLoaded", async () => {
             "click",
             (event) => {
                 event.preventDefault();
-
                 novaFicha();
             }
         );
@@ -750,7 +680,6 @@ document.addEventListener("DOMContentLoaded", async () => {
     if (!autenticado) {
         return;
     }
-
 
     await carregarFichas();
 
