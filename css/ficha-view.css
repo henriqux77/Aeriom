@@ -1187,3 +1187,75 @@
 .character-avatar:has(img:not([hidden])) .avatar-fallback {
     display: none !important;
 }
+/* =========================================================
+   CORREÇÃO — IDENTIDADE DO PERSONAGEM NO TOPO
+   ========================================================= */
+
+.sheet-hero {
+    display: grid !important;
+    grid-template-columns: 180px minmax(0, 1fr) !important;
+    align-items: center !important;
+    gap: 28px !important;
+    min-height: 250px;
+}
+
+.sheet-identity {
+    display: block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    width: 100%;
+    min-width: 0;
+}
+
+.sheet-identity[hidden] {
+    display: block !important;
+}
+
+.sheet-name-input {
+    display: block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+}
+
+.sheet-tags {
+    display: flex !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+}
+
+.sheet-meta {
+    display: flex !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+}
+
+@media (max-width: 760px) {
+    .sheet-hero {
+        display: grid !important;
+        grid-template-columns: 1fr !important;
+        justify-items: center !important;
+        text-align: center !important;
+        gap: 22px !important;
+        padding: 34px 20px 32px !important;
+        min-height: auto;
+    }
+
+    .sheet-identity {
+        display: block !important;
+        width: 100% !important;
+    }
+
+    .sheet-name-input {
+        text-align: center;
+        font-size: clamp(30px, 9vw, 42px);
+    }
+
+    .sheet-tags {
+        justify-content: center !important;
+    }
+
+    .sheet-meta {
+        justify-content: center !important;
+        flex-wrap: wrap;
+    }
+}
