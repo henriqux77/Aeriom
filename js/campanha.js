@@ -22,6 +22,8 @@ document.addEventListener("DOMContentLoaded", async () => {
     const generateInviteBtn = document.getElementById("generateInviteBtn");
     const inviteCodeDisplay = document.getElementById("inviteCodeDisplay");
 
+    const campaignCharactersList = document.getElementById("campaignCharactersList");
+
     if (backBtn) {
         backBtn.addEventListener("click", () => {
             localStorage.removeItem("aeriom_active_campaign");
@@ -70,6 +72,7 @@ document.addEventListener("DOMContentLoaded", async () => {
             currentCampaign = campData;
 
             renderDashboard();
+            await loadCampaignCharacters();
 
         } catch (error) {
             console.error("Erro no painel:", error);
@@ -102,7 +105,6 @@ document.addEventListener("DOMContentLoaded", async () => {
             generateInviteBtn.disabled = true;
             generateInviteBtn.textContent = "Gerando...";
 
-            // Gera código alfanumérico de 8 dígitos
             const code = 'AERION-' + Math.random().toString(36).substring(2, 8).toUpperCase();
 
             try {
@@ -128,6 +130,85 @@ document.addEventListener("DOMContentLoaded", async () => {
                 generateInviteBtn.disabled = false;
             }
         });
+    }
+
+    // =========================================================
+    // BUSCAR E RENDERIZAR PERSONAGENS DA CAMPANHA
+    // =========================================================
+    async function loadCampaignCharacters() {
+        if (!campaignCharactersList) return;
+
+        try {
+            // Faz um join entre campaign_characters e characters
+            const { data, error } = await supabase
+                .from('campaign_characters')
+                .select(`
+                    id,
+                    user_id,
+                    character_id,
+                    characters (
+                        id,
+                        name,
+                        race,
+                        class,
+                        avatar_url
+                    )
+                `)
+                .eq('campaign_id', campaignId);
+
+            if (error) throw error;
+
+            if (!data || data.length === 0) {
+                campaignCharactersList.innerHTML = '<p style="color: var(--cream-muted); font-size: 0.85rem;">Nenhum aventureiro entrou neste mundo ainda.</p>';
+                return;
+            }
+
+            campaignCharactersList.innerHTML = '';
+
+            data.forEach(link => {
+                const char = link.characters;
+                if (!char) return; // Proteção extra caso a ficha original tenha sido deletada
+
+                const card = document.createElement('div');
+                card.className = 'campaign-char-card';
+                
+                const isOwnCharacter = link.user_id === currentUser.id;
+                
+                if (isOwnCharacter) {
+                    card.classList.add('own-character');
+                }
+
+                // Avatar fallback se não houver imagem ou se quebrar
+                const avatarHtml = char.avatar_url 
+                    ? `<img src="${char.avatar_url}" class="char-card-avatar" alt="${char.name}" onerror="this.outerHTML='<div class=\\'char-card-fallback\\'>${char.name.charAt(0)}</div>'">` 
+                    : `<div class="char-card-fallback">${char.name.charAt(0)}</div>`;
+
+                // Monta os botões dependendo da permissão
+                let actionHtml = '';
+                if (userRole === 'master') {
+                    actionHtml = `<button class="secondary-button" style="min-height:30px; padding:5px 12px; font-size:10px; width:auto;" onclick="alert('Sistema de gerenciamento do Mestre virá na Fase 6')">Gerenciar</button>`;
+                } else if (isOwnCharacter) {
+                    actionHtml = `<button class="primary-button" style="min-height:30px; padding:5px 12px; font-size:10px; width:auto;" onclick="alert('Acesso ao Estado Temporário virá na Fase 7')">Acessar</button>`;
+                }
+
+                card.innerHTML = `
+                    ${avatarHtml}
+                    <div class="char-card-info">
+                        <h4>${char.name}</h4>
+                        <span>${char.race || '?'} • ${char.class || '?'}</span>
+                    </div>
+                    <div class="char-card-actions">
+                        ${actionHtml}
+                    </div>
+                `;
+
+                campaignCharactersList.appendChild(card);
+            });
+
+        } catch (error) {
+            console.error("Erro ao buscar personagens:", error);
+            campaignCharactersList.innerHTML = '<p style="color: #d46a4a; font-size: 0.85rem;">Erro ao carregar aventureiros.</p>';
+        }
     }
 
     init();
