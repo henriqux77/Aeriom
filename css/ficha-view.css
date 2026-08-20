@@ -1,4 +1,32 @@
-/* =========================================================
+.character-avatar {
+    position: relative;
+    width: 110px;
+    height: 110px;
+    border-radius: 50%;
+    overflow: hidden;
+}
+
+.character-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.avatar-fallback {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.avatar-upload-button {
+    position: absolute;
+    left: 50%;
+    bottom: 8px;
+    transform: translateX(-50%);
+    white-space: nowrap;
+}/* =========================================================
    AERION — FICHA VISUAL / EDIÇÃO
    Usa a identidade global de style.css e adiciona apenas
    o layout específico da ficha pronta.
