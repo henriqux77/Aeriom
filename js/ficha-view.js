@@ -114,6 +114,9 @@ document.addEventListener("DOMContentLoaded", async () => {
         noTechniques:
             $("noTechniques"),
 
+        addTechniqueButton:
+            $("addTechniqueButton"),
+
         quickMenu:
             $("quickMenu"),
 
@@ -1083,7 +1086,6 @@ document.addEventListener("DOMContentLoaded", async () => {
             if (empty) {
                 empty.hidden = false;
             }
-
             return;
         }
 
@@ -1164,6 +1166,13 @@ document.addEventListener("DOMContentLoaded", async () => {
                 );
 
 
+                const headerControls = 
+                    document.createElement("div");
+                headerControls.style.display = "flex";
+                headerControls.style.gap = "10px";
+                headerControls.style.alignItems = "center";
+
+
                 const type =
                     document.createElement(
                         "span"
@@ -1178,12 +1187,37 @@ document.addEventListener("DOMContentLoaded", async () => {
                     "Técnica";
 
 
+                const deleteButton = 
+                    document.createElement("button");
+                deleteButton.type = "button";
+                deleteButton.textContent = "Excluir";
+                deleteButton.className = "sheet-button";
+                deleteButton.style.padding = "4px 8px";
+                deleteButton.style.fontSize = "11px";
+                deleteButton.style.marginTop = "0";
+                deleteButton.style.borderColor = "rgba(180, 40, 10, 0.4)";
+                deleteButton.style.color = "#d46a4a";
+
+                deleteButton.addEventListener("click", () => {
+                    if (confirm("Deseja realmente excluir esta técnica?")) {
+                        // Sincroniza o state antes de alterar para não perder inputs atuais
+                        state.character.techniques = collectTechniques();
+                        state.character.techniques.splice(index, 1);
+                        renderTechniques(state.character.techniques);
+                        scheduleSave();
+                    }
+                });
+
+                headerControls.appendChild(type);
+                headerControls.appendChild(deleteButton);
+
+
                 head.appendChild(
                     titleBox
                 );
 
                 head.appendChild(
-                    type
+                    headerControls
                 );
 
 
@@ -1406,6 +1440,39 @@ document.addEventListener("DOMContentLoaded", async () => {
 
 
         return label;
+    }
+
+
+    function setupTechniquesInteraction() {
+        const addButton = elements.addTechniqueButton;
+
+        if (addButton) {
+            addButton.addEventListener("click", () => {
+                if (!state.character) return;
+
+                // Sincroniza o array com os valores atuais do DOM antes de adicionar
+                state.character.techniques = collectTechniques();
+                
+                const novaTecnica = {
+                    name: "Nova Técnica",
+                    level: 1,
+                    type: state.character.power || "",
+                    range: "",
+                    manaCost: "",
+                    test: "",
+                    effect: "",
+                    description: "",
+                    limitation: ""
+                };
+
+                state.character.techniques.push(novaTecnica);
+                
+                renderTechniques(state.character.techniques);
+                
+                // Entra no fluxo de autosave
+                scheduleSave();
+            });
+        }
     }
 
 
@@ -2094,47 +2161,51 @@ document.addEventListener("DOMContentLoaded", async () => {
             .aerionAutosaveBound =
             "true";
 
+        // Bindamos os eventos ao <main> inteiro para cobrir a edição do .sheet-hero também
+        const rootArea = document.querySelector(".aerion-sheet");
 
-        elements.content.addEventListener(
-            "input",
-            (event) => {
-                const target =
-                    event.target;
+        if (rootArea) {
+            rootArea.addEventListener(
+                "input",
+                (event) => {
+                    const target =
+                        event.target;
 
 
-                if (
-                    !target.matches(
-                        "input, textarea, select"
-                    )
-                ) {
-                    return;
+                    if (
+                        !target.matches(
+                            "input, textarea, select"
+                        )
+                    ) {
+                        return;
+                    }
+
+
+                    scheduleSave();
                 }
+            );
 
 
-                scheduleSave();
-            }
-        );
+            rootArea.addEventListener(
+                "change",
+                (event) => {
+                    const target =
+                        event.target;
 
 
-        elements.content.addEventListener(
-            "change",
-            (event) => {
-                const target =
-                    event.target;
+                    if (
+                        !target.matches(
+                            "input, textarea, select"
+                        )
+                    ) {
+                        return;
+                    }
 
 
-                if (
-                    !target.matches(
-                        "input, textarea, select"
-                    )
-                ) {
-                    return;
+                    scheduleSave();
                 }
-
-
-                scheduleSave();
-            }
-        );
+            );
+        }
     }
 
 
@@ -2648,6 +2719,8 @@ document.addEventListener("DOMContentLoaded", async () => {
         setupBackButtons();
 
         setupAvatarUpload();
+        
+        setupTechniquesInteraction();
 
         bindAutoSave();
 
