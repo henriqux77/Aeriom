@@ -41,13 +41,19 @@
             <p style="margin-top:10px; font-size: 11px; color: var(--cream-muted);">Envie o código gerado para seus jogadores.</p>
         </div>
 
-        <!-- Módulos Futuros (Fase 3+) -->
-        <div class="dash-modules">
-            <div class="dash-module-card">
-                <h3>Personagens</h3>
-                <p>O estado dos aventureiros neste mundo.</p>
-                <button class="secondary-button" disabled>Em breve</button>
+        <!-- LISTA DE PERSONAGENS (NOVO) -->
+        <div class="campaign-section">
+            <div class="section-header">
+                <h3>Aventureiros</h3>
+                <p>Os heróis presentes neste mundo.</p>
             </div>
+            <div id="campaignCharactersList" class="campaign-characters-grid">
+                <p style="color: var(--cream-muted); font-size: 0.9rem;">Buscando aventureiros...</p>
+            </div>
+        </div>
+
+        <!-- MÓDULOS FUTUROS -->
+        <div class="dash-modules">
             <div class="dash-module-card">
                 <h3>Combate</h3>
                 <p>Iniciativa, turnos e campo de batalha.</p>
@@ -64,9 +70,9 @@
 </main>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="js/supabase.js?v=7"></script>
-<script src="js/auth.js?v=7"></script>
-<script src="js/campanha.js?v=1"></script>
+<script src="js/supabase.js?v=8"></script>
+<script src="js/auth.js?v=8"></script>
+<script src="js/campanha.js?v=2"></script>
 
 </body>
 </html>
