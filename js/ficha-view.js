@@ -1654,3 +1654,26 @@ document.addEventListener("DOMContentLoaded", async () => {
         );
     }
 });
+function renderAvatar(avatarUrl, characterName = "") {
+    const image = $("characterAvatarImage");
+    const fallback = $("characterAvatarFallback");
+
+    if (!image || !fallback) return;
+
+    if (avatarUrl) {
+        image.src = avatarUrl;
+        image.hidden = false;
+        fallback.hidden = true;
+
+        image.onerror = () => {
+            image.hidden = true;
+            fallback.hidden = false;
+        };
+
+        return;
+    }
+
+    image.removeAttribute("src");
+    image.hidden = true;
+    fallback.hidden = false;
+}
