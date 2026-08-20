@@ -1,1 +1,112 @@
-.
+/* =========================================================
+   AERION — CAMPANHAS (FASE 1)
+========================================================= */
+
+.header-actions {
+    display: flex;
+    gap: 10px;
+}
+
+.campaign-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 24px;
+}
+
+.campaign-card {
+    position: relative;
+    border-radius: 16px;
+    border: 1px solid rgba(200, 100, 50, 0.3);
+    background: linear-gradient(145deg, rgba(25, 17, 15, 0.85), rgba(10, 8, 7, 0.95));
+    overflow: hidden;
+    transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+    display: flex;
+    flex-direction: column;
+}
+
+.campaign-card:hover {
+    transform: translateY(-4px);
+    border-color: rgba(225, 99, 45, 0.6);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.5), 0 0 15px rgba(188, 48, 28, 0.2);
+}
+
+.campaign-cover {
+    width: 100%;
+    height: 140px;
+    background-color: #111;
+    position: relative;
+}
+
+.campaign-cover img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.campaign-cover::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(to top, rgba(10, 8, 7, 1), transparent);
+}
+
+.campaign-role-badge {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background: rgba(5, 3, 3, 0.85);
+    border: 1px solid var(--gold);
+    color: var(--gold);
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 10px;
+    font-family: var(--display-font);
+    font-weight: bold;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    z-index: 2;
+    backdrop-filter: blur(4px);
+}
+
+.campaign-role-badge.master {
+    border-color: var(--fire);
+    color: #ff9d85;
+}
+
+.campaign-info {
+    padding: 16px 20px 24px;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+.campaign-info h3 {
+    margin: 0 0 8px 0;
+    font-family: var(--display-font);
+    font-size: 1.2rem;
+    color: var(--cream);
+    line-height: 1.2;
+}
+
+.campaign-info p {
+    font-size: 0.85rem;
+    color: var(--cream-muted);
+    line-height: 1.5;
+    margin: 0 0 20px 0;
+    flex: 1;
+}
+
+.enter-campaign-btn {
+    width: 100%;
+    text-align: center;
+}
+
+@media (max-width: 650px) {
+    .header-actions {
+        flex-direction: column;
+        width: 100%;
+    }
+    .header-actions button {
+        width: 100%;
+    }
+}
