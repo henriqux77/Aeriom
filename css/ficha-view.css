@@ -1,35 +1,11 @@
-.character-avatar {
-    position: relative;
-    width: 110px;
-    height: 110px;
-    border-radius: 50%;
-    overflow: hidden;
-}
+/* =========================================================
+   AERION — FICHA VIEW
+   Layout completo da ficha + avatar corrigido
+========================================================= */
 
-.character-avatar img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-}
 
-.avatar-fallback {
-    width: 100%;
-    height: 100%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.avatar-upload-button {
-    position: absolute;
-    left: 50%;
-    bottom: 8px;
-    transform: translateX(-50%);
-    white-space: nowrap;
-}/* =========================================================
-   AERION — FICHA VISUAL / EDIÇÃO
-   Usa a identidade global de style.css e adiciona apenas
-   o layout específico da ficha pronta.
+/* =========================================================
+   BASE
 ========================================================= */
 
 .aerion-sheet-body {
@@ -43,30 +19,57 @@
     position: relative;
 }
 
+
+/* =========================================================
+   TOPO
+========================================================= */
+
 .sheet-topbar {
     position: sticky;
     top: 0;
     z-index: 30;
+
     display: grid;
     grid-template-columns: 48px 1fr auto;
     align-items: center;
     gap: 14px;
+
     min-height: 76px;
     padding: 12px 18px;
+
     background: rgba(5, 5, 5, 0.92);
     border-bottom: 1px solid var(--line);
+
     backdrop-filter: blur(16px);
 }
 
 .sheet-icon-button {
     width: 44px;
     height: 44px;
+
     border: 1px solid var(--line);
     border-radius: 10px;
+
     background: var(--surface);
     color: var(--cream);
+
     font-size: 25px;
+
     cursor: pointer;
+
+    transition:
+        border-color 0.2s ease,
+        background 0.2s ease,
+        transform 0.2s ease;
+}
+
+.sheet-icon-button:hover {
+    border-color: var(--line-bright);
+    background: var(--surface-lighter);
+}
+
+.sheet-icon-button:active {
+    transform: scale(0.96);
 }
 
 .sheet-brand {
@@ -77,6 +80,7 @@
 
 .sheet-brand span {
     color: var(--gold);
+
     font-family: var(--display-font);
     font-size: 12px;
     letter-spacing: 0.22em;
@@ -96,7 +100,10 @@
 .save-indicator {
     font-size: 11px;
     letter-spacing: 0.05em;
-    transition: color 0.2s ease, opacity 0.2s ease;
+
+    transition:
+        color 0.2s ease,
+        opacity 0.2s ease;
 }
 
 .save-indicator.saved {
@@ -112,13 +119,21 @@
     color: #ff7d63;
 }
 
+
+/* =========================================================
+   LOADING / ERRO
+========================================================= */
+
 .sheet-state {
     min-height: 65vh;
+
     display: grid;
     place-items: center;
     align-content: center;
     gap: 14px;
+
     padding: 40px 20px;
+
     text-align: center;
 }
 
@@ -137,51 +152,240 @@
 
 .sheet-button {
     margin-top: 10px;
+
     padding: 13px 18px;
+
     border: 1px solid var(--line-bright);
+    border-radius: 8px;
+
     background: var(--surface);
     color: var(--cream);
-    border-radius: 8px;
+
     cursor: pointer;
+}
+
+.sheet-button:hover {
+    background: var(--surface-lighter);
 }
 
 .sheet-loader {
     width: 34px;
     height: 34px;
+
     border: 2px solid var(--line);
     border-top-color: var(--gold);
+
     border-radius: 50%;
+
     animation: aerion-spin 0.8s linear infinite;
 }
 
 @keyframes aerion-spin {
-    to { transform: rotate(360deg); }
+    to {
+        transform: rotate(360deg);
+    }
 }
+
+
+/* =========================================================
+   HERO
+========================================================= */
 
 .sheet-hero {
     display: grid;
-    grid-template-columns: 132px 1fr;
-    gap: 26px;
+
+    grid-template-columns: 190px 1fr;
+
+    gap: 30px;
     align-items: center;
+
     padding: 42px 26px 34px;
+
     border-bottom: 1px solid var(--line);
 }
 
-.sheet-avatar {
-    width: 132px;
-    height: 132px;
-    display: grid;
-    place-items: center;
-    border: 1px solid var(--line-bright);
+
+/* =========================================================
+   AVATAR
+========================================================= */
+
+.character-avatar {
+    position: relative;
+
+    width: 180px;
+    height: 180px;
+
+    min-width: 180px;
+    min-height: 180px;
+
     border-radius: 50%;
+
+    overflow: hidden;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    border: 1px solid rgba(170, 100, 45, 0.45);
+
     background:
-        radial-gradient(circle at 35% 25%, rgba(240, 106, 47, 0.2), transparent 50%),
-        var(--surface);
-    color: var(--gold);
-    font-family: var(--display-font);
-    font-size: 64px;
-    box-shadow: 0 0 32px rgba(188, 48, 28, 0.12);
+        radial-gradient(
+            circle at 35% 25%,
+            rgba(240, 106, 47, 0.18),
+            transparent 55%
+        ),
+        #0b0908;
+
+    box-shadow:
+        0 0 32px rgba(188, 48, 28, 0.12);
+
+    flex-shrink: 0;
 }
+
+
+/* IMAGEM */
+
+.character-avatar img {
+    position: absolute;
+
+    inset: 0;
+
+    width: 100%;
+    height: 100%;
+
+    object-fit: cover;
+
+    display: block;
+
+    border-radius: 50%;
+}
+
+
+/*
+   IMPORTANTE:
+   hidden precisa realmente remover o elemento.
+*/
+
+.character-avatar img[hidden] {
+    display: none !important;
+}
+
+
+/* =========================================================
+   FALLBACK DO AVATAR
+========================================================= */
+
+.avatar-fallback {
+    position: absolute;
+
+    inset: 0;
+
+    width: 100%;
+    height: 100%;
+
+    display: flex;
+
+    align-items: center;
+    justify-content: center;
+
+    border-radius: 50%;
+
+    overflow: hidden;
+
+    padding: 0;
+    margin: 0;
+
+    box-sizing: border-box;
+
+    color: var(--gold);
+
+    font-family: var(--display-font);
+
+    font-size: 64px;
+    font-weight: 600;
+
+    line-height: 1;
+
+    text-align: center;
+
+    background: transparent;
+
+    pointer-events: none;
+}
+
+
+/*
+   Quando existir imagem, o fallback desaparece.
+*/
+
+.avatar-fallback[hidden] {
+    display: none !important;
+}
+
+
+/*
+   Se algum texto antigo estiver sendo inserido
+   por pseudo-elemento, ele não aparecerá.
+*/
+
+.avatar-fallback::before,
+.avatar-fallback::after {
+    content: none !important;
+}
+
+
+/* =========================================================
+   BOTÃO ALTERAR IMAGEM
+========================================================= */
+
+.avatar-upload-button {
+    position: absolute;
+
+    left: 50%;
+    bottom: 10px;
+
+    transform: translateX(-50%);
+
+    z-index: 5;
+
+    white-space: nowrap;
+
+    border: 1px solid rgba(170, 100, 45, 0.55);
+
+    border-radius: 20px;
+
+    background: rgba(10, 8, 7, 0.90);
+
+    color: #d8bd91;
+
+    padding: 7px 12px;
+
+    font-size: 10px;
+
+    cursor: pointer;
+
+    opacity: 0;
+
+    transition:
+        opacity 0.2s ease,
+        background 0.2s ease,
+        border-color 0.2s ease;
+}
+
+.character-avatar:hover .avatar-upload-button,
+.character-avatar:focus-within .avatar-upload-button {
+    opacity: 1;
+}
+
+.avatar-upload-button:hover {
+    background: rgba(25, 19, 16, 0.96);
+    border-color: var(--line-bright);
+}
+
+
+/* =========================================================
+   IDENTIDADE
+========================================================= */
 
 .sheet-identity {
     min-width: 0;
@@ -191,23 +395,35 @@
 .sheet-field > span,
 .sheet-meta label {
     display: block;
+
     color: var(--cream-muted);
+
     font-family: var(--display-font);
+
     font-size: 10px;
+
     letter-spacing: 0.12em;
+
     margin-bottom: 7px;
 }
 
 .sheet-name-input {
     width: 100%;
+
     border: 0;
     border-bottom: 1px solid var(--line);
     border-radius: 0;
+
     background: transparent;
+
     color: var(--cream);
+
     font-family: var(--display-font);
+
     font-size: clamp(28px, 5vw, 44px);
+
     outline: none;
+
     padding: 2px 0 10px;
 }
 
@@ -215,27 +431,49 @@
     border-bottom-color: var(--gold);
 }
 
+
+/* =========================================================
+   TAGS
+========================================================= */
+
 .sheet-tags {
     display: flex;
+
     flex-wrap: wrap;
+
     gap: 8px;
+
     margin-top: 14px;
 }
 
 .sheet-tags span {
     padding: 6px 9px;
+
     border: 1px solid var(--line);
+
     border-radius: 999px;
+
     color: var(--cream-muted);
+
     font-size: 11px;
 }
 
+
+/* =========================================================
+   META
+========================================================= */
+
 .sheet-meta {
     display: flex;
+
     align-items: center;
+
     gap: 8px;
+
     margin-top: 15px;
+
     color: var(--cream-muted);
+
     font-size: 11px;
 }
 
@@ -245,9 +483,13 @@
 
 .sheet-meta input {
     width: 64px;
+
     border: 0;
+
     background: transparent;
+
     color: var(--cream);
+
     outline: none;
 }
 
@@ -255,51 +497,93 @@
     color: var(--orange);
 }
 
+
+/* =========================================================
+   SEÇÕES
+========================================================= */
+
 .sheet-section {
     margin: 22px 18px;
+
     padding: 25px;
+
     border: 1px solid var(--line);
+
     border-radius: 14px;
+
     background:
-        linear-gradient(180deg, rgba(255,255,255,0.012), transparent),
+        linear-gradient(
+            180deg,
+            rgba(255,255,255,0.012),
+            transparent
+        ),
         var(--surface);
+
     scroll-margin-top: 92px;
+
+    transition:
+        border-color 0.2s ease,
+        background 0.2s ease;
 }
 
 .sheet-section.active {
     border-color: var(--line-bright);
 }
 
+
+/* =========================================================
+   CABEÇALHO DAS SEÇÕES
+========================================================= */
+
 .section-heading {
     display: flex;
+
     justify-content: space-between;
     align-items: end;
+
     gap: 20px;
+
     margin-bottom: 22px;
+
     padding-bottom: 14px;
+
     border-bottom: 1px solid var(--line);
 }
 
 .section-kicker {
     display: block;
+
     margin-bottom: 5px;
+
     color: var(--gold);
+
     font-family: var(--display-font);
+
     font-size: 10px;
+
     letter-spacing: 0.14em;
 }
 
 .section-heading h2 {
     font-family: var(--display-font);
+
     font-size: 23px;
+
     font-weight: 600;
 }
 
 .section-description {
     color: var(--cream-muted);
+
     font-size: 11px;
+
     text-align: right;
 }
+
+
+/* =========================================================
+   CAMPOS
+========================================================= */
 
 .sheet-grid {
     display: grid;
@@ -307,7 +591,11 @@
 }
 
 .sheet-grid.two {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-columns:
+        repeat(
+            2,
+            minmax(0, 1fr)
+        );
 }
 
 .sheet-field {
@@ -319,18 +607,32 @@
 .sheet-field textarea,
 .attribute-field input {
     width: 100%;
+
+    box-sizing: border-box;
+
     border: 1px solid rgba(202, 92, 44, 0.22);
+
     border-radius: 8px;
+
     background: var(--surface-light);
+
     color: var(--cream);
+
     outline: none;
+
     padding: 12px 13px;
-    transition: border-color 0.2s ease, background 0.2s ease;
+
+    transition:
+        border-color 0.2s ease,
+        background 0.2s ease,
+        box-shadow 0.2s ease;
 }
 
 .sheet-field textarea {
     min-height: 110px;
+
     resize: vertical;
+
     line-height: 1.55;
 }
 
@@ -339,79 +641,129 @@
 .sheet-field textarea:focus,
 .attribute-field input:focus {
     border-color: var(--line-bright);
+
     background: var(--surface-lighter);
+
+    box-shadow:
+        0 0 0 2px rgba(202, 92, 44, 0.06);
 }
+
+
+/* =========================================================
+   ATRIBUTOS
+========================================================= */
 
 .attributes-grid {
     display: grid;
-    grid-template-columns: repeat(4, minmax(0, 1fr));
+
+    grid-template-columns:
+        repeat(
+            4,
+            minmax(0, 1fr)
+        );
+
     gap: 12px;
 }
 
 .attribute-field {
     padding: 14px;
+
     border: 1px solid var(--line);
+
     border-radius: 10px;
+
     background: var(--surface-light);
 }
 
 .attribute-field span {
     display: block;
+
     margin-bottom: 9px;
+
     color: var(--cream-muted);
+
     font-family: var(--display-font);
+
     font-size: 11px;
 }
 
 .attribute-field input {
     text-align: center;
+
     font-family: var(--display-font);
+
     font-weight: 700;
 }
 
+
+/* =========================================================
+   TÉCNICAS
+========================================================= */
+
 .techniques-list {
     display: grid;
+
     gap: 14px;
 }
 
 .technique-card {
     padding: 17px;
+
     border: 1px solid var(--line);
+
     border-radius: 11px;
+
     background: var(--surface-light);
 }
 
 .technique-head {
     display: flex;
+
     justify-content: space-between;
-    gap: 15px;
     align-items: start;
+
+    gap: 15px;
+
     margin-bottom: 16px;
 }
 
 .technique-level {
     color: var(--gold);
+
     font-size: 10px;
+
     letter-spacing: 0.1em;
 }
 
 .technique-head h3 {
     margin-top: 4px;
+
     font-family: var(--display-font);
+
     font-size: 18px;
 }
 
 .technique-type {
     padding: 5px 8px;
+
     border: 1px solid var(--line);
+
     border-radius: 999px;
+
     color: var(--cream-muted);
+
     font-size: 10px;
 }
 
 .technique-grid {
     display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+
+    grid-template-columns:
+        repeat(
+            2,
+            minmax(0, 1fr)
+        );
+
     gap: 14px;
 }
 
@@ -419,38 +771,77 @@
     grid-column: 1 / -1;
 }
 
+
+/* =========================================================
+   TEXTOS VAZIOS / PLACEHOLDERS
+========================================================= */
+
 .empty-section,
 .placeholder-section > p {
     color: var(--cream-muted);
+
     line-height: 1.7;
 }
 
+
+/* =========================================================
+   BOTÃO FLUTUANTE
+========================================================= */
+
 .quick-action-button {
     position: fixed;
+
     z-index: 60;
+
     left: 50%;
-    bottom: max(22px, env(safe-area-inset-bottom));
+
+    bottom:
+        max(
+            22px,
+            env(safe-area-inset-bottom)
+        );
+
     transform: translateX(-50%);
+
     width: 66px;
     height: 66px;
+
     border: 1px solid var(--line-bright);
+
     border-radius: 50%;
+
     background:
-        radial-gradient(circle at 35% 25%, rgba(240, 106, 47, 0.18), transparent 55%),
+        radial-gradient(
+            circle at 35% 25%,
+            rgba(240, 106, 47, 0.18),
+            transparent 55%
+        ),
         var(--surface);
+
     color: var(--gold);
-    box-shadow: 0 10px 35px rgba(0,0,0,0.5), 0 0 24px rgba(240,106,47,0.12);
+
+    box-shadow:
+        0 10px 35px rgba(0,0,0,0.5),
+        0 0 24px rgba(240,106,47,0.12);
+
     cursor: pointer;
-    transition: transform 0.2s ease, background 0.2s ease;
+
+    transition:
+        transform 0.2s ease,
+        background 0.2s ease;
 }
 
 .quick-action-button:hover {
-    transform: translateX(-50%) scale(1.04);
+    transform:
+        translateX(-50%)
+        scale(1.04);
 }
 
 .quick-action-button span {
     font-family: var(--display-font);
+
     font-size: 34px;
+
     font-weight: 700;
 }
 
@@ -458,62 +849,119 @@
     background: var(--surface-lighter);
 }
 
+
+/* =========================================================
+   MENU RÁPIDO
+========================================================= */
+
 .quick-menu {
     position: fixed;
+
     z-index: 55;
+
     left: 50%;
     bottom: 100px;
-    transform: translate(-50%, 18px) scale(0.96);
-    width: min(420px, calc(100vw - 28px));
+
+    transform:
+        translate(-50%, 18px)
+        scale(0.96);
+
+    width:
+        min(
+            420px,
+            calc(100vw - 28px)
+        );
+
     display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+
+    grid-template-columns:
+        repeat(
+            2,
+            minmax(0, 1fr)
+        );
+
     gap: 8px;
+
     padding: 12px;
+
     border: 1px solid var(--line);
+
     border-radius: 14px;
+
     background: rgba(16, 13, 13, 0.97);
-    box-shadow: 0 18px 55px rgba(0,0,0,0.55);
+
+    box-shadow:
+        0 18px 55px rgba(0,0,0,0.55);
+
     opacity: 0;
+
     pointer-events: none;
-    transition: opacity 0.2s ease, transform 0.2s ease;
+
+    transition:
+        opacity 0.2s ease,
+        transform 0.2s ease;
+
     backdrop-filter: blur(18px);
 }
 
 .quick-menu.open {
     opacity: 1;
+
     pointer-events: auto;
-    transform: translate(-50%, 0) scale(1);
+
+    transform:
+        translate(-50%, 0)
+        scale(1);
 }
 
 .quick-item {
     min-height: 54px;
+
     display: flex;
+
     align-items: center;
+
     gap: 10px;
+
     padding: 9px 11px;
+
     border: 1px solid rgba(202, 92, 44, 0.2);
+
     border-radius: 9px;
+
     background: var(--surface-light);
+
     color: var(--cream);
+
     text-align: left;
+
     cursor: pointer;
 }
 
 .quick-item:hover {
     border-color: var(--line-bright);
+
     background: var(--surface-lighter);
 }
 
 .quick-item b {
     display: grid;
+
     place-items: center;
+
     width: 28px;
     height: 28px;
+
     flex: 0 0 28px;
+
     border: 1px solid var(--line);
+
     border-radius: 50%;
+
     color: var(--gold);
+
     font-family: var(--display-font);
+
     font-size: 9px;
 }
 
@@ -521,9 +969,17 @@
     font-size: 11px;
 }
 
+
+/* =========================================================
+   TABLET / CELULAR
+========================================================= */
+
 @media (max-width: 760px) {
+
     .sheet-topbar {
-        grid-template-columns: 42px 1fr auto;
+        grid-template-columns:
+            42px 1fr auto;
+
         padding-inline: 12px;
     }
 
@@ -535,10 +991,16 @@
         font-size: 9px;
     }
 
+
+    /* HERO */
+
     .sheet-hero {
         grid-template-columns: 1fr;
+
         justify-items: center;
+
         text-align: center;
+
         padding-top: 32px;
     }
 
@@ -551,19 +1013,50 @@
         justify-content: center;
     }
 
+
+    /* AVATAR */
+
+    .character-avatar {
+        width: 150px;
+        height: 150px;
+
+        min-width: 150px;
+        min-height: 150px;
+    }
+
+    .avatar-fallback {
+        font-size: 54px;
+    }
+
+    .avatar-upload-button {
+        opacity: 1;
+
+        font-size: 9px;
+
+        padding: 6px 10px;
+    }
+
+
+    /* SEÇÕES */
+
     .sheet-section {
         margin-inline: 10px;
+
         padding: 18px;
     }
 
     .section-heading {
         align-items: start;
+
         flex-direction: column;
     }
 
     .section-description {
         text-align: left;
     }
+
+
+    /* GRIDS */
 
     .sheet-grid.two,
     .technique-grid {
@@ -575,148 +1068,122 @@
     }
 
     .attributes-grid {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
+        grid-template-columns:
+            repeat(
+                2,
+                minmax(0, 1fr)
+            );
     }
 
+
+    /* MENU */
+
     .quick-menu {
-        max-height: calc(100vh - 185px);
+        max-height:
+            calc(
+                100vh - 185px
+            );
+
         overflow-y: auto;
     }
 }
 
+
+/* =========================================================
+   CELULARES PEQUENOS
+========================================================= */
+
 @media (max-width: 420px) {
-    .sheet-avatar {
-        width: 112px;
-        height: 112px;
-        font-size: 54px;
+
+    .sheet-topbar {
+        gap: 9px;
     }
+
+    .sheet-brand span {
+        font-size: 10px;
+    }
+
+    .sheet-brand strong {
+        font-size: 15px;
+    }
+
+
+    .character-avatar {
+        width: 130px;
+        height: 130px;
+
+        min-width: 130px;
+        min-height: 130px;
+    }
+
+    .avatar-fallback {
+        font-size: 48px;
+    }
+
 
     .sheet-name-input {
         font-size: 29px;
     }
 
+
     .attributes-grid {
-        grid-template-columns: 1fr 1fr;
+        grid-template-columns:
+            1fr 1fr;
     }
+
 
     .quick-menu {
         grid-template-columns: 1fr;
     }
+
+
+    .quick-action-button {
+        width: 60px;
+        height: 60px;
+    }
 }
+
+
 /* =========================================================
-   AVATAR DO PERSONAGEM
-   ========================================================= */
+   SEGURANÇA VISUAL DO AVATAR
+========================================================= */
+
+/*
+   Evita que qualquer texto inesperado,
+   pseudo-elemento ou conteúdo antigo
+   ultrapasse o círculo.
+*/
 
 .character-avatar {
-    position: relative;
-    width: 180px;
-    height: 180px;
-    min-width: 180px;
-    min-height: 180px;
-    border-radius: 50%;
-    overflow: hidden;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border: 1px solid rgba(170, 100, 45, 0.45);
-    background: #0b0908;
+    isolation: isolate;
 }
 
-.character-avatar img {
-    position: absolute;
-    inset: 0;
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    border-radius: 50%;
-    display: block;
-}
-
-.character-avatar img[hidden] {
-    display: none;
-}
-
-.avatar-fallback {
-    position: absolute;
-    inset: 0;
-    width: 100%;
-    height: 100%;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: 6px;
-    text-align: center;
-    padding: 20px;
+.character-avatar > * {
     box-sizing: border-box;
-    color: rgba(218, 193, 157, 0.8);
-    pointer-events: none;
 }
 
-.avatar-plus {
-    font-family: Arial, sans-serif;
-    font-size: 38px;
-    line-height: 1;
-    font-weight: 300;
+.character-avatar .avatar-fallback {
+    overflow: hidden;
 }
 
-.avatar-fallback-text {
-    max-width: 110px;
-    font-family: inherit;
-    font-size: 11px;
-    line-height: 1.25;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-}
 
-.avatar-fallback[hidden] {
-    display: none;
-}
+/*
+   O fallback só pode mostrar o conteúdo
+   que realmente está dentro dele.
+*/
 
-.avatar-upload-button {
-    position: absolute;
-    left: 50%;
-    bottom: 8px;
-    transform: translateX(-50%);
-    z-index: 5;
+.character-avatar .avatar-fallback {
     white-space: nowrap;
-    border: 1px solid rgba(170, 100, 45, 0.55);
-    background: rgba(10, 8, 7, 0.88);
-    color: #d8bd91;
-    padding: 7px 12px;
-    border-radius: 20px;
-    font-size: 10px;
-    cursor: pointer;
-    opacity: 0;
-    transition: opacity 0.2s ease;
+    word-break: normal;
+    overflow-wrap: normal;
 }
 
-.character-avatar:hover .avatar-upload-button,
-.character-avatar:focus-within .avatar-upload-button {
-    opacity: 1;
-}
 
-/* No celular, o botão fica visível */
-@media (max-width: 700px) {
-    .character-avatar {
-        width: 150px;
-        height: 150px;
-        min-width: 150px;
-        min-height: 150px;
-    }
+/*
+   Se houver imagem, ela fica na frente
+   e o fallback fica completamente invisível.
+*/
 
-    .avatar-upload-button {
-        opacity: 1;
-        font-size: 9px;
-        padding: 6px 10px;
-    }
-
-    .avatar-plus {
-        font-size: 32px;
-    }
-
-    .avatar-fallback-text {
-        font-size: 9px;
-        max-width: 90px;
-    }
+.character-avatar:has(img:not([hidden])) .avatar-fallback {
+    display: none !important;
 }
