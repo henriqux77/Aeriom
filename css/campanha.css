@@ -1,5 +1,5 @@
 /* =========================================================
-   AERION — PAINEL DA CAMPANHA (FASE 2)
+   AERION — PAINEL DA CAMPANHA (FASE 3)
 ========================================================= */
 
 .campaign-dashboard {
@@ -93,6 +93,110 @@
     color: var(--gold);
     margin: 0 0 5px 0;
 }
+
+/* =========================================================
+   SESSÃO DE PERSONAGENS (NOVO)
+========================================================= */
+
+.campaign-section {
+    margin-bottom: 30px;
+}
+
+.section-header {
+    margin-bottom: 15px;
+}
+
+.section-header h3 {
+    font-family: var(--display-font);
+    color: var(--gold);
+    margin: 0 0 5px 0;
+    font-size: 1.1rem;
+}
+
+.section-header p {
+    color: var(--cream-muted);
+    font-size: 0.85rem;
+    margin: 0;
+}
+
+.campaign-characters-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 15px;
+}
+
+.campaign-char-card {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    padding: 15px;
+    background: rgba(20, 15, 13, 0.6);
+    border: 1px solid rgba(131, 65, 43, 0.3);
+    border-radius: 12px;
+    transition: border-color 0.2s, transform 0.2s;
+}
+
+.campaign-char-card:hover {
+    border-color: rgba(225, 99, 45, 0.5);
+    transform: translateY(-2px);
+}
+
+.campaign-char-card.own-character {
+    border-color: var(--gold);
+    background: linear-gradient(145deg, rgba(30, 22, 18, 0.8), rgba(15, 10, 8, 0.9));
+    box-shadow: 0 4px 15px rgba(200, 100, 50, 0.1);
+}
+
+.char-card-avatar {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 1px solid var(--line);
+}
+
+.char-card-fallback {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    background: #222;
+    display: grid;
+    place-items: center;
+    color: var(--gold);
+    border: 1px solid var(--gold);
+    font-family: var(--display-font);
+    font-size: 20px;
+    line-height: 1;
+}
+
+.char-card-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.char-card-info h4 {
+    margin: 0 0 4px 0;
+    color: var(--cream);
+    font-family: var(--display-font);
+    font-size: 1.05rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.char-card-info span {
+    font-size: 0.75rem;
+    color: var(--cream-muted);
+}
+
+.char-card-actions {
+    display: flex;
+    gap: 8px;
+}
+
+/* =========================================================
+   MÓDULOS
+========================================================= */
 
 .dash-modules {
     display: grid;
