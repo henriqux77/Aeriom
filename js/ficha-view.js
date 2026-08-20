@@ -672,7 +672,7 @@ document.addEventListener("DOMContentLoaded", async () => {
             renderAvatar(
                 `${avatarUrl}?v=${Date.now()}`
 renderAvatar(character.avatar_url, character.name);
-            );
+            
 
 
             setSaveState(
