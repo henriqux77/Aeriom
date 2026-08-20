@@ -1,1 +1,129 @@
-.
+/* =========================================================
+   AERION — PAINEL DA CAMPANHA (FASE 2)
+========================================================= */
+
+.campaign-dashboard {
+    width: min(100%, 1000px);
+    margin: 0 auto;
+    padding: 0 1rem 4rem;
+    min-height: 100vh;
+}
+
+.dash-header {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    padding: 15px 0;
+    background: rgba(5, 3, 3, 0.95);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid rgba(182, 72, 38, 0.16);
+    margin-bottom: 30px;
+}
+
+.dash-title {
+    flex: 1;
+}
+
+.dash-title span {
+    font-family: var(--display-font);
+    font-size: 0.65rem;
+    color: var(--orange);
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+}
+
+.dash-title h1 {
+    font-family: var(--display-font);
+    font-size: 1.2rem;
+    color: var(--cream);
+    margin: 0;
+}
+
+.campaign-banner {
+    position: relative;
+    width: 100%;
+    height: 180px;
+    border-radius: 16px;
+    border: 1px solid rgba(200, 100, 50, 0.3);
+    background-color: #111;
+    background-size: cover;
+    background-position: center;
+    display: flex;
+    align-items: flex-end;
+    padding: 20px;
+    overflow: hidden;
+    margin-bottom: 30px;
+}
+
+.banner-overlay {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(to top, rgba(5, 3, 3, 0.9) 0%, rgba(5, 3, 3, 0.2) 100%);
+}
+
+.campaign-banner h2 {
+    position: relative;
+    z-index: 2;
+    font-family: var(--display-font);
+    font-size: 2rem;
+    color: var(--cream);
+    margin: 0;
+    text-shadow: 0 4px 15px rgba(0,0,0,0.8);
+}
+
+.dash-panel {
+    border-radius: 14px;
+    border: 1px solid rgba(200, 100, 50, 0.2);
+    padding: 24px;
+    background: linear-gradient(145deg, rgba(25, 17, 15, 0.6), rgba(10, 8, 7, 0.8));
+    margin-bottom: 30px;
+}
+
+.master-panel {
+    border-color: rgba(188, 48, 28, 0.4);
+    box-shadow: 0 0 20px rgba(188, 48, 28, 0.05);
+}
+
+.dash-panel h3 {
+    font-family: var(--display-font);
+    font-size: 1.1rem;
+    color: var(--gold);
+    margin: 0 0 5px 0;
+}
+
+.dash-modules {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 20px;
+}
+
+.dash-module-card {
+    border-radius: 12px;
+    border: 1px solid rgba(131, 65, 43, 0.3);
+    padding: 20px;
+    background: rgba(20, 15, 13, 0.6);
+    display: flex;
+    flex-direction: column;
+}
+
+.dash-module-card h3 {
+    font-family: var(--display-font);
+    color: var(--cream);
+    margin: 0 0 10px 0;
+}
+
+.dash-module-card p {
+    font-size: 0.85rem;
+    color: var(--cream-muted);
+    margin: 0 0 20px 0;
+    flex: 1;
+}
+
+.dash-module-card button {
+    width: 100%;
+    min-height: 35px;
+    font-size: 11px;
+}
