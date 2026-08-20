@@ -42,73 +42,37 @@
 
     <div class="character-avatar" id="characterAvatar">
 
-        <img
-            id="characterAvatarImage"
-            alt="Avatar do personagem"
-            hidden
-        >
+    <img
+        id="characterAvatarImage"
+        alt="Avatar do personagem"
+        hidden
+    >
 
-        <div
-            id="characterAvatarFallback"
-            class="avatar-fallback"
-        >
-            A
-        </div>
-
-        <button
-            type="button"
-            id="avatarUploadButton"
-            class="avatar-upload-button"
-        >
-            Alterar imagem
-        </button>
-
-        <input
-            type="file"
-            id="avatarInput"
-            accept="image/png,image/jpeg,image/webp"
-            hidden
-        >
-
+    <div
+        id="characterAvatarFallback"
+        class="avatar-fallback"
+    >
+        <span class="avatar-plus">+</span>
+        <span class="avatar-fallback-text">Adicionar imagem</span>
     </div>
 
-    <div class="sheet-identity">
+    <button
+        type="button"
+        id="avatarUploadButton"
+        class="avatar-upload-button"
+        aria-label="Alterar imagem do personagem"
+    >
+        Alterar imagem
+    </button>
 
-        <label for="characterName">PERSONAGEM</label>
+    <input
+        type="file"
+        id="avatarInput"
+        accept="image/png,image/jpeg,image/webp"
+        hidden
+    >
 
-        <input
-            id="characterName"
-            class="sheet-name-input"
-            type="text"
-            maxlength="60"
-            placeholder="Nome do personagem"
-        >
-
-        <div class="sheet-tags">
-            <span id="raceTag">—</span>
-            <span id="classTag">—</span>
-            <span id="powerTag">—</span>
-        </div>
-
-        <div class="sheet-meta">
-
-            <label for="characterAge">IDADE</label>
-
-            <input
-                id="characterAge"
-                type="number"
-                min="0"
-                max="999"
-                placeholder="—"
-            >
-
-            <span class="sheet-dot">•</span>
-
-            <span id="updatedLabel">—</span>
-
-        </div>
-
-    </div>
+</div></div>
 
 </section>
    
