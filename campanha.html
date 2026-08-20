@@ -31,48 +31,98 @@
             <h2 id="bannerName">Nome da Campanha</h2>
         </div>
 
-        <!-- ÁREA DO MESTRE -->
-        <div id="masterPanel" class="dash-panel master-panel" hidden>
-            <h3>Ferramentas do Mestre</h3>
-            <div style="display: flex; gap: 10px; align-items: center; margin-top: 15px;">
-                <button id="generateInviteBtn" class="primary-button" style="width: auto; min-height: 40px; font-size: 12px;">Gerar Convite</button>
-                <div id="inviteCodeDisplay" style="padding: 10px 15px; border: 1px dashed var(--gold); border-radius: 8px; color: var(--gold); font-family: monospace; font-size: 16px; letter-spacing: 2px;" hidden></div>
+        <!-- NAVEGAÇÃO INTERNA (TABS) -->
+        <nav class="dash-nav">
+            <button class="dash-tab active" data-tab="tab-overview">Visão Geral</button>
+            <button class="dash-tab" data-tab="tab-mural">Mural</button>
+            <button class="dash-tab" data-tab="tab-logs">Histórico</button>
+            <button class="dash-tab master-only" data-tab="tab-settings" hidden>Configurações</button>
+        </nav>
+
+        <!-- ABA 1: VISÃO GERAL -->
+        <div id="tab-overview" class="dash-tab-content active">
+            <!-- ÁREA DO MESTRE -->
+            <div id="masterPanel" class="dash-panel master-panel" hidden>
+                <h3>Ferramentas do Mestre</h3>
+                <div style="display: flex; gap: 10px; align-items: center; margin-top: 15px;">
+                    <button id="generateInviteBtn" class="primary-button" style="width: auto; min-height: 40px; font-size: 12px;">Gerar Convite</button>
+                    <div id="inviteCodeDisplay" style="padding: 10px 15px; border: 1px dashed var(--gold); border-radius: 8px; color: var(--gold); font-family: monospace; font-size: 16px; letter-spacing: 2px;" hidden></div>
+                </div>
+                <p style="margin-top:10px; font-size: 11px; color: var(--cream-muted);">Envie o código gerado para seus jogadores.</p>
             </div>
-            <p style="margin-top:10px; font-size: 11px; color: var(--cream-muted);">Envie o código gerado para seus jogadores.</p>
+
+            <div class="campaign-section">
+                <div class="section-header">
+                    <h3>Aventureiros</h3>
+                    <p>Os heróis presentes neste mundo.</p>
+                </div>
+                <div id="campaignCharactersList" class="campaign-characters-grid">
+                    <p style="color: var(--cream-muted); font-size: 0.9rem;">Buscando aventureiros...</p>
+                </div>
+            </div>
+            
+            <div class="dash-modules">
+                <div class="dash-module-card">
+                    <h3>Combate</h3>
+                    <p>Iniciativa, turnos e campo de batalha.</p>
+                    <button class="secondary-button" disabled>Em breve (Fase 5)</button>
+                </div>
+            </div>
         </div>
 
-        <!-- LISTA DE PERSONAGENS (NOVO) -->
-        <div class="campaign-section">
+        <!-- ABA 2: MURAL -->
+        <div id="tab-mural" class="dash-tab-content" hidden>
+            <div class="section-header" style="display: flex; justify-content: space-between; align-items: center;">
+                <div>
+                    <h3>Mural de Aventuras</h3>
+                    <p>Cartazes, mapas e avisos importantes.</p>
+                </div>
+                <button id="addMuralBtn" class="primary-button master-only" style="width: auto; min-height: 35px; font-size: 11px;" hidden>+ Novo Cartaz</button>
+            </div>
+            <div id="muralList" class="mural-grid">
+                <p style="color: var(--cream-muted);">O mural está vazio.</p>
+            </div>
+        </div>
+
+        <!-- ABA 3: LOGS -->
+        <div id="tab-logs" class="dash-tab-content" hidden>
             <div class="section-header">
-                <h3>Aventureiros</h3>
-                <p>Os heróis presentes neste mundo.</p>
+                <h3>Histórico do Mundo</h3>
+                <p>Registro de acontecimentos da campanha.</p>
             </div>
-            <div id="campaignCharactersList" class="campaign-characters-grid">
-                <p style="color: var(--cream-muted); font-size: 0.9rem;">Buscando aventureiros...</p>
+            <div id="logsList" class="logs-container">
+                <p style="color: var(--cream-muted);">Nenhum registro encontrado.</p>
             </div>
         </div>
 
-        <!-- MÓDULOS FUTUROS -->
-        <div class="dash-modules">
-            <div class="dash-module-card">
-                <h3>Combate</h3>
-                <p>Iniciativa, turnos e campo de batalha.</p>
-                <button class="secondary-button" disabled>Em breve</button>
-            </div>
-            <div class="dash-module-card">
-                <h3>Mural</h3>
-                <p>Avisos, cartazes e mapas do mundo.</p>
-                <button class="secondary-button" disabled>Em breve</button>
+        <!-- ABA 4: CONFIGURAÇÕES -->
+        <div id="tab-settings" class="dash-tab-content" hidden>
+            <div class="dash-panel">
+                <h3>Ajustes da Campanha</h3>
+                <form id="campaignSettingsForm" style="margin-top: 20px;">
+                    <label class="sheet-field" style="display: block; margin-bottom: 15px;">
+                        <span style="display: block; color: var(--gold); font-family: var(--display-font); font-size: 10px; margin-bottom: 5px;">Nome da Campanha</span>
+                        <input type="text" id="settingsName" required maxlength="100" style="width: 100%; padding: 12px; background: rgba(20, 15, 13, 0.8); border: 1px solid rgba(200, 100, 50, 0.3); color: var(--cream); border-radius: 8px;">
+                    </label>
+                    <label class="sheet-field" style="display: block; margin-bottom: 20px;">
+                        <span style="display: block; color: var(--gold); font-family: var(--display-font); font-size: 10px; margin-bottom: 5px;">Descrição</span>
+                        <textarea id="settingsDesc" maxlength="500" style="width: 100%; padding: 12px; background: rgba(20, 15, 13, 0.8); border: 1px solid rgba(200, 100, 50, 0.3); color: var(--cream); border-radius: 8px; min-height: 80px;"></textarea>
+                    </label>
+                    <button type="submit" id="saveSettingsBtn" class="primary-button">Salvar Alterações</button>
+                </form>
+                <hr style="border: 0; border-top: 1px solid rgba(188, 48, 28, 0.3); margin: 30px 0;">
+                <h3>Zona de Perigo</h3>
+                <p style="font-size: 0.85rem; color: var(--cream-muted); margin-bottom: 15px;">A exclusão da campanha é permanente e removerá todos os membros e dados associados (sua ficha original continuará intacta).</p>
+                <button id="deleteCampaignBtn" class="secondary-button" style="border-color: rgba(188, 48, 28, 0.5); color: #d46a4a;">Excluir Campanha</button>
             </div>
         </div>
     </section>
-
 </main>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="js/supabase.js?v=8"></script>
-<script src="js/auth.js?v=8"></script>
-<script src="js/campanha.js?v=2"></script>
+<script src="js/supabase.js?v=9"></script>
+<script src="js/auth.js?v=9"></script>
+<script src="js/campanha.js?v=3"></script>
 
 </body>
 </html>
