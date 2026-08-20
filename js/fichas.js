@@ -1,33 +1,77 @@
 document.addEventListener("DOMContentLoaded", async () => {
     "use strict";
 
+    // =========================================================
+    // ELEMENTOS DA PÁGINA
+    // =========================================================
+
     const lista = document.getElementById("charactersList");
     const loading = document.getElementById("loadingCharacters");
     const empty = document.getElementById("emptyCharacters");
+
     const novo = document.getElementById("newCharacterButton");
     const emptyNovo = document.getElementById("emptyNewCharacterButton");
-    const back = document.getElementById("backButton");
 
-    const {
-        data: { session }
-    } = await supabaseClient.auth.getSession();
+    const backButton = document.getElementById("backButton");
+    const userEmail = document.getElementById("userEmail");
 
-    if (!session) {
-        window.location.href = "index.html";
+
+    // =========================================================
+    // VERIFICAÇÃO DA PÁGINA
+    // =========================================================
+
+    if (!lista) {
+        console.error(
+            "Aerion: #charactersList não foi encontrado."
+        );
+
         return;
     }
 
-    if (back) {
-        back.addEventListener("click", () => {
-            window.location.href = "index.html";
-        });
+
+    // =========================================================
+    // VERIFICAÇÃO DO SUPABASE
+    // =========================================================
+
+    if (!window.supabaseClient) {
+        console.error(
+            "Aerion: supabaseClient não está disponível."
+        );
+
+        mostrarErro(
+            "Não foi possível conectar ao banco de dados."
+        );
+
+        return;
     }
 
+    const client = window.supabaseClient;
+
+
+    // =========================================================
+    // FUNÇÕES AUXILIARES
+    // =========================================================
+
+    function escapeHTML(value) {
+        return String(value ?? "")
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;")
+            .replace(/"/g, "&quot;")
+            .replace(/'/g, "&#039;");
+    }
+
+
     function formatDate(value) {
-        if (!value) return "Sem atualização";
+        if (!value) {
+            return "Sem atualização";
+        }
 
         const date = new Date(value);
-        if (Number.isNaN(date.getTime())) return "Sem atualização";
+
+        if (Number.isNaN(date.getTime())) {
+            return "Sem atualização";
+        }
 
         return date.toLocaleDateString("pt-BR", {
             day: "2-digit",
@@ -36,246 +80,492 @@ document.addEventListener("DOMContentLoaded", async () => {
         });
     }
 
-    function escapeHtml(value) {
-        return String(value ?? "")
-            .replaceAll("&", "&amp;")
-            .replaceAll("<", "&lt;")
-            .replaceAll(">", "&gt;")
-            .replaceAll('"', "&quot;")
-            .replaceAll("'", "&#039;");
+
+    // =========================================================
+    // ESTADOS DA INTERFACE
+    // =========================================================
+
+    function mostrarCarregando() {
+        if (loading) {
+            loading.style.display = "block";
+        }
+
+        if (empty) {
+            empty.style.display = "none";
+        }
+
+        lista.innerHTML = "";
     }
 
-    async function carregarFichas() {
-        loading.style.display = "block";
-        empty.style.display = "none";
+
+    function mostrarLista() {
+        if (loading) {
+            loading.style.display = "none";
+        }
+
+        if (empty) {
+            empty.style.display = "none";
+        }
+    }
+
+
+    function mostrarVazio() {
+        if (loading) {
+            loading.style.display = "none";
+        }
+
         lista.innerHTML = "";
 
-        const { data, error } = await supabaseClient
-            .from("characters")
-            .select("id,name,race,class,power,updated_at")
-            .eq("user_id", session.user.id)
-            .order("updated_at", { ascending: false });
-
-        loading.style.display = "none";
-
-        if (error) {
-            console.error("Erro ao carregar fichas:", error);
-            lista.innerHTML = `
-                <div class="characters-message">
-                    <h3>Erro ao carregar fichas.</h3>
-                    <p>Tente recarregar a página.</p>
-                </div>
-            `;
-            return;
-        }
-
-        if (!data || data.length === 0) {
+        if (empty) {
             empty.style.display = "block";
-            return;
         }
-
-        data.forEach((ficha) => {
-            const card = document.createElement("article");
-            card.className = "character-card";
-            card.innerHTML = `
-                <div class="character-card-main">
-                    <div class="character-card-avatar">A</div>
-
-                    <div class="character-card-info">
-                        <h3>${escapeHtml(ficha.name || "Sem nome")}</h3>
-                        <p>
-                            ${escapeHtml(ficha.race || "Sem raça")}
-                            <span>•</span>
-                            ${escapeHtml(ficha.class || "Sem classe")}
-                        </p>
-
-                        ${ficha.power ? `<small>${escapeHtml(ficha.power)}</small>` : ""}
-                    </div>
-                </div>
-
-                <div class="character-card-footer">
-                    <small>Atualizada em ${formatDate(ficha.updated_at)}</small>
-
-                    <div class="character-card-actions">
-                        <button type="button" class="character-edit" data-id="${escapeHtml(ficha.id)}">
-                            Editar
-                        </button>
-
-                        <button type="button" class="character-delete" data-id="${escapeHtml(ficha.id)}">
-                            Excluir
-                        </button>
-                    </div>
-                </div>
-            `;
-
-            card.querySelector(".character-edit").addEventListener("click", () => {
-                localStorage.setItem("aerion_character_id", ficha.id);
-                window.location.href = "ficha-view.html";
-            });
-
-            card.querySelector(".character-delete").addEventListener("click", async () => {
-                const confirmed = window.confirm(
-                    `Excluir a ficha "${ficha.name || "Sem nome"}"? Essa ação não pode ser desfeita.`
-                );
-
-                if (!confirmed) return;
-
-                const { error: deleteError } = await supabaseClient
-                    .from("characters")
-                    .delete()
-                    .eq("id", ficha.id)
-                    .eq("user_id", session.user.id);
-
-                if (deleteError) {
-                    console.error("Erro ao excluir ficha:", deleteError);
-                    window.alert("Não foi possível excluir a ficha.");
-                    return;
-                }
-
-                await carregarFichas();
-            });
-
-            card.addEventListener("dblclick", () => {
-                localStorage.setItem("aerion_character_id", ficha.id);
-                window.location.href = "ficha-view.html";
-            });
-
-            lista.appendChild(card);
-        });
     }
 
+
+    function mostrarErro(mensagem) {
+        if (loading) {
+            loading.style.display = "none";
+        }
+
+        if (empty) {
+            empty.style.display = "none";
+        }
+
+        lista.innerHTML = `
+            <div class="characters-message">
+                <h3>
+                    Não foi possível carregar suas fichas.
+                </h3>
+
+                <p>
+                    ${escapeHTML(mensagem)}
+                </p>
+
+                <button
+                    id="retryCharactersButton"
+                    class="primary-button"
+                    type="button"
+                >
+                    Tentar novamente
+                </button>
+            </div>
+        `;
+
+        const retryButton = document.getElementById(
+            "retryCharactersButton"
+        );
+
+        if (retryButton) {
+            retryButton.addEventListener(
+                "click",
+                carregarFichas
+            );
+        }
+    }
+
+
+    // =========================================================
+    // ABRIR FICHA EXISTENTE
+    // =========================================================
+
+    function abrirFicha(characterId) {
+        if (!characterId) {
+            console.error(
+                "Aerion: ID da ficha não informado."
+            );
+
+            return;
+        }
+
+        // Guarda somente a ficha que o usuário escolheu.
+        localStorage.setItem(
+            "aerion_character_id",
+            characterId
+        );
+
+        // Remove qualquer rascunho de criação que possa
+        // interferir na abertura da ficha existente.
+        localStorage.removeItem(
+            "aerion_character_draft"
+        );
+
+        // Ficha existente NÃO deve abrir ficha.html.
+        // Ela abre a visualização/edição da ficha.
+        window.location.href = "ficha-view.html";
+    }
+
+
+    // =========================================================
+    // NOVA FICHA
+    // =========================================================
+
     function novaFicha() {
-        localStorage.removeItem("aerion_character_id");
-        localStorage.removeItem("aerion_character_draft");
+        // Uma nova ficha não possui ID.
+        localStorage.removeItem(
+            "aerion_character_id"
+        );
+
+        // Também removemos qualquer rascunho antigo.
+        localStorage.removeItem(
+            "aerion_character_draft"
+        );
+
         window.location.href = "ficha.html";
     }
 
-    novo?.addEventListener("click", novaFicha);
-    emptyNovo?.addEventListener("click", novaFicha);
 
-    carregarFichas();
-});
-document.addEventListener("DOMContentLoaded", async () => {
+    // =========================================================
+    // CRIAR CARD DA FICHA
+    // =========================================================
 
-    const lista =
-        document.getElementById("charactersList");
+    function criarCard(ficha) {
+        const card = document.createElement("article");
 
-    const novo =
-        document.getElementById("newCharacterButton");
+        card.className = "character-card";
 
-    const emptyNovo =
-        document.getElementById(
-            "emptyNewCharacterButton"
+        const nome = escapeHTML(
+            ficha.name || "Sem nome"
         );
 
-    const loading =
-        document.getElementById(
-            "loadingCharacters"
+        const race = escapeHTML(
+            ficha.race || "Sem raça"
         );
 
-    const empty =
-        document.getElementById(
-            "emptyCharacters"
+        const classe = escapeHTML(
+            ficha.class || "Sem classe"
         );
 
-    if (!lista) {
-
-        console.error(
-            "❌ #charactersList não encontrado."
+        const poder = escapeHTML(
+            ficha.power || ""
         );
 
-        return;
+        const id = escapeHTML(
+            ficha.id
+        );
+
+        const dataAtualizacao = formatDate(
+            ficha.updated_at
+        );
+
+
+        // =====================================================
+        // CONTEÚDO DO CARD
+        // =====================================================
+
+        card.innerHTML = `
+            <div class="character-card-main">
+
+                <div class="character-card-avatar">
+                    A
+                </div>
+
+                <div class="character-card-info">
+
+                    <h3>
+                        ${nome}
+                    </h3>
+
+                    <p>
+                        ${race}
+                        <span>•</span>
+                        ${classe}
+                    </p>
+
+                    ${
+                        poder
+                            ? `
+                                <small>
+                                    ${poder}
+                                </small>
+                              `
+                            : ""
+                    }
+
+                </div>
+
+            </div>
+
+
+            <div class="character-card-footer">
+
+                <small>
+                    Atualizada em ${dataAtualizacao}
+                </small>
+
+                <div class="character-card-actions">
+
+                    <button
+                        type="button"
+                        class="character-edit"
+                        data-id="${id}"
+                    >
+                        Editar
+                    </button>
+
+                    <button
+                        type="button"
+                        class="character-delete"
+                        data-id="${id}"
+                    >
+                        Excluir
+                    </button>
+
+                </div>
+
+            </div>
+        `;
+
+
+        // =====================================================
+        // BOTÃO EDITAR
+        // =====================================================
+
+        const editar = card.querySelector(
+            ".character-edit"
+        );
+
+        if (editar) {
+            editar.addEventListener("click", (event) => {
+                event.preventDefault();
+                event.stopPropagation();
+
+                abrirFicha(ficha.id);
+            });
+        }
+
+
+        // =====================================================
+        // BOTÃO EXCLUIR
+        // =====================================================
+
+        const excluir = card.querySelector(
+            ".character-delete"
+        );
+
+        if (excluir) {
+            excluir.addEventListener(
+                "click",
+                async (event) => {
+                    event.preventDefault();
+                    event.stopPropagation();
+
+                    await excluirFicha(ficha);
+                }
+            );
+        }
+
+
+        // =====================================================
+        // CLIQUE NO CARD
+        // =====================================================
+
+        card.addEventListener("click", (event) => {
+            // Se clicou em um botão, o botão já cuida da ação.
+            if (
+                event.target.closest(
+                    ".character-card-actions"
+                )
+            ) {
+                return;
+            }
+
+            abrirFicha(ficha.id);
+        });
+
+
+        return card;
     }
 
-    // resto...
-});
-document.addEventListener("DOMContentLoaded", async () => {
 
-    // =====================================================
-    // ELEMENTOS DA PÁGINA
-    // =====================================================
+    // =========================================================
+    // EXCLUIR FICHA
+    // =========================================================
 
-    const lista =
-        document.getElementById("charactersList");
+    async function excluirFicha(ficha) {
+        const nome = ficha.name || "Sem nome";
 
-    const loading =
-        document.getElementById("loadingCharacters");
-
-    const empty =
-        document.getElementById("emptyCharacters");
-
-    const novo =
-        document.getElementById("newCharacterButton");
-
-    const emptyNovo =
-        document.getElementById(
-            "emptyNewCharacterButton"
+        const confirmado = window.confirm(
+            `Excluir a ficha "${nome}"?\n\nEssa ação não pode ser desfeita.`
         );
 
-    const backButton =
-        document.getElementById("backButton");
-
-    const userEmail =
-        document.getElementById("userEmail");
+        if (!confirmado) {
+            return;
+        }
 
 
-    // =====================================================
-    // VERIFICAR ELEMENTOS
-    // =====================================================
-
-    if (!lista) {
-
-        console.error(
-            "❌ Elemento #charactersList não encontrado."
+        // Desabilita temporariamente os botões para evitar
+        // múltiplos cliques durante a exclusão.
+        const botoes = lista.querySelectorAll(
+            ".character-edit, .character-delete"
         );
 
-        return;
+        botoes.forEach((botao) => {
+            botao.disabled = true;
+        });
 
+
+        try {
+            const { error } = await client
+                .from("characters")
+                .delete()
+                .eq("id", ficha.id)
+                .eq("user_id", currentUser.id);
+
+
+            if (error) {
+                console.error(
+                    "Aerion: erro ao excluir ficha:",
+                    error
+                );
+
+                window.alert(
+                    "Não foi possível excluir a ficha."
+                );
+
+                return;
+            }
+
+
+            // Se a ficha excluída era a ficha atualmente
+            // armazenada no navegador, removemos o ID.
+            const fichaAtual = localStorage.getItem(
+                "aerion_character_id"
+            );
+
+            if (fichaAtual === ficha.id) {
+                localStorage.removeItem(
+                    "aerion_character_id"
+                );
+            }
+
+
+            // Atualiza a lista.
+            await carregarFichas();
+
+        } catch (error) {
+            console.error(
+                "Aerion: erro inesperado ao excluir ficha:",
+                error
+            );
+
+            window.alert(
+                "Ocorreu um erro ao excluir a ficha."
+            );
+
+        } finally {
+            botoes.forEach((botao) => {
+                botao.disabled = false;
+            });
+        }
     }
 
 
-    // =====================================================
-    // VERIFICAR SUPABASE
-    // =====================================================
+    // =========================================================
+    // CARREGAR FICHAS DO USUÁRIO
+    // =========================================================
 
-    if (!window.supabaseClient) {
+    async function carregarFichas() {
+        mostrarCarregando();
 
-        console.error(
-            "❌ Supabase não encontrado."
-        );
+        try {
+            const {
+                data,
+                error
+            } = await client
+                .from("characters")
+                .select(`
+                    id,
+                    user_id,
+                    name,
+                    age,
+                    race,
+                    class,
+                    power,
+                    updated_at,
+                    created_at
+                `)
+                .eq(
+                    "user_id",
+                    currentUser.id
+                )
+                .order(
+                    "updated_at",
+                    {
+                        ascending: false
+                    }
+                );
 
-        mostrarErro(
-            "Erro ao conectar ao banco de dados."
-        );
 
-        return;
+            if (error) {
+                console.error(
+                    "Aerion: erro ao carregar fichas:",
+                    error
+                );
 
+                mostrarErro(
+                    error.message ||
+                    "Erro ao consultar suas fichas."
+                );
+
+                return;
+            }
+
+
+            if (!Array.isArray(data) || data.length === 0) {
+                mostrarVazio();
+                return;
+            }
+
+
+            // =================================================
+            // RENDERIZAR
+            // =================================================
+
+            lista.innerHTML = "";
+
+            mostrarLista();
+
+
+            data.forEach((ficha) => {
+                const card = criarCard(ficha);
+
+                lista.appendChild(card);
+            });
+
+
+            console.log(
+                `Aerion: ${data.length} ficha(s) carregada(s).`
+            );
+
+        } catch (error) {
+            console.error(
+                "Aerion: erro inesperado ao carregar fichas:",
+                error
+            );
+
+            mostrarErro(
+                "Ocorreu um erro ao carregar suas fichas."
+            );
+        }
     }
 
 
-    const supabaseClient =
-        window.supabaseClient;
+    // =========================================================
+    // VERIFICAR SESSÃO
+    // =========================================================
 
-
-    // =====================================================
-    // VERIFICAR LOGIN
-    // =====================================================
-
-    let session;
+    let currentUser = null;
 
     try {
-
         const {
             data,
             error
-        } =
-            await supabaseClient.auth.getSession();
+        } = await client.auth.getSession();
 
 
         if (error) {
-
             console.error(
-                "❌ Erro ao obter sessão:",
+                "Aerion: erro ao verificar sessão:",
                 error
             );
 
@@ -284,18 +574,36 @@ document.addEventListener("DOMContentLoaded", async () => {
             );
 
             return;
-
         }
 
 
-        session =
-            data?.session;
+        const session = data?.session;
 
+
+        if (!session || !session.user) {
+            window.location.href = "index.html";
+            return;
+        }
+
+
+        currentUser = session.user;
+
+
+        // Mostra o e-mail no cabeçalho.
+        if (userEmail) {
+            userEmail.textContent =
+                currentUser.email || "Usuário";
+        }
+
+
+        console.log(
+            "Aerion: usuário autenticado:",
+            currentUser.id
+        );
 
     } catch (error) {
-
         console.error(
-            "❌ Erro inesperado ao verificar sessão:",
+            "Aerion: erro inesperado ao verificar sessão:",
             error
         );
 
@@ -304,663 +612,46 @@ document.addEventListener("DOMContentLoaded", async () => {
         );
 
         return;
-
     }
 
 
-    // =====================================================
-    // USUÁRIO NÃO LOGADO
-    // =====================================================
-
-    if (!session) {
-
-        console.warn(
-            "⚠️ Nenhum usuário logado."
-        );
-
-        window.location.href =
-            "index.html";
-
-        return;
-
-    }
-
-
-    // =====================================================
-    // USUÁRIO LOGADO
-    // =====================================================
-
-    const user =
-        session.user;
-
-
-    console.log(
-        "👤 Usuário logado:",
-        user
-    );
-
-
-    console.log(
-        "🆔 ID do usuário:",
-        user.id
-    );
-
-
-    if (userEmail) {
-
-        userEmail.textContent =
-            user.email || "Usuário";
-
-    }
-
-
-    // =====================================================
-    // FUNÇÃO ESCAPAR HTML
-    // =====================================================
-
-    function escapeHTML(value) {
-
-        return String(value ?? "")
-
-            .replace(
-                /&/g,
-                "&amp;"
-            )
-
-            .replace(
-                /</g,
-                "&lt;"
-            )
-
-            .replace(
-                />/g,
-                "&gt;"
-            )
-
-            .replace(
-                /"/g,
-                "&quot;"
-            )
-
-            .replace(
-                /'/g,
-                "&#039;"
-            );
-
-    }
-
-
-    // =====================================================
-    // MOSTRAR CARREGAMENTO
-    // =====================================================
-
-    function mostrarCarregando() {
-
-        if (loading) {
-
-            loading.style.display =
-                "block";
-
-        }
-
-        if (empty) {
-
-            empty.style.display =
-                "none";
-
-        }
-
-        lista.innerHTML =
-            "";
-
-    }
-
-
-    // =====================================================
-    // MOSTRAR LISTA
-    // =====================================================
-
-    function mostrarLista() {
-
-        if (loading) {
-
-            loading.style.display =
-                "none";
-
-        }
-
-        if (empty) {
-
-            empty.style.display =
-                "none";
-
-        }
-
-    }
-
-
-    // =====================================================
-    // MOSTRAR ESTADO VAZIO
-    // =====================================================
-
-    function mostrarVazio() {
-
-        if (loading) {
-
-            loading.style.display =
-                "none";
-
-        }
-
-        lista.innerHTML =
-            "";
-
-        if (empty) {
-
-            empty.style.display =
-                "block";
-
-        }
-
-    }
-
-
-    // =====================================================
-    // MOSTRAR ERRO
-    // =====================================================
-
-    function mostrarErro(mensagem) {
-
-        if (loading) {
-
-            loading.style.display =
-                "none";
-
-        }
-
-        if (empty) {
-
-            empty.style.display =
-                "none";
-
-        }
-
-        if (lista) {
-
-            lista.innerHTML = `
-
-                <div class="characters-message">
-
-                    <h3>
-                        Não foi possível carregar suas fichas.
-                    </h3>
-
-                    <p>
-                        ${escapeHTML(mensagem)}
-                    </p>
-
-                    <button
-                        id="retryCharactersButton"
-                        class="primary-button"
-                        type="button"
-                    >
-                        Tentar novamente
-                    </button>
-
-                </div>
-
-            `;
-
-
-            const retryButton =
-                document.getElementById(
-                    "retryCharactersButton"
-                );
-
-
-            if (retryButton) {
-
-                retryButton.addEventListener(
-                    "click",
-                    carregarFichas
-                );
-
-            }
-
-        }
-
-    }
-
-
-    // =====================================================
-    // CARREGAR FICHAS
-    // =====================================================
-
-    async function carregarFichas() {
-
-        console.log(
-            "🔎 Carregando fichas..."
-        );
-
-
-        mostrarCarregando();
-
-
-        try {
-
-            console.log(
-                "🔎 Procurando fichas com user_id:",
-                user.id
-            );
-
-
-            const {
-                data,
-                error
-            } =
-                await supabaseClient
-
-                    .from("characters")
-
-                    .select(
-                        "id,name,age,race,class,power,updated_at,created_at"
-                    )
-
-                    .eq(
-                        "user_id",
-                        user.id
-                    )
-
-                    .order(
-                        "updated_at",
-                        {
-                            ascending: false
-                        }
-                    );
-
-
-            console.log(
-                "📦 Fichas retornadas:",
-                data
-            );
-
-
-            console.log(
-                "❌ Erro retornado:",
-                error
-            );
-
-
-            // =============================================
-            // ERRO DO SUPABASE
-            // =============================================
-
-            if (error) {
-
-                console.error(
-                    "❌ Erro ao carregar fichas:",
-                    error
-                );
-
-
-                mostrarErro(
-                    error.message ||
-                    "Erro ao consultar suas fichas."
-                );
-
-
-                return;
-
-            }
-
-
-            // =============================================
-            // NENHUMA FICHA
-            // =============================================
-
-            if (
-                !data ||
-                data.length === 0
-            ) {
-
-                console.log(
-                    "📭 Nenhuma ficha encontrada."
-                );
-
-
-                mostrarVazio();
-
-
-                return;
-
-            }
-
-
-            // =============================================
-            // TEM FICHAS
-            // =============================================
-
-            console.log(
-                `✅ ${data.length} ficha(s) encontrada(s).`
-            );
-
-
-            mostrarLista();
-
-
-            lista.innerHTML =
-                "";
-
-
-            data.forEach(
-                (ficha) => {
-
-                    const card =
-                        document.createElement(
-                            "article"
-                        );
-
-
-                    card.className =
-                        "character-card";
-
-
-                    const nome =
-                        escapeHTML(
-                            ficha.name ||
-                            "Sem nome"
-                        );
-
-
-                    const race =
-                        escapeHTML(
-                            ficha.race ||
-                            "Sem raça"
-                        );
-
-
-                    const classe =
-                        escapeHTML(
-                            ficha.class ||
-                            "Sem classe"
-                        );
-
-
-                    const poder =
-                        escapeHTML(
-                            ficha.power ||
-                            "Sem poder"
-                        );
-
-
-                    let dataAtualizacao =
-                        "Data desconhecida";
-
-
-                    if (
-                        ficha.updated_at
-                    ) {
-
-                        const dataObj =
-                            new Date(
-                                ficha.updated_at
-                            );
-
-
-                        if (
-                            !Number.isNaN(
-                                dataObj.getTime()
-                            )
-                        ) {
-
-                            dataAtualizacao =
-                                dataObj.toLocaleDateString(
-                                    "pt-BR",
-                                    {
-                                        day:
-                                            "2-digit",
-
-                                        month:
-                                            "2-digit",
-
-                                        year:
-                                            "numeric"
-                                    }
-                                );
-
-                        }
-
-                    }
-
-
-                    card.innerHTML = `
-
-                        <div class="character-card-content">
-
-                            <div class="character-card-header">
-
-                                <h3>
-                                    ${nome}
-                                </h3>
-
-                            </div>
-
-
-                            <div class="character-card-info">
-
-                                <p>
-                                    <strong>Raça:</strong>
-                                    ${race}
-                                </p>
-
-                                <p>
-                                    <strong>Classe:</strong>
-                                    ${classe}
-                                </p>
-
-                                <p>
-                                    <strong>Poder:</strong>
-                                    ${poder}
-                                </p>
-
-                            </div>
-
-
-                            <small>
-                                Atualizada em
-                                ${dataAtualizacao}
-                            </small>
-
-                        </div>
-
-                        <div class="character-card-action">
-
-                            <span>
-                                Editar →
-                            </span>
-
-                        </div>
-
-                    `;
-
-
-                    // =====================================
-                    // ABRIR FICHA
-                    // =====================================
-
-                    card.addEventListener(
-                        "click",
-                        () => {
-
-                            console.log(
-                                "📜 Abrindo ficha:",
-                                ficha.id
-                            );
-
-
-                            // Guardar ID da ficha
-                            localStorage.setItem(
-                                "aerion_character_id",
-                                ficha.id
-                            );
-
-
-                            // Não deixar rascunho
-                            // antigo interferir
-                            localStorage.removeItem(
-                                "aerion_character_draft"
-                            );
-
-
-                            window.location.href =
-                                "ficha.html";
-
-                        }
-                    );
-
-
-                    // =====================================
-                    // ACESSIBILIDADE
-                    // =====================================
-
-                    card.setAttribute(
-                        "role",
-                        "button"
-                    );
-
-
-                    card.setAttribute(
-                        "tabindex",
-                        "0"
-                    );
-
-
-                    card.addEventListener(
-                        "keydown",
-                        (event) => {
-
-                            if (
-                                event.key ===
-                                    "Enter" ||
-                                event.key ===
-                                    " "
-                            ) {
-
-                                event.preventDefault();
-
-                                card.click();
-
-                            }
-
-                        }
-                    );
-
-
-                    lista.appendChild(
-                        card
-                    );
-
-                }
-            );
-
-
-        } catch (error) {
-
-            console.error(
-                "❌ Erro inesperado ao carregar fichas:",
-                error
-            );
-
-
-            mostrarErro(
-                "Ocorreu um erro inesperado ao carregar suas fichas."
-            );
-
-        }
-
-    }
-
-
-    // =====================================================
-    // NOVA FICHA
-    // =====================================================
-
-    function criarNovaFicha() {
-
-        console.log(
-            "➕ Criando nova ficha."
-        );
-
-
-        // Remover ID de ficha existente
-        localStorage.removeItem(
-            "aerion_character_id"
-        );
-
-
-        // Remover rascunho antigo
-        localStorage.removeItem(
-            "aerion_character_draft"
-        );
-
-
-        window.location.href =
-            "ficha.html";
-
-    }
-
-
-    // =====================================================
-    // BOTÃO NOVA FICHA
-    // =====================================================
-
-    if (novo) {
-
-        novo.addEventListener(
-            "click",
-            criarNovaFicha
-        );
-
-    }
-
-
-    // =====================================================
-    // BOTÃO CRIAR PRIMEIRA FICHA
-    // =====================================================
-
-    if (emptyNovo) {
-
-        emptyNovo.addEventListener(
-            "click",
-            criarNovaFicha
-        );
-
-    }
-
-
-    // =====================================================
+    // =========================================================
     // BOTÃO VOLTAR
-    // =====================================================
+    // =========================================================
 
     if (backButton) {
-
         backButton.addEventListener(
             "click",
             () => {
-
-                window.location.href =
-                    "index.html";
-
+                window.location.href = "index.html";
             }
         );
-
     }
 
 
-    // =====================================================
-    // INICIALIZAÇÃO
-    // =====================================================
+    // =========================================================
+    // BOTÃO NOVA FICHA
+    // =========================================================
+
+    if (novo) {
+        novo.addEventListener(
+            "click",
+            novaFicha
+        );
+    }
+
+
+    if (emptyNovo) {
+        emptyNovo.addEventListener(
+            "click",
+            novaFicha
+        );
+    }
+
+
+    // =========================================================
+    // PRIMEIRO CARREGAMENTO
+    // =========================================================
 
     await carregarFichas();
-
 });
