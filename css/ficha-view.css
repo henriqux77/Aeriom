@@ -603,3 +603,120 @@
         grid-template-columns: 1fr;
     }
 }
+/* =========================================================
+   AVATAR DO PERSONAGEM
+   ========================================================= */
+
+.character-avatar {
+    position: relative;
+    width: 180px;
+    height: 180px;
+    min-width: 180px;
+    min-height: 180px;
+    border-radius: 50%;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid rgba(170, 100, 45, 0.45);
+    background: #0b0908;
+}
+
+.character-avatar img {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 50%;
+    display: block;
+}
+
+.character-avatar img[hidden] {
+    display: none;
+}
+
+.avatar-fallback {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    text-align: center;
+    padding: 20px;
+    box-sizing: border-box;
+    color: rgba(218, 193, 157, 0.8);
+    pointer-events: none;
+}
+
+.avatar-plus {
+    font-family: Arial, sans-serif;
+    font-size: 38px;
+    line-height: 1;
+    font-weight: 300;
+}
+
+.avatar-fallback-text {
+    max-width: 110px;
+    font-family: inherit;
+    font-size: 11px;
+    line-height: 1.25;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+.avatar-fallback[hidden] {
+    display: none;
+}
+
+.avatar-upload-button {
+    position: absolute;
+    left: 50%;
+    bottom: 8px;
+    transform: translateX(-50%);
+    z-index: 5;
+    white-space: nowrap;
+    border: 1px solid rgba(170, 100, 45, 0.55);
+    background: rgba(10, 8, 7, 0.88);
+    color: #d8bd91;
+    padding: 7px 12px;
+    border-radius: 20px;
+    font-size: 10px;
+    cursor: pointer;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+}
+
+.character-avatar:hover .avatar-upload-button,
+.character-avatar:focus-within .avatar-upload-button {
+    opacity: 1;
+}
+
+/* No celular, o botão fica visível */
+@media (max-width: 700px) {
+    .character-avatar {
+        width: 150px;
+        height: 150px;
+        min-width: 150px;
+        min-height: 150px;
+    }
+
+    .avatar-upload-button {
+        opacity: 1;
+        font-size: 9px;
+        padding: 6px 10px;
+    }
+
+    .avatar-plus {
+        font-size: 32px;
+    }
+
+    .avatar-fallback-text {
+        font-size: 9px;
+        max-width: 90px;
+    }
+}
