@@ -1,1 +1,77 @@
-.
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#080707">
+    <title>Aerion — Minhas Campanhas</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/campanhas.css">
+</head>
+<body>
+
+<main class="characters-page">
+    <header class="creation-header">
+        <button id="backButton" class="header-button" type="button" aria-label="Voltar">←</button>
+        <div class="creation-title">
+            <span>AERION</span>
+            <h1>Minhas Campanhas</h1>
+        </div>
+    </header>
+
+    <section class="characters-content">
+        <div class="characters-heading">
+            <div class="characters-heading-text">
+                <h2>O Mundo Aguarda</h2>
+                <p>Junte-se a uma aventura ou crie a sua própria.</p>
+            </div>
+            <div class="header-actions">
+                <button id="joinCampaignBtn" class="secondary-button" type="button">Entrar via Convite</button>
+                <button id="createCampaignBtn" class="primary-button" type="button">+ Criar Campanha</button>
+            </div>
+        </div>
+
+        <div id="loadingCampaigns" class="characters-message">
+            <div class="characters-loader"></div>
+            <p>Carregando campanhas...</p>
+        </div>
+
+        <div id="campaignsList" class="campaign-grid"></div>
+
+        <div id="emptyCampaigns" class="characters-message empty-characters" hidden>
+            <div class="empty-characters-icon">⚔</div>
+            <h3>Você não participa de nenhuma campanha.</h3>
+            <p>Crie uma nova aventura e seja o Mestre, ou peça o código de convite a um amigo.</p>
+            <button id="emptyCreateCampaignBtn" class="primary-button" type="button">Criar primeira campanha</button>
+        </div>
+    </section>
+</main>
+
+<!-- MODAL DE CRIAÇÃO DE CAMPANHA -->
+<div id="createCampaignModal" class="auth-modal">
+    <div class="auth-box">
+        <button id="closeCreateModal" class="auth-close">×</button>
+        <h2>Forjar Nova Campanha</h2>
+        <p>Defina a fundação do seu mundo.</p>
+
+        <form id="createCampaignForm">
+            <div class="form-group">
+                <label for="campaignCover">Capa da Aventura</label>
+                <input type="file" id="campaignCover" accept="image/png,image/jpeg,image/webp" required style="padding: 10px; background: rgba(20, 12, 8, 0.6);">
+            </div>
+
+            <input type="text" id="campaignName" placeholder="Nome da Campanha" required maxlength="100">
+            <textarea id="campaignDesc" placeholder="Descrição ou premissa da aventura..." style="width:100%; padding:16px 18px; border-radius:12px; background:rgba(20,12,8,0.6); border:1px solid rgba(180,70,30,0.08); color:#e8dcc8; margin-bottom:14px; min-height:80px; font-family:'Georgia',serif;" maxlength="500"></textarea>
+
+            <button type="submit" id="submitCampaignBtn" class="primary-button" style="width:100%">Criar Mundo</button>
+        </form>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="js/supabase.js?v=5"></script>
+<script src="js/auth.js?v=5"></script>
+<script src="js/campanhas.js?v=1"></script>
+
+</body>
+</html>
