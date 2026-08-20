@@ -38,47 +38,39 @@
         <p id="sheetErrorText">A ficha não foi encontrada.</p>
         <button id="backErrorButton" class="sheet-button" type="button">Voltar para minhas fichas</button>
     </section>
-  <section class="sheet-hero">
+  
+    <section class="sheet-hero" hidden>
+        <div class="character-avatar" id="characterAvatar">
+            <img id="characterAvatarImage" alt="Avatar do personagem" hidden>
+            <div id="characterAvatarFallback" class="avatar-fallback" aria-hidden="true">A</div>
+            <button type="button" id="avatarUploadButton" class="avatar-upload-button">
+                Alterar imagem
+            </button>
+            <input type="file" id="avatarInput" accept="image/png,image/jpeg,image/webp" hidden>
+        </div>
 
-    
+        <!-- IDENTIDADE: Nome, Tags e Idade adicionados -->
+        <div class="sheet-identity" hidden>
+            <input type="text" id="characterName" class="sheet-name-input" placeholder="Nome do Personagem" autocomplete="off" maxlength="60">
+            
+            <div class="sheet-tags">
+                <span id="raceTag" hidden>Raça</span>
+                <span id="classTag" hidden>Classe</span>
+                <span id="powerTag" hidden>Poder</span>
+            </div>
 
-<div class="character-avatar" id="characterAvatar">
-
-    <img
-        id="characterAvatarImage"
-        alt="Avatar do personagem"
-        hidden
-    >
-
-    <div
-        id="characterAvatarFallback"
-        class="avatar-fallback"
-        aria-hidden="true"
-    >A</div>
-
-    <button
-        type="button"
-        id="avatarUploadButton"
-        class="avatar-upload-button"
-    >
-        Alterar imagem
-    </button>
-
-    <input
-        type="file"
-        id="avatarInput"
-        accept="image/png,image/jpeg,image/webp"
-        hidden
-    >
-
-</div>
-</div>
-
-</section>
+            <div class="sheet-meta">
+                <label for="characterAge">Idade</label>
+                <input type="number" id="characterAge" placeholder="—" min="0" max="999">
+                <span class="sheet-dot">•</span>
+                <span>Anos</span>
+            </div>
+        </div>
+    </section>
    
-<section id="sheetContent" hidden>
+    <section id="sheetContent" hidden>
 
-   <section class="sheet-section active" data-section="informacoes">
+        <section class="sheet-section active" data-section="informacoes">
             <div class="section-heading">
                 <div>
                     <span class="section-kicker">01</span>
@@ -218,6 +210,11 @@
 
             <div id="techniquesList" class="techniques-list"></div>
             <p id="noTechniques" class="empty-section" hidden>Nenhuma técnica cadastrada.</p>
+            
+            <!-- Botão de adicionar técnica inserido -->
+            <button id="addTechniqueButton" class="sheet-button" type="button" style="margin-top: 20px;">
+                + Adicionar técnica
+            </button>
         </section>
 
         <section class="sheet-section placeholder-section" data-section="pericias">
@@ -299,7 +296,7 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="js/supabase.js?v=3"></script>
 <script src="js/auth.js?v=3"></script>
-<script src="js/ficha-view.js?v=1"></script>
+<script src="js/ficha-view.js?v=2"></script>
 
 </body>
 </html>
