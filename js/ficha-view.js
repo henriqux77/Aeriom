@@ -1,65 +1,129 @@
-document.addEventListener("DOMContentLoaded", async () => {
+/* =========================================================
+   AERION — FICHA VIEW
+   Controle completo da ficha de personagem
+
+   Responsabilidades:
+   - Autenticação
+   - Carregamento da ficha
+   - Renderização dos dados
+   - Edição dos campos
+   - Auto-save
+   - Avatar
+   - Técnicas
+   - Atributos
+   - Mana
+   - Menu rápido
+   - Navegação
+   - Estados de carregamento/erro
+
+   Requisitos:
+   - window.supabaseClient
+   - Supabase Storage bucket: "avatars"
+   - Tabela: "characters"
+========================================================= */
+
+document.addEventListener("DOMContentLoaded", () => {
     "use strict";
 
-    // =====================================================
-    // PROTEÇÃO CONTRA EXECUÇÃO DUPLICADA
-    // =====================================================
+    /* =====================================================
+       PROTEÇÃO CONTRA DUPLA INICIALIZAÇÃO
+    ===================================================== */
 
     if (window.__AERION_FICHA_VIEW_INITIALIZED__) {
-        console.warn("ficha-view.js já foi inicializado.");
+        console.warn("[Aerion] ficha-view.js já foi inicializado.");
         return;
     }
 
     window.__AERION_FICHA_VIEW_INITIALIZED__ = true;
 
 
-    // =====================================================
-    // CONFIGURAÇÃO
-    // =====================================================
+    /* =====================================================
+       CONFIGURAÇÃO
+    ===================================================== */
 
-    const AVATAR_BUCKET = "avatars";
-    const AVATAR_MAX_SIZE = 5 * 1024 * 1024;
+    const CONFIG = Object.freeze({
+        avatarBucket: "avatars",
+        avatarMaxSize: 5 * 1024 * 1024,
 
-    const ATTRIBUTE_NAMES = [
-        "Presença",
-        "Precisão",
-        "Intelecto",
-        "Controle",
-        "Percepção",
-        "Vigor",
-        "Agilidade",
-        "Força"
-    ];
+        saveDelay: 700,
+
+        avatarCacheVersion: true,
+
+        attributeNames: [
+            "Presença",
+            "Precisão",
+            "Intelecto",
+            "Controle",
+            "Percepção",
+            "Vigor",
+            "Agilidade",
+            "Força"
+        ]
+    });
 
 
-    // =====================================================
-    // HELPERS
-    // =====================================================
+    /* =====================================================
+       HELPERS DOM
+    ===================================================== */
 
     const $ = (id) => document.getElementById(id);
 
-    const loading = $("sheetLoading");
-    const errorBox = $("sheetError");
-    const errorText = $("sheetErrorText");
-    const content = $("sheetContent");
-    const saveIndicator = $("saveIndicator");
-    const updatedLabel = $("updatedLabel");
-
-    const characterId =
-        localStorage.getItem("aerion_character_id");
+    const $$ = (selector, root = document) =>
+        Array.from(root.querySelectorAll(selector));
 
 
-    // =====================================================
-    // SUPABASE
-    // =====================================================
+    /* =====================================================
+       ELEMENTOS PRINCIPAIS
+    ===================================================== */
 
-    const supabase =
-        window.supabaseClient;
+    const elements = {
+        loading: $("sheetLoading"),
+        error: $("sheetError"),
+        errorText: $("sheetErrorText"),
+        content: $("sheetContent"),
 
+        saveIndicator: $("saveIndicator"),
+        updatedLabel: $("updatedLabel"),
+
+        attributesGrid: $("attributesGrid"),
+        techniquesList: $("techniquesList"),
+        noTechniques: $("noTechniques"),
+
+        quickMenu: $("quickMenu"),
+        quickActionButton: $("quickActionButton"),
+
+        backButton: $("backButton"),
+        backErrorButton: $("backErrorButton")
+    };
+
+
+    /* =====================================================
+       ESTADO
+    ===================================================== */
+
+    const state = {
+        session: null,
+        character: null,
+
+        saveTimer: null,
+        saveInProgress: false,
+        savePending: false,
+
+        avatarUploading: false,
+
+        initialized: false
+    };
+
+
+    /* =====================================================
+       SUPABASE
+    ===================================================== */
+
+    const supabase = window.supabaseClient;
 
     if (!supabase) {
         console.error(
-            "Supabase não encontrado em window.supabaseClient."
+            "[Aerion] window.supabaseClient não encontrado."
         );
 
         showError(
@@ -70,85 +134,17 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
 
 
-    // =====================================================
-    // ESTADO
-    // =====================================================
+    /* =====================================================
+       ID DA FICHA
+    ===================================================== */
 
-    let session = null;
-    let character = null;
-
-    let saveTimer = null;
-    let saveInProgress = false;
-    let pendingSave = false;
-
-    let avatarUploadInProgress = false;
+    const characterId =
+        localStorage.getItem("aerion_character_id");
 
 
-    // =====================================================
-    // ESTADO VISUAL DA PÁGINA
-    // =====================================================
-
-    function showLoading() {
-        if (loading) {
-            loading.hidden = false;
-            loading.style.display = "";
-        }
-
-        if (errorBox) {
-            errorBox.hidden = true;
-            errorBox.style.display = "none";
-        }
-
-        if (content) {
-            content.hidden = true;
-            content.style.display = "none";
-        }
-    }
-
-
-    function showContent() {
-        if (loading) {
-            loading.hidden = true;
-            loading.style.display = "none";
-        }
-
-        if (errorBox) {
-            errorBox.hidden = true;
-            errorBox.style.display = "none";
-        }
-
-        if (content) {
-            content.hidden = false;
-            content.style.display = "";
-        }
-    }
-
-
-    function showError(message) {
-        if (loading) {
-            loading.hidden = true;
-            loading.style.display = "none";
-        }
-
-        if (content) {
-            content.hidden = true;
-            content.style.display = "none";
-        }
-
-        if (errorBox) {
-            errorBox.hidden = false;
-            errorBox.style.display = "";
-        }
-
-        if (errorText) {
-            errorText.textContent = message;
-        }
-    }
-
-
-    // =====================================================
-    // JSON
-    // =====================================================
+    /* =====================================================
+       UTILITÁRIOS
+    ===================================================== */
 
     function parseJson(value, fallback) {
         if (
@@ -165,15 +161,33 @@ document.addEventListener("DOMContentLoaded", async () => {
 
         try {
             return JSON.parse(value);
-        } catch {
+        } catch (error) {
+            console.warn(
+                "[Aerion] JSON inválido:",
+                value,
+                error
+            );
+
             return fallback;
         }
     }
 
 
-    // =====================================================
-    // ESCAPE HTML
-    // =====================================================
+    function normalizeArray(value) {
+        return Array.isArray(value) ? value : [];
+    }
+
+
+    function normalizeObject(value) {
+        return (
+            value &&
+            typeof value === "object" &&
+            !Array.isArray(value)
+        )
+            ? value
+            : {};
+    }
+
 
     function escapeHtml(value) {
         return String(value ?? "")
@@ -185,17 +199,128 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
 
 
-    // =====================================================
-    // SALVAMENTO
-    // =====================================================
+    function getValue(id) {
+        const element = $(id);
 
-    function setSaveState(state, text) {
-        if (!saveIndicator) return;
+        if (!element) {
+            return "";
+        }
 
-        saveIndicator.className =
-            `save-indicator ${state}`;
+        return String(
+            element.value ?? ""
+        ).trim();
+    }
 
-        saveIndicator.textContent =
+
+    function setValue(id, value) {
+        const element = $(id);
+
+        if (!element) {
+            return;
+        }
+
+        element.value =
+            value === null ||
+            value === undefined
+                ? ""
+                : value;
+    }
+
+
+    function safeNumber(value) {
+        if (
+            value === null ||
+            value === undefined ||
+            value === ""
+        ) {
+            return null;
+        }
+
+        const number = Number(value);
+
+        return Number.isFinite(number)
+            ? number
+            : null;
+    }
+
+
+    /* =====================================================
+       ESTADOS VISUAIS
+    ===================================================== */
+
+    function showLoading() {
+        if (elements.loading) {
+            elements.loading.hidden = false;
+            elements.loading.style.display = "";
+        }
+
+        if (elements.error) {
+            elements.error.hidden = true;
+            elements.error.style.display = "none";
+        }
+
+        if (elements.content) {
+            elements.content.hidden = true;
+            elements.content.style.display = "none";
+        }
+    }
+
+
+    function showContent() {
+        if (elements.loading) {
+            elements.loading.hidden = true;
+            elements.loading.style.display = "none";
+        }
+
+        if (elements.error) {
+            elements.error.hidden = true;
+            elements.error.style.display = "none";
+        }
+
+        if (elements.content) {
+            elements.content.hidden = false;
+            elements.content.style.display = "";
+        }
+    }
+
+
+    function showError(message) {
+        if (elements.loading) {
+            elements.loading.hidden = true;
+            elements.loading.style.display = "none";
+        }
+
+        if (elements.content) {
+            elements.content.hidden = true;
+            elements.content.style.display = "none";
+        }
+
+        if (elements.error) {
+            elements.error.hidden = false;
+            elements.error.style.display = "";
+        }
+
+        if (elements.errorText) {
+            elements.errorText.textContent =
+                message ||
+                "Ocorreu um erro inesperado.";
+        }
+    }
+
+
+    /* =====================================================
+       INDICADOR DE SALVAMENTO
+    ===================================================== */
+
+    function setSaveState(stateName, text) {
+        if (!elements.saveIndicator) {
+            return;
+        }
+
+        elements.saveIndicator.className =
+            `save-indicator ${stateName}`;
+
+        elements.saveIndicator.textContent =
             text;
     }
 
@@ -211,246 +336,72 @@ document.addEventListener("DOMContentLoaded", async () => {
             return "Nunca atualizado";
         }
 
-        return `Atualizado ${date.toLocaleDateString(
-            "pt-BR"
-        )} às ${date.toLocaleTimeString(
-            "pt-BR",
-            {
-                hour: "2-digit",
-                minute: "2-digit"
-            }
-        )}`;
+        return (
+            "Atualizado " +
+            date.toLocaleDateString(
+                "pt-BR"
+            ) +
+            " às " +
+            date.toLocaleTimeString(
+                "pt-BR",
+                {
+                    hour: "2-digit",
+                    minute: "2-digit"
+                }
+            )
+        );
     }
 
 
-    // =====================================================
-    // VALUE
-    // =====================================================
-
-    function setValue(id, value) {
-        const element = $(id);
-
-        if (!element) return;
-
-        element.value = value ?? "";
-    }
-
-
-    // =====================================================
-    // ATRIBUTOS
-    // =====================================================
-
-    function renderAttributes(attributes) {
-        const grid = $("attributesGrid");
-
-        if (!grid) return;
-
-        grid.innerHTML = "";
-
-        ATTRIBUTE_NAMES.forEach((name) => {
-            const value =
-                attributes?.[name] ?? "";
-
-            const field =
-                document.createElement("label");
-
-            field.className =
-                "attribute-field";
-
-            field.innerHTML = `
-                <span>${escapeHtml(name)}</span>
-
-                <input
-                    type="text"
-                    maxlength="4"
-                    value="${escapeHtml(value)}"
-                    data-attribute="${escapeHtml(name)}"
-                    aria-label="${escapeHtml(name)}"
-                >
-            `;
-
-            grid.appendChild(field);
-        });
-    }
-
-
-    // =====================================================
-    // TÉCNICAS
-    // =====================================================
-
-    function renderTechniques(techniques) {
-        const list = $("techniquesList");
-        const empty = $("noTechniques");
-
-        if (!list) return;
-
-        list.innerHTML = "";
-
-        if (
-            !Array.isArray(techniques) ||
-            techniques.length === 0
-        ) {
-            if (empty) {
-                empty.hidden = false;
-            }
-
+    function updateUpdatedLabel() {
+        if (!elements.updatedLabel) {
             return;
         }
 
-        if (empty) {
-            empty.hidden = true;
-        }
-
-        techniques.forEach((technique, index) => {
-            const card =
-                document.createElement("article");
-
-            card.className =
-                "technique-card";
-
-            card.innerHTML = `
-                <div class="technique-head">
-
-                    <div>
-
-                        <span class="technique-level">
-                            Nível ${escapeHtml(
-                                technique.level ?? 1
-                            )}
-                        </span>
-
-                        <h3>
-                            ${escapeHtml(
-                                technique.name ||
-                                `Técnica ${index + 1}`
-                            )}
-                        </h3>
-
-                    </div>
-
-                    <span class="technique-type">
-                        ${escapeHtml(
-                            technique.type ||
-                            character?.power ||
-                            "Técnica"
-                        )}
-                    </span>
-
-                </div>
-
-                <div class="technique-grid">
-
-                    <label class="sheet-field">
-                        <span>Nome</span>
-
-                        <input
-                            type="text"
-                            maxlength="100"
-                            value="${escapeHtml(
-                                technique.name || ""
-                            )}"
-                            data-tech-index="${index}"
-                            data-tech-key="name"
-                        >
-                    </label>
-
-
-                    <label class="sheet-field">
-                        <span>Alcance</span>
-
-                        <input
-                            type="text"
-                            maxlength="120"
-                            value="${escapeHtml(
-                                technique.range || ""
-                            )}"
-                            data-tech-index="${index}"
-                            data-tech-key="range"
-                        >
-                    </label>
-
-
-                    <label class="sheet-field">
-                        <span>Custo de Mana</span>
-
-                        <input
-                            type="text"
-                            maxlength="50"
-                            value="${escapeHtml(
-                                technique.manaCost || ""
-                            )}"
-                            data-tech-index="${index}"
-                            data-tech-key="manaCost"
-                        >
-                    </label>
-
-
-                    <label class="sheet-field">
-                        <span>Teste</span>
-
-                        <input
-                            type="text"
-                            maxlength="100"
-                            value="${escapeHtml(
-                                technique.test || ""
-                            )}"
-                            data-tech-index="${index}"
-                            data-tech-key="test"
-                        >
-                    </label>
-
-
-                    <label class="sheet-field technique-wide">
-                        <span>Efeito</span>
-
-                        <textarea
-                            maxlength="1000"
-                            data-tech-index="${index}"
-                            data-tech-key="effect"
-                        >${escapeHtml(
-                            technique.effect || ""
-                        )}</textarea>
-                    </label>
-
-
-                    <label class="sheet-field technique-wide">
-                        <span>Descrição</span>
-
-                        <textarea
-                            maxlength="1500"
-                            data-tech-index="${index}"
-                            data-tech-key="description"
-                        >${escapeHtml(
-                            technique.description || ""
-                        )}</textarea>
-                    </label>
-
-
-                    <label class="sheet-field technique-wide">
-                        <span>Limitação</span>
-
-                        <textarea
-                            maxlength="500"
-                            data-tech-index="${index}"
-                            data-tech-key="limitation"
-                        >${escapeHtml(
-                            technique.limitation || ""
-                        )}</textarea>
-                    </label>
-
-                </div>
-            `;
-
-            list.appendChild(card);
-        });
+        elements.updatedLabel.textContent =
+            formatUpdatedAt(
+                state.character?.updated_at
+            );
     }
 
 
-    // =====================================================
-    // AVATAR
-    // =====================================================
+    /* =====================================================
+       TAGS
+    ===================================================== */
 
-    function findAvatarElements() {
+    function updateTags() {
+        const character =
+            state.character;
+
+        const raceTag = $("raceTag");
+        const classTag = $("classTag");
+        const powerTag = $("powerTag");
+
+        if (raceTag) {
+            raceTag.textContent =
+                character?.race ||
+                "Raça não definida";
+        }
+
+        if (classTag) {
+            classTag.textContent =
+                character?.class ||
+                "Classe não definida";
+        }
+
+        if (powerTag) {
+            powerTag.textContent =
+                character?.power ||
+                "Poder não definido";
+        }
+    }
+
+
+    /* =====================================================
+       AVATAR
+    ===================================================== */
+
+    function getAvatarElements() {
         return {
             image:
                 $("characterAvatarImage") ||
@@ -471,39 +422,74 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
 
 
-    function renderAvatar(url) {
+    function createAvatarUrl(url) {
+        if (!url) {
+            return "";
+        }
+
+        if (!CONFIG.avatarCacheVersion) {
+            return url;
+        }
+
+        const separator =
+            url.includes("?")
+                ? "&"
+                : "?";
+
+        return (
+            `${url}${separator}v=${Date.now()}`
+        );
+    }
+
+
+    function renderAvatar(
+        avatarUrl,
+        characterName = ""
+    ) {
         const {
             image,
             fallback
-        } = findAvatarElements();
+        } = getAvatarElements();
 
-        if (!image) return;
+        if (!image || !fallback) {
+            return;
+        }
 
-        if (url) {
-            image.src = url;
-            image.hidden = false;
+        image.onerror = null;
 
-            image.onerror = () => {
-                image.hidden = true;
+        if (!avatarUrl) {
+            image.removeAttribute("src");
+            image.alt =
+                characterName
+                    ? `Avatar de ${characterName}`
+                    : "Avatar do personagem";
 
-                if (fallback) {
-                    fallback.hidden = false;
-                }
-            };
+            image.hidden = true;
 
-            if (fallback) {
-                fallback.hidden = true;
-            }
+            fallback.hidden = false;
 
             return;
         }
 
-        image.removeAttribute("src");
-        image.hidden = true;
+        image.alt =
+            characterName
+                ? `Avatar de ${characterName}`
+                : "Avatar do personagem";
 
-        if (fallback) {
+        image.hidden = false;
+        fallback.hidden = true;
+
+        image.onerror = () => {
+            console.warn(
+                "[Aerion] Não foi possível carregar o avatar."
+            );
+
+            image.hidden = true;
             fallback.hidden = false;
-        }
+        };
+
+        image.src =
+            createAvatarUrl(avatarUrl);
     }
 
 
@@ -511,15 +497,34 @@ document.addEventListener("DOMContentLoaded", async () => {
         const {
             input,
             button
-        } = findAvatarElements();
+        } = getAvatarElements();
 
-        if (!input) return;
+        if (!input) {
+            return;
+        }
+
+        /*
+         * Evita registrar o evento duas vezes.
+         */
+        if (
+            input.dataset.aerionAvatarBound === "true"
+        ) {
+            return;
+        }
+
+        input.dataset.aerionAvatarBound =
+            "true";
+
 
         if (button) {
             button.addEventListener(
                 "click",
-                () => {
-                    if (avatarUploadInProgress) {
+                (event) => {
+                    event.preventDefault();
+
+                    if (
+                        state.avatarUploading
+                    ) {
                         return;
                     }
 
@@ -527,6 +532,7 @@ document.addEventListener("DOMContentLoaded", async () => {
                 }
             );
         }
+
 
         input.addEventListener(
             "change",
@@ -538,69 +544,140 @@ document.addEventListener("DOMContentLoaded", async () => {
                     return;
                 }
 
-                await uploadAvatar(file);
-
-                input.value = "";
+                try {
+                    await uploadAvatar(file);
+                } finally {
+                    input.value = "";
+                }
             }
         );
     }
 
 
+    function validateAvatar(file) {
+        if (!file) {
+            return {
+                valid: false,
+                message: "Nenhuma imagem foi selecionada."
+            };
+        }
+
+        if (
+            !file.type ||
+            !file.type.startsWith("image/")
+        ) {
+            return {
+                valid: false,
+                message: "Escolha uma imagem válida."
+            };
+        }
+
+        if (
+            file.size >
+            CONFIG.avatarMaxSize
+        ) {
+            return {
+                valid: false,
+                message:
+                    "A imagem precisa ter no máximo 5 MB."
+            };
+        }
+
+        return {
+            valid: true
+        };
+    }
+
+
+    function getAvatarExtension(file) {
+        const mimeMap = {
+            "image/jpeg": "jpg",
+            "image/jpg": "jpg",
+            "image/png": "png",
+            "image/webp": "webp",
+            "image/gif": "gif",
+            "image/avif": "avif"
+        };
+
+        if (mimeMap[file.type]) {
+            return mimeMap[file.type];
+        }
+
+        const extension =
+            file.name
+                .split(".")
+                .pop()
+                ?.toLowerCase()
+                .replace(
+                    /[^a-z0-9]/g,
+                    ""
+                );
+
+        return extension || "jpg";
+    }
+
+
     async function uploadAvatar(file) {
-        if (!character) {
+        if (!state.character) {
             return;
         }
 
-        if (avatarUploadInProgress) {
+        if (state.avatarUploading) {
             return;
         }
 
-        if (!file.type.startsWith("image/")) {
+        const validation =
+            validateAvatar(file);
+
+        if (!validation.valid) {
+            alert(validation.message);
+            return;
+        }
+
+        if (!state.session?.user?.id) {
             alert(
-                "Escolha uma imagem válida."
+                "Sua sessão expirou. Entre novamente."
             );
 
             return;
         }
 
-        if (file.size > AVATAR_MAX_SIZE) {
-            alert(
-                "A imagem precisa ter no máximo 5 MB."
-            );
 
-            return;
-        }
-
-        avatarUploadInProgress = true;
+        state.avatarUploading = true;
 
         setSaveState(
             "saving",
             "Enviando avatar..."
         );
 
+
         try {
+            const userId =
+                state.session.user.id;
+
+            const characterId =
+                state.character.id;
+
             const extension =
-                file.name
-                    .split(".")
-                    .pop()
-                    .toLowerCase()
-                    .replace(/[^a-z0-9]/g, "");
+                getAvatarExtension(file);
 
-            const safeExtension =
-                extension || "jpg";
-
+            /*
+             * O arquivo usa o ID da ficha.
+             * Assim o mesmo personagem sempre possui
+             * um único avatar.
+             */
             const filePath =
-                `${session.user.id}/${character.id}.${safeExtension}`;
+                `${userId}/${characterId}.${extension}`;
 
 
-            // =============================================
-            // UPLOAD
-            // =============================================
+            /* =============================================
+               UPLOAD
+            ============================================= */
 
             const {
                 error: uploadError
             } = await supabase.storage
-                .from(AVATAR_BUCKET)
+                .from(CONFIG.avatarBucket)
                 .upload(
                     filePath,
                     file,
@@ -617,15 +694,17 @@ document.addEventListener("DOMContentLoaded", async () => {
             }
 
 
-            // =============================================
-            // URL PÚBLICA
-            // =============================================
+            /* =============================================
+               URL PÚBLICA
+            ============================================= */
 
             const {
                 data: publicData
             } = supabase.storage
-                .from(AVATAR_BUCKET)
-                .getPublicUrl(filePath);
+                .from(CONFIG.avatarBucket)
+                .getPublicUrl(
+                    filePath
+                );
 
 
             const avatarUrl =
@@ -634,16 +713,17 @@ document.addEventListener("DOMContentLoaded", async () => {
 
             if (!avatarUrl) {
                 throw new Error(
-                    "Não foi possível obter a URL do avatar."
+                    "A URL pública do avatar não foi criada."
                 );
             }
 
 
-            // =============================================
-            // SALVAR URL NA FICHA
-            // =============================================
+            /* =============================================
+               SALVAR NA TABELA
+            ============================================= */
 
             const {
+                data: updatedCharacter,
                 error: updateError
             } = await supabase
                 .from("characters")
@@ -652,12 +732,16 @@ document.addEventListener("DOMContentLoaded", async () => {
                 })
                 .eq(
                     "id",
-                    character.id
+                    characterId
                 )
                 .eq(
                     "user_id",
-                    session.user.id
-                );
+                    userId
+                )
+                .select(
+                    "id, avatar_url, updated_at"
+                )
+                .single();
 
 
             if (updateError) {
@@ -665,14 +749,29 @@ document.addEventListener("DOMContentLoaded", async () => {
             }
 
 
-            character.avatar_url =
-                avatarUrl;
+            /* =============================================
+               ATUALIZAR ESTADO LOCAL
+            ============================================= */
+
+            state.character = {
+                ...state.character,
+
+                avatar_url:
+                    updatedCharacter?.avatar_url ||
+                    avatarUrl,
+
+                updated_at:
+                    updatedCharacter?.updated_at ||
+                    state.character.updated_at
+            };
 
 
             renderAvatar(
-                `${avatarUrl}?v=${Date.now()}`
-renderAvatar(character.avatar_url, character.name);
-            
+                state.character.avatar_url,
+                state.character.name
+            );
+
+            updateUpdatedLabel();
 
 
             setSaveState(
@@ -683,7 +782,7 @@ renderAvatar(character.avatar_url, character.name);
 
         } catch (error) {
             console.error(
-                "Erro ao enviar avatar:",
+                "[Aerion] Erro ao enviar avatar:",
                 error
             );
 
@@ -693,47 +792,455 @@ renderAvatar(character.avatar_url, character.name);
             );
 
             alert(
-                "Não foi possível enviar o avatar. Verifique se o armazenamento de imagens está configurado."
+                "Não foi possível enviar o avatar. Verifique o armazenamento de imagens e tente novamente."
             );
 
+
         } finally {
-            avatarUploadInProgress =
+            state.avatarUploading =
                 false;
         }
     }
 
 
-    // =====================================================
-    // RENDERIZAR PERSONAGEM
-    // =====================================================
+    /* =====================================================
+       RENDERIZAÇÃO DOS ATRIBUTOS
+    ===================================================== */
+
+    function renderAttributes(attributes) {
+        const grid =
+            elements.attributesGrid;
+
+        if (!grid) {
+            return;
+        }
+
+        grid.innerHTML = "";
+
+
+        CONFIG.attributeNames.forEach(
+            (name) => {
+                const value =
+                    attributes?.[name] ?? "";
+
+                const field =
+                    document.createElement(
+                        "label"
+                    );
+
+                field.className =
+                    "attribute-field";
+
+
+                const label =
+                    document.createElement(
+                        "span"
+                    );
+
+                label.textContent =
+                    name;
+
+
+                const input =
+                    document.createElement(
+                        "input"
+                    );
+
+                input.type = "text";
+                input.maxLength = 4;
+
+                input.value =
+                    value;
+
+                input.dataset.attribute =
+                    name;
+
+                input.setAttribute(
+                    "aria-label",
+                    name
+                );
+
+
+                field.appendChild(label);
+                field.appendChild(input);
+
+                grid.appendChild(field);
+            }
+        );
+    }
+
+
+    /* =====================================================
+       TÉCNICAS
+    ===================================================== */
+
+    function renderTechniques(techniques) {
+        const list =
+            elements.techniquesList;
+
+        const empty =
+            elements.noTechniques;
+
+        if (!list) {
+            return;
+        }
+
+        list.innerHTML = "";
+
+
+        const normalized =
+            normalizeArray(
+                techniques
+            );
+
+
+        if (normalized.length === 0) {
+            if (empty) {
+                empty.hidden = false;
+            }
+
+            return;
+        }
+
+
+        if (empty) {
+            empty.hidden = true;
+        }
+
+
+        normalized.forEach(
+            (technique, index) => {
+                const safeTechnique =
+                    normalizeObject(
+                        technique
+                    );
+
+
+                const card =
+                    document.createElement(
+                        "article"
+                    );
+
+                card.className =
+                    "technique-card";
+
+
+                const head =
+                    document.createElement(
+                        "div"
+                    );
+
+                head.className =
+                    "technique-head";
+
+
+                const titleBox =
+                    document.createElement(
+                        "div"
+                    );
+
+
+                const level =
+                    document.createElement(
+                        "span"
+                    );
+
+                level.className =
+                    "technique-level";
+
+                level.textContent =
+                    `Nível ${
+                        safeTechnique.level ??
+                        1
+                    }`;
+
+
+                const title =
+                    document.createElement(
+                        "h3"
+                    );
+
+                title.textContent =
+                    safeTechnique.name ||
+                    `Técnica ${index + 1}`;
+
+
+                titleBox.appendChild(level);
+                titleBox.appendChild(title);
+
+
+                const type =
+                    document.createElement(
+                        "span"
+                    );
+
+                type.className =
+                    "technique-type";
+
+                type.textContent =
+                    safeTechnique.type ||
+                    state.character?.power ||
+                    "Técnica";
+
+
+                head.appendChild(titleBox);
+                head.appendChild(type);
+
+
+                const grid =
+                    document.createElement(
+                        "div"
+                    );
+
+                grid.className =
+                    "technique-grid";
+
+
+                grid.appendChild(
+                    createTechniqueInput(
+                        "Nome",
+                        "name",
+                        safeTechnique.name,
+                        index
+                    )
+                );
+
+
+                grid.appendChild(
+                    createTechniqueInput(
+                        "Alcance",
+                        "range",
+                        safeTechnique.range,
+                        index
+                    )
+                );
+
+
+                grid.appendChild(
+                    createTechniqueInput(
+                        "Custo de Mana",
+                        "manaCost",
+                        safeTechnique.manaCost,
+                        index
+                    )
+                );
+
+
+                grid.appendChild(
+                    createTechniqueInput(
+                        "Teste",
+                        "test",
+                        safeTechnique.test,
+                        index
+                    )
+                );
+
+
+                grid.appendChild(
+                    createTechniqueTextarea(
+                        "Efeito",
+                        "effect",
+                        safeTechnique.effect,
+                        index,
+                        1000,
+                        true
+                    )
+                );
+
+
+                grid.appendChild(
+                    createTechniqueTextarea(
+                        "Descrição",
+                        "description",
+                        safeTechnique.description,
+                        index,
+                        1500,
+                        true
+                    )
+                );
+
+
+                grid.appendChild(
+                    createTechniqueTextarea(
+                        "Limitação",
+                        "limitation",
+                        safeTechnique.limitation,
+                        index,
+                        500,
+                        true
+                    )
+                );
+
+
+                card.appendChild(head);
+                card.appendChild(grid);
+
+                list.appendChild(card);
+            }
+        );
+    }
+
+
+    function createTechniqueInput(
+        labelText,
+        key,
+        value,
+        index
+    ) {
+        const label =
+            document.createElement(
+                "label"
+            );
+
+        label.className =
+            "sheet-field";
+
+
+        const span =
+            document.createElement(
+                "span"
+            );
+
+        span.textContent =
+            labelText;
+
+
+        const input =
+            document.createElement(
+                "input"
+            );
+
+        input.type = "text";
+        input.maxLength =
+            key === "name"
+                ? 100
+                : key === "range"
+                    ? 120
+                    : key === "manaCost"
+                        ? 50
+                        : 100;
+
+        input.value =
+            value ?? "";
+
+        input.dataset.techIndex =
+            index;
+
+        input.dataset.techKey =
+            key;
+
+
+        label.appendChild(span);
+        label.appendChild(input);
+
+        return label;
+    }
+
+
+    function createTechniqueTextarea(
+        labelText,
+        key,
+        value,
+        index,
+        maxLength,
+        wide = false
+    ) {
+        const label =
+            document.createElement(
+                "label"
+            );
+
+        label.className =
+            "sheet-field";
+
+
+        if (wide) {
+            label.classList.add(
+                "technique-wide"
+            );
+        }
+
+
+        const span =
+            document.createElement(
+                "span"
+            );
+
+        span.textContent =
+            labelText;
+
+
+        const textarea =
+            document.createElement(
+                "textarea"
+            );
+
+        textarea.maxLength =
+            maxLength;
+
+        textarea.value =
+            value ?? "";
+
+        textarea.dataset.techIndex =
+            index;
+
+        textarea.dataset.techKey =
+            key;
+
+
+        label.appendChild(span);
+        label.appendChild(textarea);
+
+        return label;
+    }
+
+
+    /* =====================================================
+       RENDERIZAÇÃO COMPLETA
+    ===================================================== */
 
     function renderCharacter(data) {
-        character = {
+        if (!data) {
+            return;
+        }
+
+
+        state.character = {
             ...data,
 
             attributes:
-                parseJson(
-                    data.attributes,
-                    {}
+                normalizeObject(
+                    parseJson(
+                        data.attributes,
+                        {}
+                    )
                 ),
 
             mana:
-                parseJson(
-                    data.mana,
-                    {}
+                normalizeObject(
+                    parseJson(
+                        data.mana,
+                        {}
+                    )
                 ),
 
             techniques:
-                parseJson(
-                    data.techniques,
-                    []
+                normalizeArray(
+                    parseJson(
+                        data.techniques,
+                        []
+                    )
                 )
         };
 
 
-        // =============================================
-        // DADOS PRINCIPAIS
-        // =============================================
+        const character =
+            state.character;
+
+
+        /* =============================================
+           IDENTIDADE
+        ============================================= */
 
         setValue(
             "characterName",
@@ -776,9 +1283,9 @@ renderAvatar(character.avatar_url, character.name);
         );
 
 
-        // =============================================
-        // DESCRIÇÃO
-        // =============================================
+        /* =============================================
+           PERSONALIDADE / HISTÓRIA
+        ============================================= */
 
         setValue(
             "characterAppearance",
@@ -811,9 +1318,9 @@ renderAvatar(character.avatar_url, character.name);
         );
 
 
-        // =============================================
-        // MANA
-        // =============================================
+        /* =============================================
+           MANA
+        ============================================= */
 
         setValue(
             "manaColor",
@@ -831,73 +1338,40 @@ renderAvatar(character.avatar_url, character.name);
         );
 
 
-        // =============================================
-        // TAGS
-        // =============================================
-
-        const raceTag =
-            $("raceTag");
-
-        if (raceTag) {
-            raceTag.textContent =
-                character.race ||
-                "Raça não definida";
-        }
-
-
-        const classTag =
-            $("classTag");
-
-        if (classTag) {
-            classTag.textContent =
-                character.class ||
-                "Classe não definida";
-        }
-
-
-        const powerTag =
-            $("powerTag");
-
-        if (powerTag) {
-            powerTag.textContent =
-                character.power ||
-                "Poder não definido";
-        }
-
-
-        if (updatedLabel) {
-            updatedLabel.textContent =
-                formatUpdatedAt(
-                    character.updated_at
-                );
-        }
-
-
-        // =============================================
-        // AVATAR
-        // =============================================
+        /* =============================================
+           AVATAR
+        ============================================= */
 
         renderAvatar(
-            character.avatar_url
+            character.avatar_url,
+            character.name
         );
 
 
-        // =============================================
-        // CONTEÚDO
-        // =============================================
+        /* =============================================
+           ATRIBUTOS
+        ============================================= */
 
         renderAttributes(
             character.attributes
         );
+
+
+        /* =============================================
+           TÉCNICAS
+        ============================================= */
 
         renderTechniques(
             character.techniques
         );
 
 
-        // =============================================
-        // MOSTRAR PÁGINA
-        // =============================================
+        /* =============================================
+           INTERFACE
+        ============================================= */
+
+        updateTags();
+        updateUpdatedLabel();
 
         showContent();
 
@@ -908,63 +1382,81 @@ renderAvatar(character.avatar_url, character.name);
     }
 
 
-    // =====================================================
-    // COLETAR DADOS
-    // =====================================================
+    /* =====================================================
+       COLETAR ATRIBUTOS
+    ===================================================== */
 
-    function collectCharacter() {
+    function collectAttributes() {
         const attributes = {};
 
-        document
-            .querySelectorAll(
-                "[data-attribute]"
-            )
-            .forEach((input) => {
-                attributes[
-                    input.dataset.attribute
-                ] = input.value.trim();
-            });
+        $$(
+            "[data-attribute]"
+        ).forEach(
+            (input) => {
+                const name =
+                    input.dataset.attribute;
+
+                if (!name) {
+                    return;
+                }
+
+                attributes[name] =
+                    input.value.trim();
+            }
+        );
+
+        return attributes;
+    }
 
 
-        const manaColor =
-            $("manaColor");
+    /* =====================================================
+       COLETAR MANA
+    ===================================================== */
 
-        const manaControl =
-            $("manaControl");
-
-        const manaReserve =
-            $("manaReserve");
-
-
-        const mana = {
+    function collectMana() {
+        return {
             color:
-                manaColor?.value || "",
+                $("manaColor")?.value ||
+                "",
 
             control:
-                manaControl?.value?.trim() || "",
+                $("manaControl")?.value
+                    ?.trim() ||
+                "",
 
             reserve:
-                manaReserve?.value?.trim() || ""
+                $("manaReserve")?.value
+                    ?.trim() ||
+                ""
         };
+    }
+
+
+    /* =====================================================
+       COLETAR TÉCNICAS
+    ===================================================== */
+
+    function collectTechniques() {
+        const original =
+            normalizeArray(
+                state.character?.techniques
+            );
 
 
         const techniques =
-            Array.isArray(
-                character.techniques
-            )
-                ? character.techniques.map(
-                    (technique) => ({
-                        ...technique
-                    })
-                )
-                : [];
+            original.map(
+                (technique) => ({
+                    ...normalizeObject(
+                        technique
+                    )
+                })
+            );
 
 
-        document
-            .querySelectorAll(
-                "[data-tech-index][data-tech-key]"
-            )
-            .forEach((input) => {
+        $$(
+            "[data-tech-index][data-tech-key]"
+        ).forEach(
+            (input) => {
                 const index =
                     Number(
                         input.dataset.techIndex
@@ -973,135 +1465,162 @@ renderAvatar(character.avatar_url, character.name);
                 const key =
                     input.dataset.techKey;
 
+
+                if (
+                    !Number.isInteger(index) ||
+                    !key
+                ) {
+                    return;
+                }
+
+
                 if (!techniques[index]) {
                     techniques[index] = {};
                 }
 
+
                 techniques[index][key] =
                     input.value.trim();
-            });
+            }
+        );
 
 
-        const getInputValue =
-            (id) =>
-                $(id)?.value?.trim() || "";
+        return techniques;
+    }
 
 
-        const ageElement =
-            $("characterAge");
+    /* =====================================================
+       COLETAR IDADE
+    ===================================================== */
 
-        const ageValue =
-            ageElement?.value ?? "";
-
-
-        let age = null;
-
-        if (ageValue !== "") {
-            const numericAge =
-                Number(ageValue);
-
-            age =
-                Number.isFinite(
-                    numericAge
-                )
-                    ? numericAge
-                    : null;
-        }
+    function collectAge() {
+        return safeNumber(
+            $("characterAge")?.value
+        );
+    }
 
 
+    /* =====================================================
+       COLETAR FICHA
+    ===================================================== */
+
+    function collectCharacter() {
         return {
             name:
-                getInputValue(
+                getValue(
                     "characterName"
                 ),
 
-            age,
+            age:
+                collectAge(),
 
             appearance:
-                getInputValue(
+                getValue(
                     "characterAppearance"
                 ),
 
             personality:
-                getInputValue(
+                getValue(
                     "characterPersonality"
                 ),
 
             origin:
-                getInputValue(
+                getValue(
                     "characterOrigin"
                 ),
 
             objective:
-                getInputValue(
+                getValue(
                     "characterObjective"
                 ),
 
             fear:
-                getInputValue(
+                getValue(
                     "characterFear"
                 ),
 
             bond:
-                getInputValue(
+                getValue(
                     "characterBond"
                 ),
 
             history:
-                getInputValue(
+                getValue(
                     "characterHistory"
                 ),
 
             race:
-                getInputValue(
+                getValue(
                     "characterRace"
                 ),
 
             racial_ability:
-                getInputValue(
+                getValue(
                     "racialAbility"
                 ),
 
             class:
-                getInputValue(
+                getValue(
                     "characterClass"
                 ),
 
             class_bonus:
-                getInputValue(
+                getValue(
                     "classBonus"
                 ),
 
-            attributes,
-
             power:
-                getInputValue(
+                getValue(
                     "characterPower"
                 ),
 
-            mana,
+            attributes:
+                collectAttributes(),
 
-            techniques
+            mana:
+                collectMana(),
+
+            techniques:
+                collectTechniques()
         };
     }
 
 
-    // =====================================================
-    // SALVAR
-    // =====================================================
+    /* =====================================================
+       SALVAR FICHA
+    ===================================================== */
 
     async function saveCharacter() {
-        if (!character) {
+        if (!state.character) {
             return;
         }
 
-        if (saveInProgress) {
-            pendingSave = true;
+
+        if (
+            !state.session?.user?.id
+        ) {
+            setSaveState(
+                "error",
+                "Sessão expirada"
+            );
+
             return;
         }
 
-        saveInProgress = true;
-        pendingSave = false;
+
+        /*
+         * Se já existe um salvamento em andamento,
+         * apenas marca que outro será necessário.
+         */
+        if (state.saveInProgress) {
+            state.savePending = true;
+            return;
+        }
+
+
+        state.saveInProgress = true;
+        state.savePending = false;
+
 
         setSaveState(
             "saving",
@@ -1122,11 +1641,11 @@ renderAvatar(character.avatar_url, character.name);
                 .update(payload)
                 .eq(
                     "id",
-                    character.id
+                    state.character.id
                 )
                 .eq(
                     "user_id",
-                    session.user.id
+                    state.session.user.id
                 )
                 .select(
                     "id, updated_at, avatar_url"
@@ -1139,8 +1658,9 @@ renderAvatar(character.avatar_url, character.name);
             }
 
 
-            character = {
-                ...character,
+            state.character = {
+                ...state.character,
+
                 ...payload,
 
                 updated_at:
@@ -1149,46 +1669,12 @@ renderAvatar(character.avatar_url, character.name);
 
                 avatar_url:
                     data?.avatar_url ??
-                    character.avatar_url
+                    state.character.avatar_url
             };
 
 
-            const raceTag =
-                $("raceTag");
-
-            if (raceTag) {
-                raceTag.textContent =
-                    character.race ||
-                    "Raça não definida";
-            }
-
-
-            const classTag =
-                $("classTag");
-
-            if (classTag) {
-                classTag.textContent =
-                    character.class ||
-                    "Classe não definida";
-            }
-
-
-            const powerTag =
-                $("powerTag");
-
-            if (powerTag) {
-                powerTag.textContent =
-                    character.power ||
-                    "Poder não definido";
-            }
-
-
-            if (updatedLabel) {
-                updatedLabel.textContent =
-                    formatUpdatedAt(
-                        character.updated_at
-                    );
-            }
+            updateTags();
+            updateUpdatedLabel();
 
 
             setSaveState(
@@ -1199,9 +1685,10 @@ renderAvatar(character.avatar_url, character.name);
 
         } catch (error) {
             console.error(
-                "Erro ao salvar ficha:",
+                "[Aerion] Erro ao salvar ficha:",
                 error
             );
+
 
             setSaveState(
                 "error",
@@ -1210,12 +1697,17 @@ renderAvatar(character.avatar_url, character.name);
 
 
         } finally {
-            saveInProgress =
+            state.saveInProgress =
                 false;
 
 
-            if (pendingSave) {
-                pendingSave = false;
+            /*
+             * Se o usuário alterou algum campo
+             * enquanto o salvamento estava acontecendo,
+             * faz outro salvamento.
+             */
+            if (state.savePending) {
+                state.savePending = false;
 
                 scheduleSave();
             }
@@ -1223,42 +1715,68 @@ renderAvatar(character.avatar_url, character.name);
     }
 
 
-    // =====================================================
-    // AUTO SAVE
-    // =====================================================
+    /* =====================================================
+       AGENDAR AUTO-SAVE
+    ===================================================== */
 
     function scheduleSave() {
-        if (!character) {
+        if (!state.character) {
             return;
         }
+
+
+        clearTimeout(
+            state.saveTimer
+        );
+
 
         setSaveState(
             "pending",
             "Alteração pendente"
         );
 
-        clearTimeout(
-            saveTimer
-        );
 
-        saveTimer =
+        state.saveTimer =
             setTimeout(
                 () => {
                     saveCharacter();
                 },
-                700
+                CONFIG.saveDelay
             );
     }
 
 
-    function bindAutoSave() {
-        if (!content) return;
+    /* =====================================================
+       AUTO-SAVE
+    ===================================================== */
 
-        content.addEventListener(
+    function bindAutoSave() {
+        if (!elements.content) {
+            return;
+        }
+
+
+        if (
+            elements.content.dataset
+                .aerionAutosaveBound === "true"
+        ) {
+            return;
+        }
+
+
+        elements.content.dataset
+            .aerionAutosaveBound =
+            "true";
+
+
+        elements.content.addEventListener(
             "input",
             (event) => {
+                const target =
+                    event.target;
+
                 if (
-                    !event.target.matches(
+                    !target.matches(
                         "input, textarea, select"
                     )
                 ) {
@@ -1270,11 +1788,14 @@ renderAvatar(character.avatar_url, character.name);
         );
 
 
-        content.addEventListener(
+        elements.content.addEventListener(
             "change",
             (event) => {
+                const target =
+                    event.target;
+
                 if (
-                    !event.target.matches(
+                    !target.matches(
                         "input, textarea, select"
                     )
                 ) {
@@ -1287,394 +1808,472 @@ renderAvatar(character.avatar_url, character.name);
     }
 
 
-    // =====================================================
-    // MENU RÁPIDO
-    // =====================================================
-
-    const quickMenu =
-        $("quickMenu");
-
-    const quickActionButton =
-        $("quickActionButton");
-
+    /* =====================================================
+       MENU RÁPIDO
+    ===================================================== */
 
     function closeQuickMenu() {
-        if (!quickMenu) return;
+        const menu =
+            elements.quickMenu;
 
-        quickMenu.classList.remove(
+        const button =
+            elements.quickActionButton;
+
+
+        if (!menu) {
+            return;
+        }
+
+
+        menu.classList.remove(
             "open"
         );
 
-        quickMenu.setAttribute(
+        menu.setAttribute(
             "aria-hidden",
             "true"
         );
 
-        if (quickActionButton) {
-            quickActionButton.setAttribute(
-                "aria-expanded",
-                "false"
+
+        if (button) {
+            button.classList.remove(
+                "open"
             );
 
-            quickActionButton.classList.remove(
-                "open"
+            button.setAttribute(
+                "aria-expanded",
+                "false"
             );
         }
     }
 
 
     function openQuickMenu() {
-        if (!quickMenu) return;
+        const menu =
+            elements.quickMenu;
 
-        quickMenu.classList.add(
+        const button =
+            elements.quickActionButton;
+
+
+        if (!menu) {
+            return;
+        }
+
+
+        menu.classList.add(
             "open"
         );
 
-        quickMenu.setAttribute(
+        menu.setAttribute(
             "aria-hidden",
             "false"
         );
 
-        if (quickActionButton) {
-            quickActionButton.setAttribute(
+
+        if (button) {
+            button.classList.add(
+                "open"
+            );
+
+            button.setAttribute(
                 "aria-expanded",
                 "true"
             );
-
-            quickActionButton.classList.add(
-                "open"
-            );
         }
     }
 
 
-    if (quickActionButton) {
-        quickActionButton.addEventListener(
-            "click",
-            (event) => {
-                event.stopPropagation();
-
-                if (
-                    quickMenu?.classList.contains(
-                        "open"
-                    )
-                ) {
-                    closeQuickMenu();
-                } else {
-                    openQuickMenu();
-                }
-            }
-        );
+    function toggleQuickMenu() {
+        if (
+            elements.quickMenu?.classList.contains(
+                "open"
+            )
+        ) {
+            closeQuickMenu();
+        } else {
+            openQuickMenu();
+        }
     }
 
 
-    document
-        .querySelectorAll(
-            ".quick-item"
-        )
-        .forEach((button) => {
-            button.addEventListener(
-                "click",
-                () => {
-                    openSection(
-                        button.dataset.target
-                    );
-                }
-            );
-        });
-
-
-    function openSection(name) {
-        if (!name) return;
-
-        let section = null;
-
-        try {
-            section =
-                document.querySelector(
-                    `[data-section="${CSS.escape(name)}"]`
-                );
-        } catch {
+    function openSection(sectionName) {
+        if (!sectionName) {
             return;
         }
 
-        if (!section) return;
 
-        document
-            .querySelectorAll(
-                ".sheet-section"
-            )
-            .forEach((item) => {
-                item.classList.remove(
+        const sections =
+            $$(".sheet-section");
+
+
+        let target = null;
+
+
+        sections.some(
+            (section) => {
+                if (
+                    section.dataset.section ===
+                    sectionName
+                ) {
+                    target = section;
+                    return true;
+                }
+
+                return false;
+            }
+        );
+
+
+        if (!target) {
+            console.warn(
+                "[Aerion] Seção não encontrada:",
+                sectionName
+            );
+
+            return;
+        }
+
+
+        sections.forEach(
+            (section) => {
+                section.classList.remove(
                     "active"
                 );
-            });
+            }
+        );
 
-        section.classList.add(
+
+        target.classList.add(
             "active"
         );
 
 
-        requestAnimationFrame(() => {
-            section.scrollIntoView({
-                behavior: "smooth",
-                block: "start"
-            });
-        });
+        requestAnimationFrame(
+            () => {
+                target.scrollIntoView({
+                    behavior: "smooth",
+                    block: "start"
+                });
+            }
+        );
 
 
         closeQuickMenu();
     }
 
 
-    document.addEventListener(
-        "click",
-        (event) => {
-            if (!quickMenu || !quickActionButton) {
-                return;
-            }
+    function setupQuickMenu() {
+        const button =
+            elements.quickActionButton;
 
-            if (
-                !quickMenu.contains(
-                    event.target
-                ) &&
-                !quickActionButton.contains(
-                    event.target
-                )
-            ) {
+        const menu =
+            elements.quickMenu;
+
+
+        if (button) {
+            button.addEventListener(
+                "click",
+                (event) => {
+                    event.preventDefault();
+                    event.stopPropagation();
+
+                    toggleQuickMenu();
+                }
+            );
+        }
+
+
+        $$(".quick-item").forEach(
+            (item) => {
+                item.addEventListener(
+                    "click",
+                    () => {
+                        openSection(
+                            item.dataset.target
+                        );
+                    }
+                );
+            }
+        );
+
+
+        document.addEventListener(
+            "click",
+            (event) => {
+                if (
+                    !menu ||
+                    !button
+                ) {
+                    return;
+                }
+
+
+                if (
+                    menu.contains(
+                        event.target
+                    ) ||
+                    button.contains(
+                        event.target
+                    )
+                ) {
+                    return;
+                }
+
+
                 closeQuickMenu();
             }
-        }
-    );
+        );
 
 
-    // =====================================================
-    // BOTÕES DE VOLTAR
-    // =====================================================
-
-    const backButton =
-        $("backButton");
-
-    const backErrorButton =
-        $("backErrorButton");
-
-
-    if (backButton) {
-        backButton.addEventListener(
-            "click",
-            () => {
-                window.location.href =
-                    "fichas.html";
+        document.addEventListener(
+            "keydown",
+            (event) => {
+                if (
+                    event.key === "Escape"
+                ) {
+                    closeQuickMenu();
+                }
             }
         );
     }
 
 
-    if (backErrorButton) {
-        backErrorButton.addEventListener(
-            "click",
+    /* =====================================================
+       BOTÕES DE VOLTAR
+    ===================================================== */
+
+    function setupBackButtons() {
+        const goBack =
             () => {
                 window.location.href =
                     "fichas.html";
+            };
+
+
+        if (elements.backButton) {
+            elements.backButton.addEventListener(
+                "click",
+                goBack
+            );
+        }
+
+
+        if (elements.backErrorButton) {
+            elements.backErrorButton.addEventListener(
+                "click",
+                goBack
+            );
+        }
+    }
+
+
+    /* =====================================================
+       VERIFICAR SESSÃO
+    ===================================================== */
+
+    async function getSession() {
+        try {
+            const {
+                data,
+                error
+            } = await supabase.auth
+                .getSession();
+
+
+            if (error) {
+                console.error(
+                    "[Aerion] Erro ao obter sessão:",
+                    error
+                );
+
+                return null;
             }
-        );
-    }
 
 
-    // =====================================================
-    // INICIALIZAÇÃO
-    // =====================================================
-
-    showLoading();
-
-    bindAutoSave();
-
-    setupAvatarUpload();
+            return (
+                data?.session ||
+                null
+            );
 
 
-    // =====================================================
-    // VALIDAR ID
-    // =====================================================
-
-    if (!characterId) {
-        showError(
-            "Nenhuma ficha foi selecionada."
-        );
-
-        return;
-    }
-
-
-    // =====================================================
-    // SESSÃO
-    // =====================================================
-
-    try {
-        const {
-            data,
-            error
-        } = await supabase.auth.getSession();
-
-
-        if (error) {
+        } catch (error) {
             console.error(
-                "Erro ao obter sessão:",
+                "[Aerion] Erro inesperado ao obter sessão:",
+                error
+            );
+
+            return null;
+        }
+    }
+
+
+    /* =====================================================
+       CARREGAR FICHA
+    ===================================================== */
+
+    async function loadCharacter() {
+        if (!characterId) {
+            showError(
+                "Nenhuma ficha foi selecionada."
+            );
+
+            return false;
+        }
+
+
+        const session =
+            await getSession();
+
+
+        if (!session) {
+            window.location.href =
+                "index.html";
+
+            return false;
+        }
+
+
+        state.session =
+            session;
+
+
+        try {
+            const {
+                data,
+                error
+            } = await supabase
+                .from("characters")
+                .select(`
+                    id,
+                    user_id,
+                    name,
+                    age,
+                    appearance,
+                    personality,
+                    origin,
+                    objective,
+                    fear,
+                    bond,
+                    history,
+                    race,
+                    racial_ability,
+                    class,
+                    class_bonus,
+                    attributes,
+                    power,
+                    mana,
+                    techniques,
+                    avatar_url,
+                    created_at,
+                    updated_at
+                `)
+                .eq(
+                    "id",
+                    characterId
+                )
+                .eq(
+                    "user_id",
+                    session.user.id
+                )
+                .maybeSingle();
+
+
+            if (error) {
+                console.error(
+                    "[Aerion] Erro ao carregar ficha:",
+                    error
+                );
+
+                showError(
+                    "Não foi possível carregar a ficha agora. Verifique sua conexão e tente novamente."
+                );
+
+                return false;
+            }
+
+
+            if (!data) {
+                console.warn(
+                    "[Aerion] Ficha não encontrada:",
+                    characterId
+                );
+
+                showError(
+                    "A ficha não foi encontrada ou você não tem permissão para acessá-la."
+                );
+
+                return false;
+            }
+
+
+            renderCharacter(data);
+
+            return true;
+
+
+        } catch (error) {
+            console.error(
+                "[Aerion] Erro inesperado ao carregar ficha:",
                 error
             );
 
             showError(
-                "Não foi possível verificar sua sessão. Recarregue a página."
+                "Ocorreu um erro inesperado ao carregar a ficha. Tente novamente."
             );
 
+            return false;
+        }
+    }
+
+
+    /* =====================================================
+       INICIALIZAÇÃO
+    ===================================================== */
+
+    async function init() {
+        if (state.initialized) {
             return;
         }
 
-
-        session =
-            data?.session || null;
+        state.initialized = true;
 
 
-    } catch (error) {
-        console.error(
-            "Erro inesperado ao obter sessão:",
-            error
-        );
-
-        showError(
-            "Não foi possível verificar sua sessão."
-        );
-
-        return;
-    }
+        showLoading();
 
 
-    if (!session) {
-        window.location.href =
-            "index.html";
-
-        return;
-    }
-
-
-    // =====================================================
-    // CARREGAR FICHA
-    // =====================================================
-
-    try {
-        const {
-            data,
-            error
-        } = await supabase
-            .from("characters")
-            .select(`
-                id,
-                user_id,
-                name,
-                age,
-                appearance,
-                personality,
-                origin,
-                objective,
-                fear,
-                bond,
-                history,
-                race,
-                racial_ability,
-                class,
-                class_bonus,
-                attributes,
-                power,
-                mana,
-                techniques,
-                avatar_url,
-                created_at,
-                updated_at
-            `)
-            .eq(
-                "id",
-                characterId
-            )
-            .eq(
-                "user_id",
-                session.user.id
-            )
-            .maybeSingle();
+        /*
+         * Eventos que não dependem da ficha.
+         */
+        setupQuickMenu();
+        setupBackButtons();
+        setupAvatarUpload();
+        bindAutoSave();
 
 
-        // =============================================
-        // ERRO REAL
-        // =============================================
-
-        if (error) {
-            console.error(
-                "Erro do Supabase ao carregar ficha:",
-                error
-            );
-
+        /*
+         * Verifica se existe uma ficha selecionada.
+         */
+        if (!characterId) {
             showError(
-                "Não foi possível carregar a ficha agora. Verifique sua conexão e tente novamente."
+                "Nenhuma ficha foi selecionada."
             );
 
             return;
         }
 
 
-        // =============================================
-        // FICHA NÃO EXISTE
-        // =============================================
-
-        if (!data) {
-            console.warn(
-                "Ficha não encontrada:",
-                characterId
-            );
-
-            showError(
-                "A ficha não foi encontrada ou você não tem permissão para acessá-la."
-            );
-
-            return;
-        }
-
-
-        // =============================================
-        // SUCESSO
-        // =============================================
-
-        renderCharacter(data);
-
-
-    } catch (error) {
-        console.error(
-            "Erro inesperado ao carregar ficha:",
-            error
-        );
-
-        showError(
-            "Ocorreu um erro inesperado ao carregar a ficha. Tente novamente."
-        );
+        /*
+         * Carrega sessão + personagem.
+         */
+        await loadCharacter();
     }
+
+
+    /* =====================================================
+       INICIAR
+    ===================================================== */
+
+    init();
+
 });
-function renderAvatar(avatarUrl, characterName = "") {
-    const image = $("characterAvatarImage");
-    const fallback = $("characterAvatarFallback");
-
-    if (!image || !fallback) return;
-
-    if (avatarUrl) {
-        image.src = avatarUrl;
-        image.hidden = false;
-        fallback.hidden = true;
-
-        image.onerror = () => {
-            image.hidden = true;
-            fallback.hidden = false;
-        };
-
-        return;
-    }
-
-    image.removeAttribute("src");
-    image.hidden = true;
-    fallback.hidden = false;
-}
