@@ -2,7 +2,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     "use strict";
 
     // =========================================================
-    // ELEMENTOS DA PÁGINA
+    // AERIOM - FICHAS
     // =========================================================
 
     const lista = document.getElementById("charactersList");
@@ -15,14 +15,16 @@ document.addEventListener("DOMContentLoaded", async () => {
     const backButton = document.getElementById("backButton");
     const userEmail = document.getElementById("userEmail");
 
+    let currentUser = null;
+
 
     // =========================================================
-    // VERIFICAÇÃO DA PÁGINA
+    // VERIFICAÇÃO DOS ELEMENTOS
     // =========================================================
 
     if (!lista) {
         console.error(
-            "Aerion: #charactersList não foi encontrado."
+            "Aeriom: #charactersList não foi encontrado."
         );
 
         return;
@@ -35,7 +37,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     if (!window.supabaseClient) {
         console.error(
-            "Aerion: supabaseClient não está disponível."
+            "Aeriom: supabaseClient não está disponível."
         );
 
         mostrarErro(
@@ -81,8 +83,19 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
 
 
+    function getCharacterInitial(name) {
+        const texto = String(name ?? "").trim();
+
+        if (!texto) {
+            return "A";
+        }
+
+        return texto.charAt(0).toUpperCase();
+    }
+
+
     // =========================================================
-    // ESTADOS DA INTERFACE
+    // ESTADO: CARREGANDO
     // =========================================================
 
     function mostrarCarregando() {
@@ -98,6 +111,10 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
 
 
+    // =========================================================
+    // ESTADO: LISTA
+    // =========================================================
+
     function mostrarLista() {
         if (loading) {
             loading.style.display = "none";
@@ -108,6 +125,10 @@ document.addEventListener("DOMContentLoaded", async () => {
         }
     }
 
+
+    // =========================================================
+    // ESTADO: VAZIO
+    // =========================================================
 
     function mostrarVazio() {
         if (loading) {
@@ -122,6 +143,10 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
 
 
+    // =========================================================
+    // ESTADO: ERRO
+    // =========================================================
+
     function mostrarErro(mensagem) {
         if (loading) {
             loading.style.display = "none";
@@ -133,6 +158,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
         lista.innerHTML = `
             <div class="characters-message">
+
                 <h3>
                     Não foi possível carregar suas fichas.
                 </h3>
@@ -148,6 +174,7 @@ document.addEventListener("DOMContentLoaded", async () => {
                 >
                     Tentar novamente
                 </button>
+
             </div>
         `;
 
@@ -171,51 +198,152 @@ document.addEventListener("DOMContentLoaded", async () => {
     function abrirFicha(characterId) {
         if (!characterId) {
             console.error(
-                "Aerion: ID da ficha não informado."
+                "Aeriom: não foi possível abrir a ficha. ID ausente."
             );
 
             return;
         }
 
-        // Guarda somente a ficha que o usuário escolheu.
+        // Guarda o ID da ficha que será aberta.
         localStorage.setItem(
             "aerion_character_id",
-            characterId
+            String(characterId)
         );
 
-        // Remove qualquer rascunho de criação que possa
-        // interferir na abertura da ficha existente.
+        // Evita que um rascunho antigo interfira.
         localStorage.removeItem(
             "aerion_character_draft"
         );
 
-        // Ficha existente NÃO deve abrir ficha.html.
-        // Ela abre a visualização/edição da ficha.
+        // Ficha EXISTENTE -> tela de visualização/edição.
         window.location.href = "ficha-view.html";
     }
 
 
     // =========================================================
-    // NOVA FICHA
+    // CRIAR NOVA FICHA
     // =========================================================
 
     function novaFicha() {
-        // Uma nova ficha não possui ID.
+        // Nova ficha não possui ID.
         localStorage.removeItem(
             "aerion_character_id"
         );
 
-        // Também removemos qualquer rascunho antigo.
+        // Limpa rascunho anterior.
         localStorage.removeItem(
             "aerion_character_draft"
         );
 
+        // Nova ficha -> formulário de criação.
         window.location.href = "ficha.html";
     }
 
 
     // =========================================================
-    // CRIAR CARD DA FICHA
+    // EXCLUIR FICHA
+    // =========================================================
+
+    async function excluirFicha(ficha) {
+        if (!currentUser) {
+            console.error(
+                "Aeriom: usuário não autenticado."
+            );
+
+            return;
+        }
+
+        if (!ficha || !ficha.id) {
+            console.error(
+                "Aeriom: ficha inválida para exclusão."
+            );
+
+            return;
+        }
+
+        const nome = ficha.name || "Sem nome";
+
+        const confirmado = window.confirm(
+            `Excluir a ficha "${nome}"?\n\nEssa ação não pode ser desfeita.`
+        );
+
+        if (!confirmado) {
+            return;
+        }
+
+
+        const botoes = lista.querySelectorAll(
+            ".character-edit, .character-delete"
+        );
+
+        botoes.forEach((botao) => {
+            botao.disabled = true;
+        });
+
+
+        try {
+            const { error } = await client
+                .from("characters")
+                .delete()
+                .eq("id", ficha.id)
+                .eq("user_id", currentUser.id);
+
+
+            if (error) {
+                console.error(
+                    "Aeriom: erro ao excluir ficha:",
+                    error
+                );
+
+                window.alert(
+                    error.message
+                        ? `Não foi possível excluir a ficha.\n\n${error.message}`
+                        : "Não foi possível excluir a ficha."
+                );
+
+                return;
+            }
+
+
+            // Se essa era a ficha atualmente armazenada,
+            // remove o ID.
+            const fichaAtual = localStorage.getItem(
+                "aerion_character_id"
+            );
+
+            if (
+                fichaAtual &&
+                String(fichaAtual) === String(ficha.id)
+            ) {
+                localStorage.removeItem(
+                    "aerion_character_id"
+                );
+            }
+
+
+            // Recarrega a lista.
+            await carregarFichas();
+
+        } catch (error) {
+            console.error(
+                "Aeriom: erro inesperado ao excluir ficha:",
+                error
+            );
+
+            window.alert(
+                "Ocorreu um erro ao excluir a ficha."
+            );
+
+        } finally {
+            botoes.forEach((botao) => {
+                botao.disabled = false;
+            });
+        }
+    }
+
+
+    // =========================================================
+    // CRIAR CARD
     // =========================================================
 
     function criarCard(ficha) {
@@ -223,28 +351,22 @@ document.addEventListener("DOMContentLoaded", async () => {
 
         card.className = "character-card";
 
-        const nome = escapeHTML(
-            ficha.name || "Sem nome"
+        const nome = ficha.name || "Sem nome";
+        const race = ficha.race || "Sem raça";
+        const classe = ficha.class || "Sem classe";
+        const poder = ficha.power || "";
+
+        const nomeHTML = escapeHTML(nome);
+        const raceHTML = escapeHTML(race);
+        const classeHTML = escapeHTML(classe);
+        const poderHTML = escapeHTML(poder);
+
+        const inicial = escapeHTML(
+            getCharacterInitial(nome)
         );
 
-        const race = escapeHTML(
-            ficha.race || "Sem raça"
-        );
-
-        const classe = escapeHTML(
-            ficha.class || "Sem classe"
-        );
-
-        const poder = escapeHTML(
-            ficha.power || ""
-        );
-
-        const id = escapeHTML(
-            ficha.id
-        );
-
-        const dataAtualizacao = formatDate(
-            ficha.updated_at
+        const dataAtualizacao = escapeHTML(
+            formatDate(ficha.updated_at)
         );
 
 
@@ -256,26 +378,28 @@ document.addEventListener("DOMContentLoaded", async () => {
             <div class="character-card-main">
 
                 <div class="character-card-avatar">
-                    A
+                    ${inicial}
                 </div>
 
                 <div class="character-card-info">
 
                     <h3>
-                        ${nome}
+                        ${nomeHTML}
                     </h3>
 
                     <p>
-                        ${race}
+                        ${raceHTML}
+
                         <span>•</span>
-                        ${classe}
+
+                        ${classeHTML}
                     </p>
 
                     ${
                         poder
                             ? `
                                 <small>
-                                    ${poder}
+                                    ${poderHTML}
                                 </small>
                               `
                             : ""
@@ -284,7 +408,6 @@ document.addEventListener("DOMContentLoaded", async () => {
                 </div>
 
             </div>
-
 
             <div class="character-card-footer">
 
@@ -297,7 +420,7 @@ document.addEventListener("DOMContentLoaded", async () => {
                     <button
                         type="button"
                         class="character-edit"
-                        data-id="${id}"
+                        aria-label="Editar ${nomeHTML}"
                     >
                         Editar
                     </button>
@@ -305,7 +428,7 @@ document.addEventListener("DOMContentLoaded", async () => {
                     <button
                         type="button"
                         class="character-delete"
-                        data-id="${id}"
+                        aria-label="Excluir ${nomeHTML}"
                     >
                         Excluir
                     </button>
@@ -325,12 +448,15 @@ document.addEventListener("DOMContentLoaded", async () => {
         );
 
         if (editar) {
-            editar.addEventListener("click", (event) => {
-                event.preventDefault();
-                event.stopPropagation();
+            editar.addEventListener(
+                "click",
+                (event) => {
+                    event.preventDefault();
+                    event.stopPropagation();
 
-                abrirFicha(ficha.id);
-            });
+                    abrirFicha(ficha.id);
+                }
+            );
         }
 
 
@@ -359,18 +485,21 @@ document.addEventListener("DOMContentLoaded", async () => {
         // CLIQUE NO CARD
         // =====================================================
 
-        card.addEventListener("click", (event) => {
-            // Se clicou em um botão, o botão já cuida da ação.
-            if (
-                event.target.closest(
-                    ".character-card-actions"
-                )
-            ) {
-                return;
-            }
+        card.addEventListener(
+            "click",
+            (event) => {
+                const clicouEmBotao =
+                    event.target.closest(
+                        ".character-card-actions"
+                    );
 
-            abrirFicha(ficha.id);
-        });
+                if (clicouEmBotao) {
+                    return;
+                }
+
+                abrirFicha(ficha.id);
+            }
+        );
 
 
         return card;
@@ -378,94 +507,20 @@ document.addEventListener("DOMContentLoaded", async () => {
 
 
     // =========================================================
-    // EXCLUIR FICHA
-    // =========================================================
-
-    async function excluirFicha(ficha) {
-        const nome = ficha.name || "Sem nome";
-
-        const confirmado = window.confirm(
-            `Excluir a ficha "${nome}"?\n\nEssa ação não pode ser desfeita.`
-        );
-
-        if (!confirmado) {
-            return;
-        }
-
-
-        // Desabilita temporariamente os botões para evitar
-        // múltiplos cliques durante a exclusão.
-        const botoes = lista.querySelectorAll(
-            ".character-edit, .character-delete"
-        );
-
-        botoes.forEach((botao) => {
-            botao.disabled = true;
-        });
-
-
-        try {
-            const { error } = await client
-                .from("characters")
-                .delete()
-                .eq("id", ficha.id)
-                .eq("user_id", currentUser.id);
-
-
-            if (error) {
-                console.error(
-                    "Aerion: erro ao excluir ficha:",
-                    error
-                );
-
-                window.alert(
-                    "Não foi possível excluir a ficha."
-                );
-
-                return;
-            }
-
-
-            // Se a ficha excluída era a ficha atualmente
-            // armazenada no navegador, removemos o ID.
-            const fichaAtual = localStorage.getItem(
-                "aerion_character_id"
-            );
-
-            if (fichaAtual === ficha.id) {
-                localStorage.removeItem(
-                    "aerion_character_id"
-                );
-            }
-
-
-            // Atualiza a lista.
-            await carregarFichas();
-
-        } catch (error) {
-            console.error(
-                "Aerion: erro inesperado ao excluir ficha:",
-                error
-            );
-
-            window.alert(
-                "Ocorreu um erro ao excluir a ficha."
-            );
-
-        } finally {
-            botoes.forEach((botao) => {
-                botao.disabled = false;
-            });
-        }
-    }
-
-
-    // =========================================================
-    // CARREGAR FICHAS DO USUÁRIO
+    // CARREGAR FICHAS
     // =========================================================
 
     async function carregarFichas() {
+        if (!currentUser) {
+            console.error(
+                "Aeriom: não é possível carregar fichas sem usuário."
+            );
+
+            return;
+        }
+
         mostrarCarregando();
+
 
         try {
             const {
@@ -496,9 +551,13 @@ document.addEventListener("DOMContentLoaded", async () => {
                 );
 
 
+            // =================================================
+            // ERRO DO SUPABASE
+            // =================================================
+
             if (error) {
                 console.error(
-                    "Aerion: erro ao carregar fichas:",
+                    "Aeriom: erro ao carregar fichas:",
                     error
                 );
 
@@ -511,20 +570,26 @@ document.addEventListener("DOMContentLoaded", async () => {
             }
 
 
+            // =================================================
+            // NENHUMA FICHA
+            // =================================================
+
             if (!Array.isArray(data) || data.length === 0) {
                 mostrarVazio();
+
+                console.log(
+                    "Aeriom: nenhuma ficha encontrada."
+                );
+
                 return;
             }
 
 
             // =================================================
-            // RENDERIZAR
+            // RENDERIZAR LISTA
             // =================================================
 
             lista.innerHTML = "";
-
-            mostrarLista();
-
 
             data.forEach((ficha) => {
                 const card = criarCard(ficha);
@@ -532,14 +597,16 @@ document.addEventListener("DOMContentLoaded", async () => {
                 lista.appendChild(card);
             });
 
+            mostrarLista();
+
 
             console.log(
-                `Aerion: ${data.length} ficha(s) carregada(s).`
+                `Aeriom: ${data.length} ficha(s) carregada(s).`
             );
 
         } catch (error) {
             console.error(
-                "Aerion: erro inesperado ao carregar fichas:",
+                "Aeriom: erro inesperado ao carregar fichas:",
                 error
             );
 
@@ -554,64 +621,75 @@ document.addEventListener("DOMContentLoaded", async () => {
     // VERIFICAR SESSÃO
     // =========================================================
 
-    let currentUser = null;
+    async function verificarSessao() {
+        try {
+            const {
+                data,
+                error
+            } = await client.auth.getSession();
 
-    try {
-        const {
-            data,
-            error
-        } = await client.auth.getSession();
+
+            if (error) {
+                console.error(
+                    "Aeriom: erro ao verificar sessão:",
+                    error
+                );
+
+                mostrarErro(
+                    "Não foi possível verificar sua sessão."
+                );
+
+                return false;
+            }
 
 
-        if (error) {
+            const session = data?.session;
+
+
+            if (!session || !session.user) {
+                console.warn(
+                    "Aeriom: usuário não autenticado."
+                );
+
+                window.location.href = "index.html";
+
+                return false;
+            }
+
+
+            currentUser = session.user;
+
+
+            // =================================================
+            // MOSTRAR E-MAIL
+            // =================================================
+
+            if (userEmail) {
+                userEmail.textContent =
+                    currentUser.email || "Usuário";
+            }
+
+
+            console.log(
+                "Aeriom: usuário autenticado:",
+                currentUser.id
+            );
+
+
+            return true;
+
+        } catch (error) {
             console.error(
-                "Aerion: erro ao verificar sessão:",
+                "Aeriom: erro inesperado ao verificar sessão:",
                 error
             );
 
             mostrarErro(
-                "Não foi possível verificar sua sessão."
+                "Erro ao verificar sua conta."
             );
 
-            return;
+            return false;
         }
-
-
-        const session = data?.session;
-
-
-        if (!session || !session.user) {
-            window.location.href = "index.html";
-            return;
-        }
-
-
-        currentUser = session.user;
-
-
-        // Mostra o e-mail no cabeçalho.
-        if (userEmail) {
-            userEmail.textContent =
-                currentUser.email || "Usuário";
-        }
-
-
-        console.log(
-            "Aerion: usuário autenticado:",
-            currentUser.id
-        );
-
-    } catch (error) {
-        console.error(
-            "Aerion: erro inesperado ao verificar sessão:",
-            error
-        );
-
-        mostrarErro(
-            "Erro ao verificar sua conta."
-        );
-
-        return;
     }
 
 
@@ -622,7 +700,9 @@ document.addEventListener("DOMContentLoaded", async () => {
     if (backButton) {
         backButton.addEventListener(
             "click",
-            () => {
+            (event) => {
+                event.preventDefault();
+
                 window.location.href = "index.html";
             }
         );
@@ -636,22 +716,42 @@ document.addEventListener("DOMContentLoaded", async () => {
     if (novo) {
         novo.addEventListener(
             "click",
-            novaFicha
+            (event) => {
+                event.preventDefault();
+
+                novaFicha();
+            }
         );
     }
 
+
+    // =========================================================
+    // BOTÃO NOVA FICHA DO ESTADO VAZIO
+    // =========================================================
 
     if (emptyNovo) {
         emptyNovo.addEventListener(
             "click",
-            novaFicha
+            (event) => {
+                event.preventDefault();
+
+                novaFicha();
+            }
         );
     }
 
 
     // =========================================================
-    // PRIMEIRO CARREGAMENTO
+    // INICIALIZAÇÃO
     // =========================================================
 
+    const autenticado = await verificarSessao();
+
+    if (!autenticado) {
+        return;
+    }
+
+
     await carregarFichas();
+
 });
