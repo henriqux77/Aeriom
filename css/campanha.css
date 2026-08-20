@@ -1,233 +1,61 @@
 /* =========================================================
-   AERION — PAINEL DA CAMPANHA (FASE 3)
+   AERION — PAINEL DA CAMPANHA (FASE 4)
 ========================================================= */
 
-.campaign-dashboard {
-    width: min(100%, 1000px);
-    margin: 0 auto;
-    padding: 0 1rem 4rem;
-    min-height: 100vh;
-}
+.campaign-dashboard { width: min(100%, 1000px); margin: 0 auto; padding: 0 1rem 4rem; min-height: 100vh; }
+.dash-header { position: sticky; top: 0; z-index: 100; display: flex; align-items: center; gap: 15px; padding: 15px 0; background: rgba(5, 3, 3, 0.95); backdrop-filter: blur(12px); border-bottom: 1px solid rgba(182, 72, 38, 0.16); margin-bottom: 20px; }
+.dash-title { flex: 1; }
+.dash-title span { font-family: var(--display-font); font-size: 0.65rem; color: var(--orange); letter-spacing: 0.2em; text-transform: uppercase; }
+.dash-title h1 { font-family: var(--display-font); font-size: 1.2rem; color: var(--cream); margin: 0; }
 
-.dash-header {
-    position: sticky;
-    top: 0;
-    z-index: 100;
-    display: flex;
-    align-items: center;
-    gap: 15px;
-    padding: 15px 0;
-    background: rgba(5, 3, 3, 0.95);
-    backdrop-filter: blur(12px);
-    border-bottom: 1px solid rgba(182, 72, 38, 0.16);
-    margin-bottom: 30px;
-}
+.campaign-banner { position: relative; width: 100%; height: 180px; border-radius: 16px; border: 1px solid rgba(200, 100, 50, 0.3); background-color: #111; background-size: cover; background-position: center; display: flex; align-items: flex-end; padding: 20px; overflow: hidden; margin-bottom: 20px; }
+.banner-overlay { position: absolute; inset: 0; background: linear-gradient(to top, rgba(5, 3, 3, 0.9) 0%, rgba(5, 3, 3, 0.2) 100%); }
+.campaign-banner h2 { position: relative; z-index: 2; font-family: var(--display-font); font-size: 2rem; color: var(--cream); margin: 0; text-shadow: 0 4px 15px rgba(0,0,0,0.8); }
 
-.dash-title {
-    flex: 1;
-}
+/* TABS DE NAVEGAÇÃO */
+.dash-nav { display: flex; gap: 10px; margin-bottom: 30px; border-bottom: 1px solid rgba(131, 65, 43, 0.3); padding-bottom: 10px; overflow-x: auto; scrollbar-width: none; }
+.dash-nav::-webkit-scrollbar { display: none; }
+.dash-tab { background: transparent; border: 1px solid transparent; color: var(--cream-muted); font-family: var(--display-font); font-size: 0.85rem; padding: 8px 16px; border-radius: 8px; cursor: pointer; transition: all 0.2s; white-space: nowrap; }
+.dash-tab:hover { color: var(--cream); background: rgba(20, 15, 13, 0.5); }
+.dash-tab.active { color: var(--gold); border-color: rgba(200, 100, 50, 0.4); background: rgba(25, 17, 15, 0.8); }
+.dash-tab-content { display: none; animation: fadeIn 0.3s ease; }
+.dash-tab-content.active { display: block; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
 
-.dash-title span {
-    font-family: var(--display-font);
-    font-size: 0.65rem;
-    color: var(--orange);
-    letter-spacing: 0.2em;
-    text-transform: uppercase;
-}
+/* PAINÉIS */
+.dash-panel { border-radius: 14px; border: 1px solid rgba(200, 100, 50, 0.2); padding: 24px; background: linear-gradient(145deg, rgba(25, 17, 15, 0.6), rgba(10, 8, 7, 0.8)); margin-bottom: 30px; }
+.master-panel { border-color: rgba(188, 48, 28, 0.4); box-shadow: 0 0 20px rgba(188, 48, 28, 0.05); }
+.dash-panel h3 { font-family: var(--display-font); font-size: 1.1rem; color: var(--gold); margin: 0 0 5px 0; }
 
-.dash-title h1 {
-    font-family: var(--display-font);
-    font-size: 1.2rem;
-    color: var(--cream);
-    margin: 0;
-}
+.campaign-section { margin-bottom: 30px; }
+.section-header { margin-bottom: 15px; }
+.section-header h3 { font-family: var(--display-font); color: var(--gold); margin: 0 0 5px 0; font-size: 1.1rem; }
+.section-header p { color: var(--cream-muted); font-size: 0.85rem; margin: 0; }
 
-.campaign-banner {
-    position: relative;
-    width: 100%;
-    height: 180px;
-    border-radius: 16px;
-    border: 1px solid rgba(200, 100, 50, 0.3);
-    background-color: #111;
-    background-size: cover;
-    background-position: center;
-    display: flex;
-    align-items: flex-end;
-    padding: 20px;
-    overflow: hidden;
-    margin-bottom: 30px;
-}
+/* GRID DE PERSONAGENS */
+.campaign-characters-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 15px; }
+.campaign-char-card { display: flex; align-items: center; gap: 15px; padding: 15px; background: rgba(20, 15, 13, 0.6); border: 1px solid rgba(131, 65, 43, 0.3); border-radius: 12px; transition: border-color 0.2s, transform 0.2s; }
+.campaign-char-card:hover { border-color: rgba(225, 99, 45, 0.5); transform: translateY(-2px); }
+.campaign-char-card.own-character { border-color: var(--gold); background: linear-gradient(145deg, rgba(30, 22, 18, 0.8), rgba(15, 10, 8, 0.9)); }
+.char-card-avatar, .char-card-fallback { width: 50px; height: 50px; border-radius: 50%; border: 1px solid var(--line); }
+.char-card-fallback { background: #222; display: grid; place-items: center; color: var(--gold); font-family: var(--display-font); font-size: 20px; line-height: 1; }
+.char-card-info { flex: 1; min-width: 0; }
+.char-card-info h4 { margin: 0 0 4px 0; color: var(--cream); font-family: var(--display-font); font-size: 1.05rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.char-card-info span { font-size: 0.75rem; color: var(--cream-muted); }
+.char-card-actions { display: flex; gap: 8px; }
 
-.banner-overlay {
-    position: absolute;
-    inset: 0;
-    background: linear-gradient(to top, rgba(5, 3, 3, 0.9) 0%, rgba(5, 3, 3, 0.2) 100%);
-}
+/* MURAL & LOGS */
+.mural-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 15px; margin-top: 15px; }
+.mural-card { border: 1px solid rgba(200, 100, 50, 0.3); background: rgba(20, 15, 13, 0.8); border-radius: 8px; padding: 15px; text-align: center; }
+.mural-card h4 { font-family: var(--display-font); color: var(--cream); margin: 0 0 10px 0; }
+.mural-card p { font-size: 0.85rem; color: var(--cream-muted); }
 
-.campaign-banner h2 {
-    position: relative;
-    z-index: 2;
-    font-family: var(--display-font);
-    font-size: 2rem;
-    color: var(--cream);
-    margin: 0;
-    text-shadow: 0 4px 15px rgba(0,0,0,0.8);
-}
+.logs-container { border: 1px solid rgba(131, 65, 43, 0.3); border-radius: 8px; background: rgba(10, 8, 7, 0.8); padding: 15px; max-height: 400px; overflow-y: auto; }
+.log-item { padding: 8px 0; border-bottom: 1px solid rgba(255, 255, 255, 0.05); font-size: 0.85rem; color: var(--cream); display: flex; gap: 10px; }
+.log-item:last-child { border-bottom: none; }
+.log-time { color: var(--gold); font-family: monospace; font-size: 0.75rem; }
 
-.dash-panel {
-    border-radius: 14px;
-    border: 1px solid rgba(200, 100, 50, 0.2);
-    padding: 24px;
-    background: linear-gradient(145deg, rgba(25, 17, 15, 0.6), rgba(10, 8, 7, 0.8));
-    margin-bottom: 30px;
-}
-
-.master-panel {
-    border-color: rgba(188, 48, 28, 0.4);
-    box-shadow: 0 0 20px rgba(188, 48, 28, 0.05);
-}
-
-.dash-panel h3 {
-    font-family: var(--display-font);
-    font-size: 1.1rem;
-    color: var(--gold);
-    margin: 0 0 5px 0;
-}
-
-/* =========================================================
-   SESSÃO DE PERSONAGENS (NOVO)
-========================================================= */
-
-.campaign-section {
-    margin-bottom: 30px;
-}
-
-.section-header {
-    margin-bottom: 15px;
-}
-
-.section-header h3 {
-    font-family: var(--display-font);
-    color: var(--gold);
-    margin: 0 0 5px 0;
-    font-size: 1.1rem;
-}
-
-.section-header p {
-    color: var(--cream-muted);
-    font-size: 0.85rem;
-    margin: 0;
-}
-
-.campaign-characters-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-    gap: 15px;
-}
-
-.campaign-char-card {
-    display: flex;
-    align-items: center;
-    gap: 15px;
-    padding: 15px;
-    background: rgba(20, 15, 13, 0.6);
-    border: 1px solid rgba(131, 65, 43, 0.3);
-    border-radius: 12px;
-    transition: border-color 0.2s, transform 0.2s;
-}
-
-.campaign-char-card:hover {
-    border-color: rgba(225, 99, 45, 0.5);
-    transform: translateY(-2px);
-}
-
-.campaign-char-card.own-character {
-    border-color: var(--gold);
-    background: linear-gradient(145deg, rgba(30, 22, 18, 0.8), rgba(15, 10, 8, 0.9));
-    box-shadow: 0 4px 15px rgba(200, 100, 50, 0.1);
-}
-
-.char-card-avatar {
-    width: 50px;
-    height: 50px;
-    border-radius: 50%;
-    object-fit: cover;
-    border: 1px solid var(--line);
-}
-
-.char-card-fallback {
-    width: 50px;
-    height: 50px;
-    border-radius: 50%;
-    background: #222;
-    display: grid;
-    place-items: center;
-    color: var(--gold);
-    border: 1px solid var(--gold);
-    font-family: var(--display-font);
-    font-size: 20px;
-    line-height: 1;
-}
-
-.char-card-info {
-    flex: 1;
-    min-width: 0;
-}
-
-.char-card-info h4 {
-    margin: 0 0 4px 0;
-    color: var(--cream);
-    font-family: var(--display-font);
-    font-size: 1.05rem;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-}
-
-.char-card-info span {
-    font-size: 0.75rem;
-    color: var(--cream-muted);
-}
-
-.char-card-actions {
-    display: flex;
-    gap: 8px;
-}
-
-/* =========================================================
-   MÓDULOS
-========================================================= */
-
-.dash-modules {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-    gap: 20px;
-}
-
-.dash-module-card {
-    border-radius: 12px;
-    border: 1px solid rgba(131, 65, 43, 0.3);
-    padding: 20px;
-    background: rgba(20, 15, 13, 0.6);
-    display: flex;
-    flex-direction: column;
-}
-
-.dash-module-card h3 {
-    font-family: var(--display-font);
-    color: var(--cream);
-    margin: 0 0 10px 0;
-}
-
-.dash-module-card p {
-    font-size: 0.85rem;
-    color: var(--cream-muted);
-    margin: 0 0 20px 0;
-    flex: 1;
-}
-
-.dash-module-card button {
-    width: 100%;
-    min-height: 35px;
-    font-size: 11px;
-}
+.dash-modules { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 20px; }
+.dash-module-card { border-radius: 12px; border: 1px solid rgba(131, 65, 43, 0.3); padding: 20px; background: rgba(20, 15, 13, 0.6); display: flex; flex-direction: column; }
+.dash-module-card h3 { font-family: var(--display-font); color: var(--cream); margin: 0 0 10px 0; }
+.dash-module-card p { font-size: 0.85rem; color: var(--cream-muted); margin: 0 0 20px 0; flex: 1; }
