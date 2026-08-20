@@ -1,20 +1,17 @@
 /* =========================================================
-   AERION — FICHA VIEW
+   AERIOM — FICHA VIEW
    Controle completo da ficha de personagem
 
-   Responsabilidades:
-   - Autenticação
-   - Carregamento da ficha
-   - Renderização dos dados
-   - Edição dos campos
-   - Auto-save
-   - Avatar
-   - Técnicas
-   - Atributos
-   - Mana
-   - Menu rápido
-   - Navegação
-   - Estados de carregamento/erro
+   FLUXO:
+   fichas.html
+        ↓
+   localStorage: aerion_character_id
+        ↓
+   ficha-view.html
+        ↓
+   carrega characters pelo ID + user_id
+        ↓
+   edição + auto-save
 
    Requisitos:
    - window.supabaseClient
@@ -22,15 +19,19 @@
    - Tabela: "characters"
 ========================================================= */
 
-document.addEventListener("DOMContentLoaded", () => {
+document.addEventListener("DOMContentLoaded", async () => {
     "use strict";
+
 
     /* =====================================================
        PROTEÇÃO CONTRA DUPLA INICIALIZAÇÃO
     ===================================================== */
 
     if (window.__AERION_FICHA_VIEW_INITIALIZED__) {
-        console.warn("[Aerion] ficha-view.js já foi inicializado.");
+        console.warn(
+            "[Aeriom] ficha-view.js já foi inicializado."
+        );
+
         return;
     }
 
@@ -43,7 +44,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const CONFIG = Object.freeze({
         avatarBucket: "avatars",
-        avatarMaxSize: 5 * 1024 * 1024,
+
+        avatarMaxSize:
+            5 * 1024 * 1024,
 
         saveDelay: 700,
 
@@ -66,34 +69,62 @@ document.addEventListener("DOMContentLoaded", () => {
        HELPERS DOM
     ===================================================== */
 
-    const $ = (id) => document.getElementById(id);
+    const $ = (id) =>
+        document.getElementById(id);
 
-    const $$ = (selector, root = document) =>
-        Array.from(root.querySelectorAll(selector));
+
+    const $$ = (
+        selector,
+        root = document
+    ) =>
+        Array.from(
+            root.querySelectorAll(selector)
+        );
 
 
     /* =====================================================
-       ELEMENTOS PRINCIPAIS
+       ELEMENTOS
     ===================================================== */
 
     const elements = {
-        loading: $("sheetLoading"),
-        error: $("sheetError"),
-        errorText: $("sheetErrorText"),
-        content: $("sheetContent"),
+        loading:
+            $("sheetLoading"),
 
-        saveIndicator: $("saveIndicator"),
-        updatedLabel: $("updatedLabel"),
+        error:
+            $("sheetError"),
 
-        attributesGrid: $("attributesGrid"),
-        techniquesList: $("techniquesList"),
-        noTechniques: $("noTechniques"),
+        errorText:
+            $("sheetErrorText"),
 
-        quickMenu: $("quickMenu"),
-        quickActionButton: $("quickActionButton"),
+        content:
+            $("sheetContent"),
 
-        backButton: $("backButton"),
-        backErrorButton: $("backErrorButton")
+        saveIndicator:
+            $("saveIndicator"),
+
+        updatedLabel:
+            $("updatedLabel"),
+
+        attributesGrid:
+            $("attributesGrid"),
+
+        techniquesList:
+            $("techniquesList"),
+
+        noTechniques:
+            $("noTechniques"),
+
+        quickMenu:
+            $("quickMenu"),
+
+        quickActionButton:
+            $("quickActionButton"),
+
+        backButton:
+            $("backButton"),
+
+        backErrorButton:
+            $("backErrorButton")
     };
 
 
@@ -103,10 +134,13 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const state = {
         session: null,
+
         character: null,
 
         saveTimer: null,
+
         saveInProgress: false,
+
         savePending: false,
 
         avatarUploading: false,
@@ -119,11 +153,13 @@ document.addEventListener("DOMContentLoaded", () => {
        SUPABASE
     ===================================================== */
 
-    const supabase = window.supabaseClient;
+    const supabase =
+        window.supabaseClient;
+
 
     if (!supabase) {
         console.error(
-            "[Aerion] window.supabaseClient não encontrado."
+            "[Aeriom] window.supabaseClient não encontrado."
         );
 
         showError(
@@ -139,14 +175,19 @@ document.addEventListener("DOMContentLoaded", () => {
     ===================================================== */
 
     const characterId =
-        localStorage.getItem("aerion_character_id");
+        localStorage.getItem(
+            "aerion_character_id"
+        );
 
 
     /* =====================================================
        UTILITÁRIOS
     ===================================================== */
 
-    function parseJson(value, fallback) {
+    function parseJson(
+        value,
+        fallback
+    ) {
         if (
             value === null ||
             value === undefined ||
@@ -155,15 +196,18 @@ document.addEventListener("DOMContentLoaded", () => {
             return fallback;
         }
 
-        if (typeof value === "object") {
+        if (
+            typeof value === "object"
+        ) {
             return value;
         }
 
         try {
             return JSON.parse(value);
+
         } catch (error) {
             console.warn(
-                "[Aerion] JSON inválido:",
+                "[Aeriom] JSON inválido:",
                 value,
                 error
             );
@@ -174,33 +218,28 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
     function normalizeArray(value) {
-        return Array.isArray(value) ? value : [];
+        return Array.isArray(value)
+            ? value
+            : [];
     }
 
 
     function normalizeObject(value) {
-        return (
+        if (
             value &&
             typeof value === "object" &&
             !Array.isArray(value)
-        )
-            ? value
-            : {};
-    }
+        ) {
+            return value;
+        }
 
-
-    function escapeHtml(value) {
-        return String(value ?? "")
-            .replaceAll("&", "&amp;")
-            .replaceAll("<", "&lt;")
-            .replaceAll(">", "&gt;")
-            .replaceAll('"', "&quot;")
-            .replaceAll("'", "&#039;");
+        return {};
     }
 
 
     function getValue(id) {
-        const element = $(id);
+        const element =
+            $(id);
 
         if (!element) {
             return "";
@@ -212,8 +251,12 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
 
-    function setValue(id, value) {
-        const element = $(id);
+    function setValue(
+        id,
+        value
+    ) {
+        const element =
+            $(id);
 
         if (!element) {
             return;
@@ -236,7 +279,8 @@ document.addEventListener("DOMContentLoaded", () => {
             return null;
         }
 
-        const number = Number(value);
+        const number =
+            Number(value);
 
         return Number.isFinite(number)
             ? number
@@ -245,7 +289,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
     /* =====================================================
-       ESTADOS VISUAIS
+       ESTADOS DA INTERFACE
     ===================================================== */
 
     function showLoading() {
@@ -256,12 +300,14 @@ document.addEventListener("DOMContentLoaded", () => {
 
         if (elements.error) {
             elements.error.hidden = true;
-            elements.error.style.display = "none";
+            elements.error.style.display =
+                "none";
         }
 
         if (elements.content) {
             elements.content.hidden = true;
-            elements.content.style.display = "none";
+            elements.content.style.display =
+                "none";
         }
     }
 
@@ -269,17 +315,20 @@ document.addEventListener("DOMContentLoaded", () => {
     function showContent() {
         if (elements.loading) {
             elements.loading.hidden = true;
-            elements.loading.style.display = "none";
+            elements.loading.style.display =
+                "none";
         }
 
         if (elements.error) {
             elements.error.hidden = true;
-            elements.error.style.display = "none";
+            elements.error.style.display =
+                "none";
         }
 
         if (elements.content) {
             elements.content.hidden = false;
-            elements.content.style.display = "";
+            elements.content.style.display =
+                "";
         }
     }
 
@@ -287,17 +336,20 @@ document.addEventListener("DOMContentLoaded", () => {
     function showError(message) {
         if (elements.loading) {
             elements.loading.hidden = true;
-            elements.loading.style.display = "none";
+            elements.loading.style.display =
+                "none";
         }
 
         if (elements.content) {
             elements.content.hidden = true;
-            elements.content.style.display = "none";
+            elements.content.style.display =
+                "none";
         }
 
         if (elements.error) {
             elements.error.hidden = false;
-            elements.error.style.display = "";
+            elements.error.style.display =
+                "";
         }
 
         if (elements.errorText) {
@@ -309,10 +361,13 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
     /* =====================================================
-       INDICADOR DE SALVAMENTO
+       STATUS DO AUTO-SAVE
     ===================================================== */
 
-    function setSaveState(stateName, text) {
+    function setSaveState(
+        stateName,
+        text
+    ) {
         if (!elements.saveIndicator) {
             return;
         }
@@ -325,14 +380,21 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
 
-    function formatUpdatedAt(value) {
+    function formatUpdatedAt(
+        value
+    ) {
         if (!value) {
             return "Nunca atualizado";
         }
 
-        const date = new Date(value);
+        const date =
+            new Date(value);
 
-        if (Number.isNaN(date.getTime())) {
+        if (
+            Number.isNaN(
+                date.getTime()
+            )
+        ) {
             return "Nunca atualizado";
         }
 
@@ -373,23 +435,37 @@ document.addEventListener("DOMContentLoaded", () => {
         const character =
             state.character;
 
-        const raceTag = $("raceTag");
-        const classTag = $("classTag");
-        const powerTag = $("powerTag");
+        const raceTag =
+            $("raceTag");
+
+        const classTag =
+            $("classTag");
+
+        const powerTag =
+            $("powerTag");
+
 
         if (raceTag) {
+            raceTag.hidden = false;
+
             raceTag.textContent =
                 character?.race ||
                 "Raça não definida";
         }
 
+
         if (classTag) {
+            classTag.hidden = false;
+
             classTag.textContent =
                 character?.class ||
                 "Classe não definida";
         }
 
+
         if (powerTag) {
+            powerTag.hidden = false;
+
             powerTag.textContent =
                 character?.power ||
                 "Poder não definido";
@@ -422,12 +498,16 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
 
-    function createAvatarUrl(url) {
+    function createAvatarUrl(
+        url
+    ) {
         if (!url) {
             return "";
         }
 
-        if (!CONFIG.avatarCacheVersion) {
+        if (
+            !CONFIG.avatarCacheVersion
+        ) {
             return url;
         }
 
@@ -449,16 +529,23 @@ document.addEventListener("DOMContentLoaded", () => {
         const {
             image,
             fallback
-        } = getAvatarElements();
+        } =
+            getAvatarElements();
+
 
         if (!image || !fallback) {
             return;
         }
 
+
         image.onerror = null;
 
+
         if (!avatarUrl) {
-            image.removeAttribute("src");
+            image.removeAttribute(
+                "src"
+            );
+
             image.alt =
                 characterName
                     ? `Avatar de ${characterName}`
@@ -471,106 +558,62 @@ document.addEventListener("DOMContentLoaded", () => {
             return;
         }
 
+
         image.alt =
             characterName
                 ? `Avatar de ${characterName}`
                 : "Avatar do personagem";
 
         image.hidden = false;
+
         fallback.hidden = true;
+
 
         image.onerror = () => {
             console.warn(
-                "[Aerion] Não foi possível carregar o avatar."
+                "[Aeriom] Não foi possível carregar o avatar."
             );
 
             image.hidden = true;
+
             fallback.hidden = false;
         };
 
+
         image.src =
-            createAvatarUrl(avatarUrl);
-    }
-
-
-    function setupAvatarUpload() {
-        const {
-            input,
-            button
-        } = getAvatarElements();
-
-        if (!input) {
-            return;
-        }
-
-        /*
-         * Evita registrar o evento duas vezes.
-         */
-        if (
-            input.dataset.aerionAvatarBound === "true"
-        ) {
-            return;
-        }
-
-        input.dataset.aerionAvatarBound =
-            "true";
-
-
-        if (button) {
-            button.addEventListener(
-                "click",
-                (event) => {
-                    event.preventDefault();
-
-                    if (
-                        state.avatarUploading
-                    ) {
-                        return;
-                    }
-
-                    input.click();
-                }
+            createAvatarUrl(
+                avatarUrl
             );
-        }
-
-
-        input.addEventListener(
-            "change",
-            async () => {
-                const file =
-                    input.files?.[0];
-
-                if (!file) {
-                    return;
-                }
-
-                try {
-                    await uploadAvatar(file);
-                } finally {
-                    input.value = "";
-                }
-            }
-        );
     }
 
 
-    function validateAvatar(file) {
+    function validateAvatar(
+        file
+    ) {
         if (!file) {
             return {
                 valid: false,
-                message: "Nenhuma imagem foi selecionada."
+
+                message:
+                    "Nenhuma imagem foi selecionada."
             };
         }
 
+
         if (
             !file.type ||
-            !file.type.startsWith("image/")
+            !file.type.startsWith(
+                "image/"
+            )
         ) {
             return {
                 valid: false,
-                message: "Escolha uma imagem válida."
+
+                message:
+                    "Escolha uma imagem válida."
             };
         }
+
 
         if (
             file.size >
@@ -578,10 +621,12 @@ document.addEventListener("DOMContentLoaded", () => {
         ) {
             return {
                 valid: false,
+
                 message:
                     "A imagem precisa ter no máximo 5 MB."
             };
         }
+
 
         return {
             valid: true
@@ -589,7 +634,9 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
 
-    function getAvatarExtension(file) {
+    function getAvatarExtension(
+        file
+    ) {
         const mimeMap = {
             "image/jpeg": "jpg",
             "image/jpg": "jpg",
@@ -599,9 +646,15 @@ document.addEventListener("DOMContentLoaded", () => {
             "image/avif": "avif"
         };
 
-        if (mimeMap[file.type]) {
-            return mimeMap[file.type];
+
+        if (
+            mimeMap[file.type]
+        ) {
+            return mimeMap[
+                file.type
+            ];
         }
+
 
         const extension =
             file.name
@@ -613,29 +666,43 @@ document.addEventListener("DOMContentLoaded", () => {
                     ""
                 );
 
-        return extension || "jpg";
+
+        return extension ||
+            "jpg";
     }
 
 
-    async function uploadAvatar(file) {
+    async function uploadAvatar(
+        file
+    ) {
         if (!state.character) {
             return;
         }
 
-        if (state.avatarUploading) {
+        if (
+            state.avatarUploading
+        ) {
             return;
         }
+
 
         const validation =
             validateAvatar(file);
 
+
         if (!validation.valid) {
-            alert(validation.message);
+            window.alert(
+                validation.message
+            );
+
             return;
         }
 
-        if (!state.session?.user?.id) {
-            alert(
+
+        if (
+            !state.session?.user?.id
+        ) {
+            window.alert(
                 "Sua sessão expirou. Entre novamente."
             );
 
@@ -643,7 +710,9 @@ document.addEventListener("DOMContentLoaded", () => {
         }
 
 
-        state.avatarUploading = true;
+        state.avatarUploading =
+            true;
+
 
         setSaveState(
             "saving",
@@ -655,38 +724,44 @@ document.addEventListener("DOMContentLoaded", () => {
             const userId =
                 state.session.user.id;
 
-            const characterId =
+            const id =
                 state.character.id;
 
             const extension =
-                getAvatarExtension(file);
+                getAvatarExtension(
+                    file
+                );
+
 
             /*
-             * O arquivo usa o ID da ficha.
-             * Assim o mesmo personagem sempre possui
-             * um único avatar.
+             * Cada personagem possui
+             * seu próprio arquivo.
              */
             const filePath =
-                `${userId}/${characterId}.${extension}`;
+                `${userId}/${id}.${extension}`;
 
-
-            /* =============================================
-               UPLOAD
-            ============================================= */
 
             const {
-                error: uploadError
-            } = await supabase.storage
-                .from(CONFIG.avatarBucket)
-                .upload(
-                    filePath,
-                    file,
-                    {
-                        upsert: true,
-                        contentType: file.type,
-                        cacheControl: "3600"
-                    }
-                );
+                error:
+                    uploadError
+            } =
+                await supabase.storage
+                    .from(
+                        CONFIG.avatarBucket
+                    )
+                    .upload(
+                        filePath,
+                        file,
+                        {
+                            upsert: true,
+
+                            contentType:
+                                file.type,
+
+                            cacheControl:
+                                "3600"
+                        }
+                    );
 
 
             if (uploadError) {
@@ -699,12 +774,16 @@ document.addEventListener("DOMContentLoaded", () => {
             ============================================= */
 
             const {
-                data: publicData
-            } = supabase.storage
-                .from(CONFIG.avatarBucket)
-                .getPublicUrl(
-                    filePath
-                );
+                data:
+                    publicData
+            } =
+                supabase.storage
+                    .from(
+                        CONFIG.avatarBucket
+                    )
+                    .getPublicUrl(
+                        filePath
+                    );
 
 
             const avatarUrl =
@@ -719,29 +798,36 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
             /* =============================================
-               SALVAR NA TABELA
+               ATUALIZAR BANCO
             ============================================= */
 
             const {
-                data: updatedCharacter,
-                error: updateError
-            } = await supabase
-                .from("characters")
-                .update({
-                    avatar_url: avatarUrl
-                })
-                .eq(
-                    "id",
-                    characterId
-                )
-                .eq(
-                    "user_id",
-                    userId
-                )
-                .select(
-                    "id, avatar_url, updated_at"
-                )
-                .single();
+                data:
+                    updatedCharacter,
+
+                error:
+                    updateError
+            } =
+                await supabase
+                    .from(
+                        "characters"
+                    )
+                    .update({
+                        avatar_url:
+                            avatarUrl
+                    })
+                    .eq(
+                        "id",
+                        id
+                    )
+                    .eq(
+                        "user_id",
+                        userId
+                    )
+                    .select(
+                        "id, avatar_url, updated_at"
+                    )
+                    .single();
 
 
             if (updateError) {
@@ -750,26 +836,30 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
             /* =============================================
-               ATUALIZAR ESTADO LOCAL
+               ATUALIZAR ESTADO
             ============================================= */
 
             state.character = {
                 ...state.character,
 
                 avatar_url:
-                    updatedCharacter?.avatar_url ||
+                    updatedCharacter
+                        ?.avatar_url ||
                     avatarUrl,
 
                 updated_at:
-                    updatedCharacter?.updated_at ||
+                    updatedCharacter
+                        ?.updated_at ||
                     state.character.updated_at
             };
 
 
             renderAvatar(
                 state.character.avatar_url,
+
                 state.character.name
             );
+
 
             updateUpdatedLabel();
 
@@ -782,16 +872,18 @@ document.addEventListener("DOMContentLoaded", () => {
 
         } catch (error) {
             console.error(
-                "[Aerion] Erro ao enviar avatar:",
+                "[Aeriom] Erro ao enviar avatar:",
                 error
             );
+
 
             setSaveState(
                 "error",
                 "Erro ao enviar avatar"
             );
 
-            alert(
+
+            window.alert(
                 "Não foi possível enviar o avatar. Verifique o armazenamento de imagens e tente novamente."
             );
 
@@ -803,17 +895,93 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
 
+    function setupAvatarUpload() {
+        const {
+            input,
+            button
+        } =
+            getAvatarElements();
+
+
+        if (!input) {
+            return;
+        }
+
+
+        if (
+            input.dataset
+                .aerionAvatarBound ===
+            "true"
+        ) {
+            return;
+        }
+
+
+        input.dataset
+            .aerionAvatarBound =
+            "true";
+
+
+        if (button) {
+            button.addEventListener(
+                "click",
+                (event) => {
+                    event.preventDefault();
+
+
+                    if (
+                        state.avatarUploading
+                    ) {
+                        return;
+                    }
+
+
+                    input.click();
+                }
+            );
+        }
+
+
+        input.addEventListener(
+            "change",
+            async () => {
+                const file =
+                    input.files?.[0];
+
+
+                if (!file) {
+                    return;
+                }
+
+
+                try {
+                    await uploadAvatar(
+                        file
+                    );
+
+                } finally {
+                    input.value = "";
+                }
+            }
+        );
+    }
+
+
     /* =====================================================
-       RENDERIZAÇÃO DOS ATRIBUTOS
+       ATRIBUTOS
     ===================================================== */
 
-    function renderAttributes(attributes) {
+    function renderAttributes(
+        attributes
+    ) {
         const grid =
             elements.attributesGrid;
+
 
         if (!grid) {
             return;
         }
+
 
         grid.innerHTML = "";
 
@@ -821,7 +989,9 @@ document.addEventListener("DOMContentLoaded", () => {
         CONFIG.attributeNames.forEach(
             (name) => {
                 const value =
-                    attributes?.[name] ?? "";
+                    attributes?.[name] ??
+                    "";
+
 
                 const field =
                     document.createElement(
@@ -847,6 +1017,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     );
 
                 input.type = "text";
+
                 input.maxLength = 4;
 
                 input.value =
@@ -861,10 +1032,18 @@ document.addEventListener("DOMContentLoaded", () => {
                 );
 
 
-                field.appendChild(label);
-                field.appendChild(input);
+                field.appendChild(
+                    label
+                );
 
-                grid.appendChild(field);
+                field.appendChild(
+                    input
+                );
+
+
+                grid.appendChild(
+                    field
+                );
             }
         );
     }
@@ -874,16 +1053,20 @@ document.addEventListener("DOMContentLoaded", () => {
        TÉCNICAS
     ===================================================== */
 
-    function renderTechniques(techniques) {
+    function renderTechniques(
+        techniques
+    ) {
         const list =
             elements.techniquesList;
 
         const empty =
             elements.noTechniques;
 
+
         if (!list) {
             return;
         }
+
 
         list.innerHTML = "";
 
@@ -894,7 +1077,9 @@ document.addEventListener("DOMContentLoaded", () => {
             );
 
 
-        if (normalized.length === 0) {
+        if (
+            normalized.length === 0
+        ) {
             if (empty) {
                 empty.hidden = false;
             }
@@ -909,8 +1094,11 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
         normalized.forEach(
-            (technique, index) => {
-                const safeTechnique =
+            (
+                technique,
+                index
+            ) => {
+                const data =
                     normalizeObject(
                         technique
                     );
@@ -950,7 +1138,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
                 level.textContent =
                     `Nível ${
-                        safeTechnique.level ??
+                        data.level ??
                         1
                     }`;
 
@@ -961,12 +1149,19 @@ document.addEventListener("DOMContentLoaded", () => {
                     );
 
                 title.textContent =
-                    safeTechnique.name ||
-                    `Técnica ${index + 1}`;
+                    data.name ||
+                    `Técnica ${
+                        index + 1
+                    }`;
 
 
-                titleBox.appendChild(level);
-                titleBox.appendChild(title);
+                titleBox.appendChild(
+                    level
+                );
+
+                titleBox.appendChild(
+                    title
+                );
 
 
                 const type =
@@ -978,13 +1173,18 @@ document.addEventListener("DOMContentLoaded", () => {
                     "technique-type";
 
                 type.textContent =
-                    safeTechnique.type ||
+                    data.type ||
                     state.character?.power ||
                     "Técnica";
 
 
-                head.appendChild(titleBox);
-                head.appendChild(type);
+                head.appendChild(
+                    titleBox
+                );
+
+                head.appendChild(
+                    type
+                );
 
 
                 const grid =
@@ -1000,7 +1200,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     createTechniqueInput(
                         "Nome",
                         "name",
-                        safeTechnique.name,
+                        data.name,
                         index
                     )
                 );
@@ -1010,7 +1210,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     createTechniqueInput(
                         "Alcance",
                         "range",
-                        safeTechnique.range,
+                        data.range,
                         index
                     )
                 );
@@ -1020,7 +1220,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     createTechniqueInput(
                         "Custo de Mana",
                         "manaCost",
-                        safeTechnique.manaCost,
+                        data.manaCost,
                         index
                     )
                 );
@@ -1030,7 +1230,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     createTechniqueInput(
                         "Teste",
                         "test",
-                        safeTechnique.test,
+                        data.test,
                         index
                     )
                 );
@@ -1040,10 +1240,9 @@ document.addEventListener("DOMContentLoaded", () => {
                     createTechniqueTextarea(
                         "Efeito",
                         "effect",
-                        safeTechnique.effect,
+                        data.effect,
                         index,
-                        1000,
-                        true
+                        1000
                     )
                 );
 
@@ -1052,10 +1251,9 @@ document.addEventListener("DOMContentLoaded", () => {
                     createTechniqueTextarea(
                         "Descrição",
                         "description",
-                        safeTechnique.description,
+                        data.description,
                         index,
-                        1500,
-                        true
+                        1500
                     )
                 );
 
@@ -1064,18 +1262,25 @@ document.addEventListener("DOMContentLoaded", () => {
                     createTechniqueTextarea(
                         "Limitação",
                         "limitation",
-                        safeTechnique.limitation,
+                        data.limitation,
                         index,
-                        500,
-                        true
+                        500
                     )
                 );
 
 
-                card.appendChild(head);
-                card.appendChild(grid);
+                card.appendChild(
+                    head
+                );
 
-                list.appendChild(card);
+                card.appendChild(
+                    grid
+                );
+
+
+                list.appendChild(
+                    card
+                );
             }
         );
     }
@@ -1111,6 +1316,8 @@ document.addEventListener("DOMContentLoaded", () => {
             );
 
         input.type = "text";
+
+
         input.maxLength =
             key === "name"
                 ? 100
@@ -1120,8 +1327,10 @@ document.addEventListener("DOMContentLoaded", () => {
                         ? 50
                         : 100;
 
+
         input.value =
             value ?? "";
+
 
         input.dataset.techIndex =
             index;
@@ -1130,8 +1339,14 @@ document.addEventListener("DOMContentLoaded", () => {
             key;
 
 
-        label.appendChild(span);
-        label.appendChild(input);
+        label.appendChild(
+            span
+        );
+
+        label.appendChild(
+            input
+        );
+
 
         return label;
     }
@@ -1142,8 +1357,7 @@ document.addEventListener("DOMContentLoaded", () => {
         key,
         value,
         index,
-        maxLength,
-        wide = false
+        maxLength
     ) {
         const label =
             document.createElement(
@@ -1151,14 +1365,7 @@ document.addEventListener("DOMContentLoaded", () => {
             );
 
         label.className =
-            "sheet-field";
-
-
-        if (wide) {
-            label.classList.add(
-                "technique-wide"
-            );
-        }
+            "sheet-field technique-wide";
 
 
         const span =
@@ -1181,6 +1388,7 @@ document.addEventListener("DOMContentLoaded", () => {
         textarea.value =
             value ?? "";
 
+
         textarea.dataset.techIndex =
             index;
 
@@ -1188,18 +1396,58 @@ document.addEventListener("DOMContentLoaded", () => {
             key;
 
 
-        label.appendChild(span);
-        label.appendChild(textarea);
+        label.appendChild(
+            span
+        );
+
+        label.appendChild(
+            textarea
+        );
+
 
         return label;
     }
 
 
     /* =====================================================
-       RENDERIZAÇÃO COMPLETA
+       MANA
     ===================================================== */
 
-    function renderCharacter(data) {
+    function renderMana(
+        mana
+    ) {
+        const data =
+            normalizeObject(
+                mana
+            );
+
+
+        setValue(
+            "manaColor",
+            data.color
+        );
+
+
+        setValue(
+            "manaControl",
+            data.control
+        );
+
+
+        setValue(
+            "manaReserve",
+            data.reserve
+        );
+    }
+
+
+    /* =====================================================
+       RENDERIZAR PERSONAGEM
+    ===================================================== */
+
+    function renderCharacter(
+        data
+    ) {
         if (!data) {
             return;
         }
@@ -1238,44 +1486,51 @@ document.addEventListener("DOMContentLoaded", () => {
             state.character;
 
 
-        /* =============================================
+        /* =================================================
            IDENTIDADE
-        ============================================= */
+        ================================================= */
 
         setValue(
             "characterName",
             character.name
         );
 
+
         setValue(
             "characterAge",
             character.age
         );
+
 
         setValue(
             "characterRace",
             character.race
         );
 
+
         setValue(
             "characterClass",
             character.class
         );
+
+
+        setValue(
+            "characterPower",
+            character.power
+        );
+
 
         setValue(
             "racialAbility",
             character.racial_ability
         );
 
+
         setValue(
             "classBonus",
             character.class_bonus
         );
 
-        setValue(
-            "characterPower",
-            character.power
-        );
 
         setValue(
             "characterOrigin",
@@ -1283,34 +1538,39 @@ document.addEventListener("DOMContentLoaded", () => {
         );
 
 
-        /* =============================================
-           PERSONALIDADE / HISTÓRIA
-        ============================================= */
+        /* =================================================
+           DESCRIÇÃO / HISTÓRIA
+        ================================================= */
 
         setValue(
             "characterAppearance",
             character.appearance
         );
 
+
         setValue(
             "characterPersonality",
             character.personality
         );
+
 
         setValue(
             "characterObjective",
             character.objective
         );
 
+
         setValue(
             "characterFear",
             character.fear
         );
 
+
         setValue(
             "characterBond",
             character.bond
         );
+
 
         setValue(
             "characterHistory",
@@ -1318,124 +1578,96 @@ document.addEventListener("DOMContentLoaded", () => {
         );
 
 
-        /* =============================================
+        /* =================================================
            MANA
-        ============================================= */
+        ================================================= */
 
-        setValue(
-            "manaColor",
-            character.mana?.color
-        );
-
-        setValue(
-            "manaControl",
-            character.mana?.control
-        );
-
-        setValue(
-            "manaReserve",
-            character.mana?.reserve
+        renderMana(
+            character.mana
         );
 
 
-        /* =============================================
+        /* =================================================
            AVATAR
-        ============================================= */
+        ================================================= */
 
         renderAvatar(
             character.avatar_url,
             character.name
         );
 
-// =====================================================
-// RESTAURAR IDENTIDADE DO PERSONAGEM
-// =====================================================
 
-const hero = document.querySelector(".sheet-hero");
-const identity = document.querySelector(".sheet-identity");
+        /* =================================================
+           IDENTIDADE VISUAL
+        ================================================= */
 
-if (hero) {
-    hero.hidden = false;
-    hero.style.display = "";
-}
+        const hero =
+            document.querySelector(
+                ".sheet-hero"
+            );
 
-if (identity) {
-    identity.hidden = false;
-    identity.style.display = "block";
-    identity.style.visibility = "visible";
-    identity.style.opacity = "1";
-}
 
-// Nome
-setValue(
-    "characterName",
-    character.name || ""
-);
+        const identity =
+            document.querySelector(
+                ".sheet-identity"
+            );
 
-// Tags
-const raceTag = $("raceTag");
-const classTag = $("classTag");
-const powerTag = $("powerTag");
 
-if (raceTag) {
-    raceTag.hidden = false;
-    raceTag.textContent =
-        character.race || "Raça não definida";
-}
+        if (hero) {
+            hero.hidden = false;
+            hero.style.display = "";
+        }
 
-if (classTag) {
-    classTag.hidden = false;
-    classTag.textContent =
-        character.class || "Classe não definida";
-}
 
-if (powerTag) {
-    powerTag.hidden = false;
-    powerTag.textContent =
-        character.power || "Poder não definido";
-}
+        if (identity) {
+            identity.hidden = false;
+            identity.style.display =
+                "block";
+            identity.style.visibility =
+                "visible";
+            identity.style.opacity =
+                "1";
+        }
 
-// Idade
-const ageInput = $("characterAge");
 
-if (ageInput) {
-    ageInput.hidden = false;
-    ageInput.value =
-        character.age ?? "";
-}
+        /* =================================================
+           TAGS
+        ================================================= */
 
-// Data
-if (updatedLabel) {
-    updatedLabel.hidden = false;
-    updatedLabel.textContent =
-        formatUpdatedAt(character.updated_at);
-}
-        /* =============================================
+        updateTags();
+
+
+        /* =================================================
            ATRIBUTOS
-        ============================================= */
+        ================================================= */
 
         renderAttributes(
             character.attributes
         );
 
 
-        /* =============================================
+        /* =================================================
            TÉCNICAS
-        ============================================= */
+        ================================================= */
 
         renderTechniques(
             character.techniques
         );
 
 
-        /* =============================================
-           INTERFACE
-        ============================================= */
+        /* =================================================
+           DATA
+        ================================================= */
 
-        updateTags();
         updateUpdatedLabel();
 
+
+        /* =================================================
+           CONTEÚDO
+        ================================================= */
+
         showContent();
+
 
         setSaveState(
             "saved",
@@ -1451,6 +1683,7 @@ if (updatedLabel) {
     function collectAttributes() {
         const attributes = {};
 
+
         $$(
             "[data-attribute]"
         ).forEach(
@@ -1458,14 +1691,17 @@ if (updatedLabel) {
                 const name =
                     input.dataset.attribute;
 
+
                 if (!name) {
                     return;
                 }
+
 
                 attributes[name] =
                     input.value.trim();
             }
         );
+
 
         return attributes;
     }
@@ -1478,16 +1714,20 @@ if (updatedLabel) {
     function collectMana() {
         return {
             color:
-                $("manaColor")?.value ||
+                $("manaColor")
+                    ?.value
+                    ?.trim() ||
                 "",
 
             control:
-                $("manaControl")?.value
+                $("manaControl")
+                    ?.value
                     ?.trim() ||
                 "",
 
             reserve:
-                $("manaReserve")?.value
+                $("manaReserve")
+                    ?.value
                     ?.trim() ||
                 ""
         };
@@ -1524,19 +1764,24 @@ if (updatedLabel) {
                         input.dataset.techIndex
                     );
 
+
                 const key =
                     input.dataset.techKey;
 
 
                 if (
-                    !Number.isInteger(index) ||
+                    !Number.isInteger(
+                        index
+                    ) ||
                     !key
                 ) {
                     return;
                 }
 
 
-                if (!techniques[index]) {
+                if (
+                    !techniques[index]
+                ) {
                     techniques[index] = {};
                 }
 
@@ -1557,7 +1802,8 @@ if (updatedLabel) {
 
     function collectAge() {
         return safeNumber(
-            $("characterAge")?.value
+            $("characterAge")
+                ?.value
         );
     }
 
@@ -1671,17 +1917,24 @@ if (updatedLabel) {
 
 
         /*
-         * Se já existe um salvamento em andamento,
-         * apenas marca que outro será necessário.
+         * Se existe outro salvamento em andamento,
+         * não inicia outro ao mesmo tempo.
          */
-        if (state.saveInProgress) {
-            state.savePending = true;
+        if (
+            state.saveInProgress
+        ) {
+            state.savePending =
+                true;
+
             return;
         }
 
 
-        state.saveInProgress = true;
-        state.savePending = false;
+        state.saveInProgress =
+            true;
+
+        state.savePending =
+            false;
 
 
         setSaveState(
@@ -1698,21 +1951,26 @@ if (updatedLabel) {
             const {
                 data,
                 error
-            } = await supabase
-                .from("characters")
-                .update(payload)
-                .eq(
-                    "id",
-                    state.character.id
-                )
-                .eq(
-                    "user_id",
-                    state.session.user.id
-                )
-                .select(
-                    "id, updated_at, avatar_url"
-                )
-                .single();
+            } =
+                await supabase
+                    .from(
+                        "characters"
+                    )
+                    .update(
+                        payload
+                    )
+                    .eq(
+                        "id",
+                        state.character.id
+                    )
+                    .eq(
+                        "user_id",
+                        state.session.user.id
+                    )
+                    .select(
+                        "id, updated_at, avatar_url"
+                    )
+                    .single();
 
 
             if (error) {
@@ -1727,15 +1985,18 @@ if (updatedLabel) {
 
                 updated_at:
                     data?.updated_at ||
-                    new Date().toISOString(),
+                    new Date()
+                        .toISOString(),
 
                 avatar_url:
                     data?.avatar_url ??
-                    state.character.avatar_url
+                    state.character
+                        .avatar_url
             };
 
 
             updateTags();
+
             updateUpdatedLabel();
 
 
@@ -1747,7 +2008,7 @@ if (updatedLabel) {
 
         } catch (error) {
             console.error(
-                "[Aerion] Erro ao salvar ficha:",
+                "[Aeriom] Erro ao salvar ficha:",
                 error
             );
 
@@ -1764,12 +2025,14 @@ if (updatedLabel) {
 
 
             /*
-             * Se o usuário alterou algum campo
-             * enquanto o salvamento estava acontecendo,
-             * faz outro salvamento.
+             * Se houve alteração durante o
+             * salvamento, agenda outro.
              */
-            if (state.savePending) {
-                state.savePending = false;
+            if (
+                state.savePending
+            ) {
+                state.savePending =
+                    false;
 
                 scheduleSave();
             }
@@ -1820,7 +2083,8 @@ if (updatedLabel) {
 
         if (
             elements.content.dataset
-                .aerionAutosaveBound === "true"
+                .aerionAutosaveBound ===
+            "true"
         ) {
             return;
         }
@@ -1837,6 +2101,7 @@ if (updatedLabel) {
                 const target =
                     event.target;
 
+
                 if (
                     !target.matches(
                         "input, textarea, select"
@@ -1844,6 +2109,7 @@ if (updatedLabel) {
                 ) {
                     return;
                 }
+
 
                 scheduleSave();
             }
@@ -1856,6 +2122,7 @@ if (updatedLabel) {
                 const target =
                     event.target;
 
+
                 if (
                     !target.matches(
                         "input, textarea, select"
@@ -1863,6 +2130,7 @@ if (updatedLabel) {
                 ) {
                     return;
                 }
+
 
                 scheduleSave();
             }
@@ -1891,6 +2159,7 @@ if (updatedLabel) {
             "open"
         );
 
+
         menu.setAttribute(
             "aria-hidden",
             "true"
@@ -1901,6 +2170,7 @@ if (updatedLabel) {
             button.classList.remove(
                 "open"
             );
+
 
             button.setAttribute(
                 "aria-expanded",
@@ -1927,6 +2197,7 @@ if (updatedLabel) {
             "open"
         );
 
+
         menu.setAttribute(
             "aria-hidden",
             "false"
@@ -1938,6 +2209,7 @@ if (updatedLabel) {
                 "open"
             );
 
+
             button.setAttribute(
                 "aria-expanded",
                 "true"
@@ -1948,18 +2220,21 @@ if (updatedLabel) {
 
     function toggleQuickMenu() {
         if (
-            elements.quickMenu?.classList.contains(
-                "open"
-            )
+            elements.quickMenu
+                ?.classList
+                .contains("open")
         ) {
             closeQuickMenu();
+
         } else {
             openQuickMenu();
         }
     }
 
 
-    function openSection(sectionName) {
+    function openSection(
+        sectionName
+    ) {
         if (!sectionName) {
             return;
         }
@@ -1969,18 +2244,23 @@ if (updatedLabel) {
             $$(".sheet-section");
 
 
-        let target = null;
+        let target =
+            null;
 
 
         sections.some(
             (section) => {
                 if (
-                    section.dataset.section ===
+                    section.dataset
+                        .section ===
                     sectionName
                 ) {
-                    target = section;
+                    target =
+                        section;
+
                     return true;
                 }
+
 
                 return false;
             }
@@ -1989,7 +2269,7 @@ if (updatedLabel) {
 
         if (!target) {
             console.warn(
-                "[Aerion] Seção não encontrada:",
+                "[Aeriom] Seção não encontrada:",
                 sectionName
             );
 
@@ -2014,8 +2294,11 @@ if (updatedLabel) {
         requestAnimationFrame(
             () => {
                 target.scrollIntoView({
-                    behavior: "smooth",
-                    block: "start"
+                    behavior:
+                        "smooth",
+
+                    block:
+                        "start"
                 });
             }
         );
@@ -2034,6 +2317,12 @@ if (updatedLabel) {
 
 
         if (button) {
+            button.setAttribute(
+                "aria-expanded",
+                "false"
+            );
+
+
             button.addEventListener(
                 "click",
                 (event) => {
@@ -2046,13 +2335,24 @@ if (updatedLabel) {
         }
 
 
+        if (menu) {
+            menu.setAttribute(
+                "aria-hidden",
+                "true"
+            );
+        }
+
+
         $$(".quick-item").forEach(
             (item) => {
                 item.addEventListener(
                     "click",
-                    () => {
+                    (event) => {
+                        event.preventDefault();
+
                         openSection(
-                            item.dataset.target
+                            item.dataset
+                                .target
                         );
                     }
                 );
@@ -2092,7 +2392,8 @@ if (updatedLabel) {
             "keydown",
             (event) => {
                 if (
-                    event.key === "Escape"
+                    event.key ===
+                    "Escape"
                 ) {
                     closeQuickMenu();
                 }
@@ -2102,36 +2403,53 @@ if (updatedLabel) {
 
 
     /* =====================================================
-       BOTÕES DE VOLTAR
+       NAVEGAÇÃO
     ===================================================== */
 
+    function goBackToCharacters() {
+        /*
+         * Cancela um possível timer antes de sair.
+         */
+        clearTimeout(
+            state.saveTimer
+        );
+
+
+        window.location.href =
+            "fichas.html";
+    }
+
+
     function setupBackButtons() {
-        const goBack =
-            () => {
-                window.location.href =
-                    "fichas.html";
-            };
-
-
         if (elements.backButton) {
             elements.backButton.addEventListener(
                 "click",
-                goBack
+                (event) => {
+                    event.preventDefault();
+
+                    goBackToCharacters();
+                }
             );
         }
 
 
-        if (elements.backErrorButton) {
+        if (
+            elements.backErrorButton
+        ) {
             elements.backErrorButton.addEventListener(
                 "click",
-                goBack
+                (event) => {
+                    event.preventDefault();
+
+                    goBackToCharacters();
+                }
             );
         }
     }
 
 
     /* =====================================================
-       VERIFICAR SESSÃO
+       SESSÃO
     ===================================================== */
 
     async function getSession() {
@@ -2139,13 +2457,14 @@ if (updatedLabel) {
             const {
                 data,
                 error
-            } = await supabase.auth
-                .getSession();
+            } =
+                await supabase.auth
+                    .getSession();
 
 
             if (error) {
                 console.error(
-                    "[Aerion] Erro ao obter sessão:",
+                    "[Aeriom] Erro ao obter sessão:",
                     error
                 );
 
@@ -2161,7 +2480,7 @@ if (updatedLabel) {
 
         } catch (error) {
             console.error(
-                "[Aerion] Erro inesperado ao obter sessão:",
+                "[Aeriom] Erro inesperado ao obter sessão:",
                 error
             );
 
@@ -2204,52 +2523,57 @@ if (updatedLabel) {
             const {
                 data,
                 error
-            } = await supabase
-                .from("characters")
-                .select(`
-                    id,
-                    user_id,
-                    name,
-                    age,
-                    appearance,
-                    personality,
-                    origin,
-                    objective,
-                    fear,
-                    bond,
-                    history,
-                    race,
-                    racial_ability,
-                    class,
-                    class_bonus,
-                    attributes,
-                    power,
-                    mana,
-                    techniques,
-                    avatar_url,
-                    created_at,
-                    updated_at
-                `)
-                .eq(
-                    "id",
-                    characterId
-                )
-                .eq(
-                    "user_id",
-                    session.user.id
-                )
-                .maybeSingle();
+            } =
+                await supabase
+                    .from(
+                        "characters"
+                    )
+                    .select(`
+                        id,
+                        user_id,
+                        name,
+                        age,
+                        appearance,
+                        personality,
+                        origin,
+                        objective,
+                        fear,
+                        bond,
+                        history,
+                        race,
+                        racial_ability,
+                        class,
+                        class_bonus,
+                        attributes,
+                        power,
+                        mana,
+                        techniques,
+                        avatar_url,
+                        created_at,
+                        updated_at
+                    `)
+                    .eq(
+                        "id",
+                        characterId
+                    )
+                    .eq(
+                        "user_id",
+                        session.user.id
+                    )
+                    .maybeSingle();
 
 
             if (error) {
                 console.error(
-                    "[Aerion] Erro ao carregar ficha:",
+                    "[Aeriom] Erro ao carregar ficha:",
                     error
                 );
+
 
                 showError(
                     "Não foi possível carregar a ficha agora. Verifique sua conexão e tente novamente."
                 );
+
 
                 return false;
             }
@@ -2257,32 +2581,39 @@ if (updatedLabel) {
 
             if (!data) {
                 console.warn(
-                    "[Aerion] Ficha não encontrada:",
+                    "[Aeriom] Ficha não encontrada:",
                     characterId
                 );
+
 
                 showError(
                     "A ficha não foi encontrada ou você não tem permissão para acessá-la."
                 );
 
+
                 return false;
             }
 
 
-            renderCharacter(data);
+            renderCharacter(
+                data
+            );
+
 
             return true;
 
 
         } catch (error) {
             console.error(
-                "[Aerion] Erro inesperado ao carregar ficha:",
+                "[Aeriom] Erro inesperado ao carregar ficha:",
                 error
             );
+
 
             showError(
                 "Ocorreu um erro inesperado ao carregar a ficha. Tente novamente."
             );
+
 
             return false;
         }
@@ -2294,27 +2625,35 @@ if (updatedLabel) {
     ===================================================== */
 
     async function init() {
-        if (state.initialized) {
+        if (
+            state.initialized
+        ) {
             return;
         }
 
-        state.initialized = true;
+
+        state.initialized =
+            true;
 
 
         showLoading();
 
 
         /*
-         * Eventos que não dependem da ficha.
+         * Eventos independentes
+         * do carregamento da ficha.
          */
         setupQuickMenu();
+
         setupBackButtons();
+
         setupAvatarUpload();
+
         bindAutoSave();
 
 
         /*
-         * Verifica se existe uma ficha selecionada.
+         * Verifica ID.
          */
         if (!characterId) {
             showError(
@@ -2326,7 +2665,7 @@ if (updatedLabel) {
 
 
         /*
-         * Carrega sessão + personagem.
+         * Carrega sessão + ficha.
          */
         await loadCharacter();
     }
@@ -2336,6 +2675,6 @@ if (updatedLabel) {
        INICIAR
     ===================================================== */
 
-    init();
+    await init();
 
 });
