@@ -1,23 +1,39 @@
-
-
 document.addEventListener("DOMContentLoaded", async () => {
     "use strict";
+
+    // =====================================================
+    // PROTEÇÃO CONTRA EXECUÇÃO DUPLICADA
+    // =====================================================
+
+    if (window.__AERION_FICHA_VIEW_INITIALIZED__) {
+        console.warn("ficha-view.js já foi inicializado.");
+        return;
+    }
+
+    window.__AERION_FICHA_VIEW_INITIALIZED__ = true;
+
 
     // =====================================================
     // CONFIGURAÇÃO
     // =====================================================
 
-    const CHARACTER_ID_KEY = "aerion_character_id";
+    const AVATAR_BUCKET = "avatars";
+    const AVATAR_MAX_SIZE = 5 * 1024 * 1024;
 
-    const supabase = window.supabaseClient;
+    const ATTRIBUTE_NAMES = [
+        "Presença",
+        "Precisão",
+        "Intelecto",
+        "Controle",
+        "Percepção",
+        "Vigor",
+        "Agilidade",
+        "Força"
+    ];
 
-    if (!supabase) {
-        console.error("Supabase não encontrado.");
-        return;
-    }
 
     // =====================================================
-    // ELEMENTOS
+    // HELPERS
     // =====================================================
 
     const $ = (id) => document.getElementById(id);
@@ -29,65 +45,109 @@ document.addEventListener("DOMContentLoaded", async () => {
     const saveIndicator = $("saveIndicator");
     const updatedLabel = $("updatedLabel");
 
-    const quickMenu = $("quickMenu");
-    const quickActionButton = $("quickActionButton");
+    const characterId =
+        localStorage.getItem("aerion_character_id");
 
-    const backButton = $("backButton");
-    const backErrorButton = $("backErrorButton");
 
     // =====================================================
-    // ID DA FICHA
+    // SUPABASE
     // =====================================================
 
-    const characterId = localStorage.getItem(CHARACTER_ID_KEY);
+    const supabase =
+        window.supabaseClient;
 
-    if (!characterId) {
-        window.location.replace("fichas.html");
+
+    if (!supabase) {
+        console.error(
+            "Supabase não encontrado em window.supabaseClient."
+        );
+
+        showError(
+            "O sistema de banco de dados não foi carregado. Recarregue a página."
+        );
+
         return;
     }
 
-    // =====================================================
-    // SESSÃO
-    // =====================================================
-
-    let session;
-
-    try {
-        const {
-            data,
-            error
-        } = await supabase.auth.getSession();
-
-        if (error) {
-            throw error;
-        }
-
-        session = data?.session;
-
-    } catch (error) {
-        console.error("Erro ao verificar sessão:", error);
-
-        window.location.replace("index.html");
-        return;
-    }
-
-    if (!session?.user?.id) {
-        window.location.replace("index.html");
-        return;
-    }
 
     // =====================================================
     // ESTADO
     // =====================================================
 
+    let session = null;
     let character = null;
 
     let saveTimer = null;
     let saveInProgress = false;
-    let saveQueued = false;
+    let pendingSave = false;
+
+    let avatarUploadInProgress = false;
+
 
     // =====================================================
-    // UTILITÁRIOS
+    // ESTADO VISUAL DA PÁGINA
+    // =====================================================
+
+    function showLoading() {
+        if (loading) {
+            loading.hidden = false;
+            loading.style.display = "";
+        }
+
+        if (errorBox) {
+            errorBox.hidden = true;
+            errorBox.style.display = "none";
+        }
+
+        if (content) {
+            content.hidden = true;
+            content.style.display = "none";
+        }
+    }
+
+
+    function showContent() {
+        if (loading) {
+            loading.hidden = true;
+            loading.style.display = "none";
+        }
+
+        if (errorBox) {
+            errorBox.hidden = true;
+            errorBox.style.display = "none";
+        }
+
+        if (content) {
+            content.hidden = false;
+            content.style.display = "";
+        }
+    }
+
+
+    function showError(message) {
+        if (loading) {
+            loading.hidden = true;
+            loading.style.display = "none";
+        }
+
+        if (content) {
+            content.hidden = true;
+            content.style.display = "none";
+        }
+
+        if (errorBox) {
+            errorBox.hidden = false;
+            errorBox.style.display = "";
+        }
+
+        if (errorText) {
+            errorText.textContent = message;
+        }
+    }
+
+
+    // =====================================================
+    // JSON
     // =====================================================
 
     function parseJson(value, fallback) {
@@ -105,11 +165,15 @@ document.addEventListener("DOMContentLoaded", async () => {
 
         try {
             return JSON.parse(value);
-        } catch (error) {
-            console.warn("Valor JSON inválido:", value);
+        } catch {
             return fallback;
         }
     }
+
+
+    // =====================================================
+    // ESCAPE HTML
+    // =====================================================
 
     function escapeHtml(value) {
         return String(value ?? "")
@@ -120,46 +184,21 @@ document.addEventListener("DOMContentLoaded", async () => {
             .replaceAll("'", "&#039;");
     }
 
-    function setText(id, value) {
-        const element = $(id);
-
-        if (element) {
-            element.textContent = value ?? "";
-        }
-    }
-
-    function setValue(id, value) {
-        const element = $(id);
-
-        if (!element) {
-            return;
-        }
-
-        element.value = value ?? "";
-    }
-
-    function getValue(id) {
-        const element = $(id);
-
-        if (!element) {
-            return "";
-        }
-
-        return element.value;
-    }
 
     // =====================================================
-    // STATUS DE SALVAMENTO
+    // SALVAMENTO
     // =====================================================
 
     function setSaveState(state, text) {
-        if (!saveIndicator) {
-            return;
-        }
+        if (!saveIndicator) return;
 
-        saveIndicator.className = `save-indicator ${state}`;
-        saveIndicator.textContent = text;
+        saveIndicator.className =
+            `save-indicator ${state}`;
+
+        saveIndicator.textContent =
+            text;
     }
+
 
     function formatUpdatedAt(value) {
         if (!value) {
@@ -183,66 +222,40 @@ document.addEventListener("DOMContentLoaded", async () => {
         )}`;
     }
 
+
     // =====================================================
-    // TAGS DO PERSONAGEM
+    // VALUE
     // =====================================================
 
-    function updateCharacterTags() {
-        if (!character) {
-            return;
-        }
+    function setValue(id, value) {
+        const element = $(id);
 
-        setText(
-            "raceTag",
-            character.race || "Raça não definida"
-        );
+        if (!element) return;
 
-        setText(
-            "classTag",
-            character.class || "Classe não definida"
-        );
-
-        setText(
-            "powerTag",
-            character.power || "Poder não definido"
-        );
-
-        setText(
-            "updatedLabel",
-            formatUpdatedAt(character.updated_at)
-        );
+        element.value = value ?? "";
     }
+
 
     // =====================================================
     // ATRIBUTOS
     // =====================================================
 
-    const ATTRIBUTE_NAMES = [
-        "Presença",
-        "Precisão",
-        "Intelecto",
-        "Controle",
-        "Percepção",
-        "Vigor",
-        "Agilidade",
-        "Força"
-    ];
-
     function renderAttributes(attributes) {
         const grid = $("attributesGrid");
 
-        if (!grid) {
-            return;
-        }
+        if (!grid) return;
 
         grid.innerHTML = "";
 
         ATTRIBUTE_NAMES.forEach((name) => {
-            const value = attributes?.[name] ?? "";
+            const value =
+                attributes?.[name] ?? "";
 
-            const field = document.createElement("label");
+            const field =
+                document.createElement("label");
 
-            field.className = "attribute-field";
+            field.className =
+                "attribute-field";
 
             field.innerHTML = `
                 <span>${escapeHtml(name)}</span>
@@ -260,6 +273,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         });
     }
 
+
     // =====================================================
     // TÉCNICAS
     // =====================================================
@@ -268,34 +282,37 @@ document.addEventListener("DOMContentLoaded", async () => {
         const list = $("techniquesList");
         const empty = $("noTechniques");
 
-        if (!list) {
-            return;
-        }
+        if (!list) return;
 
         list.innerHTML = "";
 
-        const safeTechniques =
-            Array.isArray(techniques)
-                ? techniques
-                : [];
+        if (
+            !Array.isArray(techniques) ||
+            techniques.length === 0
+        ) {
+            if (empty) {
+                empty.hidden = false;
+            }
 
-        if (empty) {
-            empty.hidden = safeTechniques.length > 0;
-        }
-
-        if (safeTechniques.length === 0) {
             return;
         }
 
-        safeTechniques.forEach((technique, index) => {
-            const card = document.createElement("article");
+        if (empty) {
+            empty.hidden = true;
+        }
 
-            card.className = "technique-card";
+        techniques.forEach((technique, index) => {
+            const card =
+                document.createElement("article");
+
+            card.className =
+                "technique-card";
 
             card.innerHTML = `
                 <div class="technique-head">
 
                     <div>
+
                         <span class="technique-level">
                             Nível ${escapeHtml(
                                 technique.level ?? 1
@@ -308,6 +325,7 @@ document.addEventListener("DOMContentLoaded", async () => {
                                 `Técnica ${index + 1}`
                             )}
                         </h3>
+
                     </div>
 
                     <span class="technique-type">
@@ -336,6 +354,7 @@ document.addEventListener("DOMContentLoaded", async () => {
                         >
                     </label>
 
+
                     <label class="sheet-field">
                         <span>Alcance</span>
 
@@ -349,6 +368,7 @@ document.addEventListener("DOMContentLoaded", async () => {
                             data-tech-key="range"
                         >
                     </label>
+
 
                     <label class="sheet-field">
                         <span>Custo de Mana</span>
@@ -364,6 +384,7 @@ document.addEventListener("DOMContentLoaded", async () => {
                         >
                     </label>
 
+
                     <label class="sheet-field">
                         <span>Teste</span>
 
@@ -378,6 +399,7 @@ document.addEventListener("DOMContentLoaded", async () => {
                         >
                     </label>
 
+
                     <label class="sheet-field technique-wide">
                         <span>Efeito</span>
 
@@ -390,6 +412,7 @@ document.addEventListener("DOMContentLoaded", async () => {
                         )}</textarea>
                     </label>
 
+
                     <label class="sheet-field technique-wide">
                         <span>Descrição</span>
 
@@ -401,6 +424,7 @@ document.addEventListener("DOMContentLoaded", async () => {
                             technique.description || ""
                         )}</textarea>
                     </label>
+
 
                     <label class="sheet-field technique-wide">
                         <span>Limitação</span>
@@ -421,32 +445,304 @@ document.addEventListener("DOMContentLoaded", async () => {
         });
     }
 
+
     // =====================================================
-    // RENDERIZAR FICHA
+    // AVATAR
+    // =====================================================
+
+    function findAvatarElements() {
+        return {
+            image:
+                $("characterAvatarImage") ||
+                $("avatarImage"),
+
+            fallback:
+                $("characterAvatarFallback") ||
+                $("avatarFallback"),
+
+            input:
+                $("avatarInput") ||
+                $("characterAvatarInput"),
+
+            button:
+                $("avatarUploadButton") ||
+                $("characterAvatarButton")
+        };
+    }
+
+
+    function renderAvatar(url) {
+        const {
+            image,
+            fallback
+        } = findAvatarElements();
+
+        if (!image) return;
+
+        if (url) {
+            image.src = url;
+            image.hidden = false;
+
+            image.onerror = () => {
+                image.hidden = true;
+
+                if (fallback) {
+                    fallback.hidden = false;
+                }
+            };
+
+            if (fallback) {
+                fallback.hidden = true;
+            }
+
+            return;
+        }
+
+        image.removeAttribute("src");
+        image.hidden = true;
+
+        if (fallback) {
+            fallback.hidden = false;
+        }
+    }
+
+
+    function setupAvatarUpload() {
+        const {
+            input,
+            button
+        } = findAvatarElements();
+
+        if (!input) return;
+
+        if (button) {
+            button.addEventListener(
+                "click",
+                () => {
+                    if (avatarUploadInProgress) {
+                        return;
+                    }
+
+                    input.click();
+                }
+            );
+        }
+
+        input.addEventListener(
+            "change",
+            async () => {
+                const file =
+                    input.files?.[0];
+
+                if (!file) {
+                    return;
+                }
+
+                await uploadAvatar(file);
+
+                input.value = "";
+            }
+        );
+    }
+
+
+    async function uploadAvatar(file) {
+        if (!character) {
+            return;
+        }
+
+        if (avatarUploadInProgress) {
+            return;
+        }
+
+        if (!file.type.startsWith("image/")) {
+            alert(
+                "Escolha uma imagem válida."
+            );
+
+            return;
+        }
+
+        if (file.size > AVATAR_MAX_SIZE) {
+            alert(
+                "A imagem precisa ter no máximo 5 MB."
+            );
+
+            return;
+        }
+
+        avatarUploadInProgress = true;
+
+        setSaveState(
+            "saving",
+            "Enviando avatar..."
+        );
+
+        try {
+            const extension =
+                file.name
+                    .split(".")
+                    .pop()
+                    .toLowerCase()
+                    .replace(/[^a-z0-9]/g, "");
+
+            const safeExtension =
+                extension || "jpg";
+
+            const filePath =
+                `${session.user.id}/${character.id}.${safeExtension}`;
+
+
+            // =============================================
+            // UPLOAD
+            // =============================================
+
+            const {
+                error: uploadError
+            } = await supabase.storage
+                .from(AVATAR_BUCKET)
+                .upload(
+                    filePath,
+                    file,
+                    {
+                        upsert: true,
+                        contentType: file.type,
+                        cacheControl: "3600"
+                    }
+                );
+
+
+            if (uploadError) {
+                throw uploadError;
+            }
+
+
+            // =============================================
+            // URL PÚBLICA
+            // =============================================
+
+            const {
+                data: publicData
+            } = supabase.storage
+                .from(AVATAR_BUCKET)
+                .getPublicUrl(filePath);
+
+
+            const avatarUrl =
+                publicData?.publicUrl;
+
+
+            if (!avatarUrl) {
+                throw new Error(
+                    "Não foi possível obter a URL do avatar."
+                );
+            }
+
+
+            // =============================================
+            // SALVAR URL NA FICHA
+            // =============================================
+
+            const {
+                error: updateError
+            } = await supabase
+                .from("characters")
+                .update({
+                    avatar_url: avatarUrl
+                })
+                .eq(
+                    "id",
+                    character.id
+                )
+                .eq(
+                    "user_id",
+                    session.user.id
+                );
+
+
+            if (updateError) {
+                throw updateError;
+            }
+
+
+            character.avatar_url =
+                avatarUrl;
+
+
+            renderAvatar(
+                `${avatarUrl}?v=${Date.now()}`
+            );
+
+
+            setSaveState(
+                "saved",
+                "Avatar salvo"
+            );
+
+
+        } catch (error) {
+            console.error(
+                "Erro ao enviar avatar:",
+                error
+            );
+
+            setSaveState(
+                "error",
+                "Erro ao enviar avatar"
+            );
+
+            alert(
+                "Não foi possível enviar o avatar. Verifique se o armazenamento de imagens está configurado."
+            );
+
+        } finally {
+            avatarUploadInProgress =
+                false;
+        }
+    }
+
+
+    // =====================================================
+    // RENDERIZAR PERSONAGEM
     // =====================================================
 
     function renderCharacter(data) {
         character = {
             ...data,
 
-            attributes: parseJson(
-                data.attributes,
-                {}
-            ),
+            attributes:
+                parseJson(
+                    data.attributes,
+                    {}
+                ),
 
-            mana: parseJson(
-                data.mana,
-                {}
-            ),
+            mana:
+                parseJson(
+                    data.mana,
+                    {}
+                ),
 
-            techniques: parseJson(
-                data.techniques,
-                []
-            )
+            techniques:
+                parseJson(
+                    data.techniques,
+                    []
+                )
         };
 
-        setValue("characterName", character.name);
-        setValue("characterAge", character.age);
+
+        // =============================================
+        // DADOS PRINCIPAIS
+        // =============================================
+
+        setValue(
+            "characterName",
+            character.name
+        );
+
+        setValue(
+            "characterAge",
+            character.age
+        );
 
         setValue(
             "characterRace",
@@ -478,6 +774,11 @@ document.addEventListener("DOMContentLoaded", async () => {
             character.origin
         );
 
+
+        // =============================================
+        // DESCRIÇÃO
+        // =============================================
+
         setValue(
             "characterAppearance",
             character.appearance
@@ -508,6 +809,11 @@ document.addEventListener("DOMContentLoaded", async () => {
             character.history
         );
 
+
+        // =============================================
+        // MANA
+        // =============================================
+
         setValue(
             "manaColor",
             character.mana?.color
@@ -523,6 +829,62 @@ document.addEventListener("DOMContentLoaded", async () => {
             character.mana?.reserve
         );
 
+
+        // =============================================
+        // TAGS
+        // =============================================
+
+        const raceTag =
+            $("raceTag");
+
+        if (raceTag) {
+            raceTag.textContent =
+                character.race ||
+                "Raça não definida";
+        }
+
+
+        const classTag =
+            $("classTag");
+
+        if (classTag) {
+            classTag.textContent =
+                character.class ||
+                "Classe não definida";
+        }
+
+
+        const powerTag =
+            $("powerTag");
+
+        if (powerTag) {
+            powerTag.textContent =
+                character.power ||
+                "Poder não definido";
+        }
+
+
+        if (updatedLabel) {
+            updatedLabel.textContent =
+                formatUpdatedAt(
+                    character.updated_at
+                );
+        }
+
+
+        // =============================================
+        // AVATAR
+        // =============================================
+
+        renderAvatar(
+            character.avatar_url
+        );
+
+
+        // =============================================
+        // CONTEÚDO
+        // =============================================
+
         renderAttributes(
             character.attributes
         );
@@ -531,19 +893,12 @@ document.addEventListener("DOMContentLoaded", async () => {
             character.techniques
         );
 
-        updateCharacterTags();
 
-        if (loading) {
-            loading.hidden = true;
-        }
+        // =============================================
+        // MOSTRAR PÁGINA
+        // =============================================
 
-        if (errorBox) {
-            errorBox.hidden = true;
-        }
-
-        if (content) {
-            content.hidden = false;
-        }
+        showContent();
 
         setSaveState(
             "saved",
@@ -551,39 +906,58 @@ document.addEventListener("DOMContentLoaded", async () => {
         );
     }
 
+
     // =====================================================
-    // COLETAR DADOS DA INTERFACE
+    // COLETAR DADOS
     // =====================================================
 
     function collectCharacter() {
-        if (!character) {
-            return null;
-        }
-
         const attributes = {};
 
         document
-            .querySelectorAll("[data-attribute]")
+            .querySelectorAll(
+                "[data-attribute]"
+            )
             .forEach((input) => {
                 attributes[
                     input.dataset.attribute
                 ] = input.value.trim();
             });
 
+
+        const manaColor =
+            $("manaColor");
+
+        const manaControl =
+            $("manaControl");
+
+        const manaReserve =
+            $("manaReserve");
+
+
         const mana = {
-            color: getValue("manaColor"),
-            control: getValue("manaControl").trim(),
-            reserve: getValue("manaReserve").trim()
+            color:
+                manaColor?.value || "",
+
+            control:
+                manaControl?.value?.trim() || "",
+
+            reserve:
+                manaReserve?.value?.trim() || ""
         };
 
+
         const techniques =
-            Array.isArray(character.techniques)
+            Array.isArray(
+                character.techniques
+            )
                 ? character.techniques.map(
                     (technique) => ({
                         ...technique
                     })
                 )
                 : [];
+
 
         document
             .querySelectorAll(
@@ -598,13 +972,6 @@ document.addEventListener("DOMContentLoaded", async () => {
                 const key =
                     input.dataset.techKey;
 
-                if (
-                    Number.isNaN(index) ||
-                    !key
-                ) {
-                    return;
-                }
-
                 if (!techniques[index]) {
                     techniques[index] = {};
                 }
@@ -613,84 +980,103 @@ document.addEventListener("DOMContentLoaded", async () => {
                     input.value.trim();
             });
 
+
+        const getInputValue =
+            (id) =>
+                $(id)?.value?.trim() || "";
+
+
+        const ageElement =
+            $("characterAge");
+
+        const ageValue =
+            ageElement?.value ?? "";
+
+
+        let age = null;
+
+        if (ageValue !== "") {
+            const numericAge =
+                Number(ageValue);
+
+            age =
+                Number.isFinite(
+                    numericAge
+                )
+                    ? numericAge
+                    : null;
+        }
+
+
         return {
             name:
-                getValue(
+                getInputValue(
                     "characterName"
-                ).trim(),
+                ),
 
-            age:
-                getValue(
-                    "characterAge"
-                ) === ""
-                    ? null
-                    : Number(
-                        getValue(
-                            "characterAge"
-                        )
-                    ),
+            age,
 
             appearance:
-                getValue(
+                getInputValue(
                     "characterAppearance"
-                ).trim(),
+                ),
 
             personality:
-                getValue(
+                getInputValue(
                     "characterPersonality"
-                ).trim(),
+                ),
 
             origin:
-                getValue(
+                getInputValue(
                     "characterOrigin"
-                ).trim(),
+                ),
 
             objective:
-                getValue(
+                getInputValue(
                     "characterObjective"
-                ).trim(),
+                ),
 
             fear:
-                getValue(
+                getInputValue(
                     "characterFear"
-                ).trim(),
+                ),
 
             bond:
-                getValue(
+                getInputValue(
                     "characterBond"
-                ).trim(),
+                ),
 
             history:
-                getValue(
+                getInputValue(
                     "characterHistory"
-                ).trim(),
+                ),
 
             race:
-                getValue(
+                getInputValue(
                     "characterRace"
-                ).trim(),
+                ),
 
             racial_ability:
-                getValue(
+                getInputValue(
                     "racialAbility"
-                ).trim(),
+                ),
 
             class:
-                getValue(
+                getInputValue(
                     "characterClass"
-                ).trim(),
+                ),
 
             class_bonus:
-                getValue(
+                getInputValue(
                     "classBonus"
-                ).trim(),
+                ),
 
             attributes,
 
             power:
-                getValue(
+                getInputValue(
                     "characterPower"
-                ).trim(),
+                ),
 
             mana,
 
@@ -698,8 +1084,9 @@ document.addEventListener("DOMContentLoaded", async () => {
         };
     }
 
+
     // =====================================================
-    // SALVAMENTO AUTOMÁTICO
+    // SALVAR
     // =====================================================
 
     async function saveCharacter() {
@@ -708,29 +1095,24 @@ document.addEventListener("DOMContentLoaded", async () => {
         }
 
         if (saveInProgress) {
-            saveQueued = true;
+            pendingSave = true;
             return;
         }
 
-        clearTimeout(saveTimer);
-
         saveInProgress = true;
-        saveQueued = false;
+        pendingSave = false;
 
         setSaveState(
             "saving",
             "Salvando..."
         );
 
-        const payload =
-            collectCharacter();
-
-        if (!payload) {
-            saveInProgress = false;
-            return;
-        }
 
         try {
+            const payload =
+                collectCharacter();
+
+
             const {
                 data,
                 error
@@ -746,35 +1128,73 @@ document.addEventListener("DOMContentLoaded", async () => {
                     session.user.id
                 )
                 .select(
-                    "id, updated_at"
+                    "id, updated_at, avatar_url"
                 )
                 .single();
+
 
             if (error) {
                 throw error;
             }
 
-            if (!data) {
-                throw new Error(
-                    "Nenhum registro foi atualizado."
-                );
-            }
 
             character = {
                 ...character,
                 ...payload,
 
                 updated_at:
-                    data.updated_at ||
-                    new Date().toISOString()
+                    data?.updated_at ||
+                    new Date().toISOString(),
+
+                avatar_url:
+                    data?.avatar_url ??
+                    character.avatar_url
             };
 
-            updateCharacterTags();
+
+            const raceTag =
+                $("raceTag");
+
+            if (raceTag) {
+                raceTag.textContent =
+                    character.race ||
+                    "Raça não definida";
+            }
+
+
+            const classTag =
+                $("classTag");
+
+            if (classTag) {
+                classTag.textContent =
+                    character.class ||
+                    "Classe não definida";
+            }
+
+
+            const powerTag =
+                $("powerTag");
+
+            if (powerTag) {
+                powerTag.textContent =
+                    character.power ||
+                    "Poder não definido";
+            }
+
+
+            if (updatedLabel) {
+                updatedLabel.textContent =
+                    formatUpdatedAt(
+                        character.updated_at
+                    );
+            }
+
 
             setSaveState(
                 "saved",
                 "Salvo automaticamente"
             );
+
 
         } catch (error) {
             console.error(
@@ -787,40 +1207,51 @@ document.addEventListener("DOMContentLoaded", async () => {
                 "Erro ao salvar"
             );
 
-        } finally {
-            saveInProgress = false;
 
-            if (saveQueued) {
-                saveQueued = false;
+        } finally {
+            saveInProgress =
+                false;
+
+
+            if (pendingSave) {
+                pendingSave = false;
+
                 scheduleSave();
             }
         }
     }
 
+
+    // =====================================================
+    // AUTO SAVE
+    // =====================================================
+
     function scheduleSave() {
+        if (!character) {
+            return;
+        }
+
         setSaveState(
             "pending",
             "Alteração pendente"
         );
 
-        clearTimeout(saveTimer);
-
-        saveTimer = setTimeout(
-            () => {
-                saveCharacter();
-            },
-            700
+        clearTimeout(
+            saveTimer
         );
+
+        saveTimer =
+            setTimeout(
+                () => {
+                    saveCharacter();
+                },
+                700
+            );
     }
 
-    // =====================================================
-    // EVENTOS DE EDIÇÃO
-    // =====================================================
 
     function bindAutoSave() {
-        if (!content) {
-            return;
-        }
+        if (!content) return;
 
         content.addEventListener(
             "input",
@@ -836,6 +1267,7 @@ document.addEventListener("DOMContentLoaded", async () => {
                 scheduleSave();
             }
         );
+
 
         content.addEventListener(
             "change",
@@ -853,69 +1285,76 @@ document.addEventListener("DOMContentLoaded", async () => {
         );
     }
 
+
     // =====================================================
     // MENU RÁPIDO
     // =====================================================
 
-    function closeQuickMenu() {
-        if (!quickMenu || !quickActionButton) {
-            return;
-        }
+    const quickMenu =
+        $("quickMenu");
 
-        quickMenu.classList.remove("open");
+    const quickActionButton =
+        $("quickActionButton");
+
+
+    function closeQuickMenu() {
+        if (!quickMenu) return;
+
+        quickMenu.classList.remove(
+            "open"
+        );
 
         quickMenu.setAttribute(
             "aria-hidden",
             "true"
         );
 
-        quickActionButton.setAttribute(
-            "aria-expanded",
-            "false"
-        );
+        if (quickActionButton) {
+            quickActionButton.setAttribute(
+                "aria-expanded",
+                "false"
+            );
 
-        quickActionButton.classList.remove(
-            "open"
-        );
+            quickActionButton.classList.remove(
+                "open"
+            );
+        }
     }
+
 
     function openQuickMenu() {
-        if (!quickMenu || !quickActionButton) {
-            return;
-        }
+        if (!quickMenu) return;
 
-        quickMenu.classList.add("open");
+        quickMenu.classList.add(
+            "open"
+        );
 
         quickMenu.setAttribute(
             "aria-hidden",
             "false"
         );
 
-        quickActionButton.setAttribute(
-            "aria-expanded",
-            "true"
-        );
+        if (quickActionButton) {
+            quickActionButton.setAttribute(
+                "aria-expanded",
+                "true"
+            );
 
-        quickActionButton.classList.add(
-            "open"
-        );
+            quickActionButton.classList.add(
+                "open"
+            );
+        }
     }
 
-    function bindQuickMenu() {
-        if (
-            !quickMenu ||
-            !quickActionButton
-        ) {
-            return;
-        }
 
+    if (quickActionButton) {
         quickActionButton.addEventListener(
             "click",
             (event) => {
                 event.stopPropagation();
 
                 if (
-                    quickMenu.classList.contains(
+                    quickMenu?.classList.contains(
                         "open"
                     )
                 ) {
@@ -925,96 +1364,110 @@ document.addEventListener("DOMContentLoaded", async () => {
                 }
             }
         );
+    }
+
+
+    document
+        .querySelectorAll(
+            ".quick-item"
+        )
+        .forEach((button) => {
+            button.addEventListener(
+                "click",
+                () => {
+                    openSection(
+                        button.dataset.target
+                    );
+                }
+            );
+        });
+
+
+    function openSection(name) {
+        if (!name) return;
+
+        let section = null;
+
+        try {
+            section =
+                document.querySelector(
+                    `[data-section="${CSS.escape(name)}"]`
+                );
+        } catch {
+            return;
+        }
+
+        if (!section) return;
 
         document
-            .querySelectorAll(".quick-item")
-            .forEach((button) => {
-                button.addEventListener(
-                    "click",
-                    () => {
-                        openSection(
-                            button.dataset.target
-                        );
-                    }
+            .querySelectorAll(
+                ".sheet-section"
+            )
+            .forEach((item) => {
+                item.classList.remove(
+                    "active"
                 );
             });
 
-        document.addEventListener(
-            "click",
-            (event) => {
-                if (
-                    !quickMenu.contains(
-                        event.target
-                    ) &&
-                    !quickActionButton.contains(
-                        event.target
-                    )
-                ) {
-                    closeQuickMenu();
-                }
-            }
+        section.classList.add(
+            "active"
         );
-    }
 
-    // =====================================================
-    // SEÇÕES
-    // =====================================================
-
-    function openSection(name) {
-        if (!name) {
-            return;
-        }
-
-        const sections =
-            document.querySelectorAll(
-                ".sheet-section"
-            );
-
-        let targetSection = null;
-
-        sections.forEach((section) => {
-            const isTarget =
-                section.dataset.section ===
-                name;
-
-            section.classList.toggle(
-                "active",
-                isTarget
-            );
-
-            if (isTarget) {
-                targetSection = section;
-            }
-        });
-
-        if (!targetSection) {
-            return;
-        }
 
         requestAnimationFrame(() => {
-            targetSection.scrollIntoView({
+            section.scrollIntoView({
                 behavior: "smooth",
                 block: "start"
             });
         });
 
+
         closeQuickMenu();
     }
 
+
+    document.addEventListener(
+        "click",
+        (event) => {
+            if (!quickMenu || !quickActionButton) {
+                return;
+            }
+
+            if (
+                !quickMenu.contains(
+                    event.target
+                ) &&
+                !quickActionButton.contains(
+                    event.target
+                )
+            ) {
+                closeQuickMenu();
+            }
+        }
+    );
+
+
     // =====================================================
-    // NAVEGAÇÃO
+    // BOTÕES DE VOLTAR
     // =====================================================
+
+    const backButton =
+        $("backButton");
+
+    const backErrorButton =
+        $("backErrorButton");
+
 
     if (backButton) {
         backButton.addEventListener(
             "click",
             () => {
-                clearTimeout(saveTimer);
                 window.location.href =
                     "fichas.html";
             }
         );
     }
+
 
     if (backErrorButton) {
         backErrorButton.addEventListener(
@@ -1026,104 +1479,178 @@ document.addEventListener("DOMContentLoaded", async () => {
         );
     }
 
-    // =====================================================
-    // CARREGAR FICHA
-    // =====================================================
-
-    async function loadCharacter() {
-        try {
-            setSaveState(
-                "saving",
-                "Carregando..."
-            );
-
-            const {
-                data,
-                error
-            } = await supabase
-                .from("characters")
-                .select(`
-                    id,
-                    user_id,
-                    name,
-                    age,
-                    appearance,
-                    personality,
-                    origin,
-                    objective,
-                    fear,
-                    bond,
-                    history,
-                    race,
-                    racial_ability,
-                    class,
-                    class_bonus,
-                    attributes,
-                    power,
-                    mana,
-                    techniques,
-                    created_at,
-                    updated_at
-                `)
-                .eq(
-                    "id",
-                    characterId
-                )
-                .eq(
-                    "user_id",
-                    session.user.id
-                )
-                .single();
-
-            if (error) {
-                throw error;
-            }
-
-            if (!data) {
-                throw new Error(
-                    "Ficha não encontrada."
-                );
-            }
-
-            renderCharacter(data);
-
-        } catch (error) {
-            console.error(
-                "Erro ao carregar ficha:",
-                error
-            );
-
-            if (loading) {
-                loading.hidden = true;
-            }
-
-            if (content) {
-                content.hidden = true;
-            }
-
-            if (errorBox) {
-                errorBox.hidden = false;
-            }
-
-            if (errorText) {
-                errorText.textContent =
-                    "A ficha não existe, foi removida ou você não tem permissão para acessá-la.";
-            }
-
-            setSaveState(
-                "error",
-                "Erro ao carregar"
-            );
-        }
-    }
 
     // =====================================================
     // INICIALIZAÇÃO
     // =====================================================
 
+    showLoading();
+
     bindAutoSave();
-    bindQuickMenu();
 
-    await loadCharacter();
+    setupAvatarUpload();
 
+
+    // =====================================================
+    // VALIDAR ID
+    // =====================================================
+
+    if (!characterId) {
+        showError(
+            "Nenhuma ficha foi selecionada."
+        );
+
+        return;
+    }
+
+
+    // =====================================================
+    // SESSÃO
+    // =====================================================
+
+    try {
+        const {
+            data,
+            error
+        } = await supabase.auth.getSession();
+
+
+        if (error) {
+            console.error(
+                "Erro ao obter sessão:",
+                error
+            );
+
+            showError(
+                "Não foi possível verificar sua sessão. Recarregue a página."
+            );
+
+            return;
+        }
+
+
+        session =
+            data?.session || null;
+
+
+    } catch (error) {
+        console.error(
+            "Erro inesperado ao obter sessão:",
+            error
+        );
+
+        showError(
+            "Não foi possível verificar sua sessão."
+        );
+
+        return;
+    }
+
+
+    if (!session) {
+        window.location.href =
+            "index.html";
+
+        return;
+    }
+
+
+    // =====================================================
+    // CARREGAR FICHA
+    // =====================================================
+
+    try {
+        const {
+            data,
+            error
+        } = await supabase
+            .from("characters")
+            .select(`
+                id,
+                user_id,
+                name,
+                age,
+                appearance,
+                personality,
+                origin,
+                objective,
+                fear,
+                bond,
+                history,
+                race,
+                racial_ability,
+                class,
+                class_bonus,
+                attributes,
+                power,
+                mana,
+                techniques,
+                avatar_url,
+                created_at,
+                updated_at
+            `)
+            .eq(
+                "id",
+                characterId
+            )
+            .eq(
+                "user_id",
+                session.user.id
+            )
+            .maybeSingle();
+
+
+        // =============================================
+        // ERRO REAL
+        // =============================================
+
+        if (error) {
+            console.error(
+                "Erro do Supabase ao carregar ficha:",
+                error
+            );
+
+            showError(
+                "Não foi possível carregar a ficha agora. Verifique sua conexão e tente novamente."
+            );
+
+            return;
+        }
+
+
+        // =============================================
+        // FICHA NÃO EXISTE
+        // =============================================
+
+        if (!data) {
+            console.warn(
+                "Ficha não encontrada:",
+                characterId
+            );
+
+            showError(
+                "A ficha não foi encontrada ou você não tem permissão para acessá-la."
+            );
+
+            return;
+        }
+
+
+        // =============================================
+        // SUCESSO
+        // =============================================
+
+        renderCharacter(data);
+
+
+    } catch (error) {
+        console.error(
+            "Erro inesperado ao carregar ficha:",
+            error
+        );
+
+        showError(
+            "Ocorreu um erro inesperado ao carregar a ficha. Tente novamente."
+        );
+    }
 });
