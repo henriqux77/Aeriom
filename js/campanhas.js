@@ -8,8 +8,8 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
 
     let currentUser = null;
+    let pendingCampaignId = null; // Armazena ID da campanha ao entrar por convite
 
-    // Elementos da Interface
     const listContainer = document.getElementById("campaignsList");
     const loadingEl = document.getElementById("loadingCampaigns");
     const emptyEl = document.getElementById("emptyCampaigns");
@@ -22,18 +22,19 @@ document.addEventListener("DOMContentLoaded", async () => {
     const createForm = document.getElementById("createCampaignForm");
     const submitBtn = document.getElementById("submitCampaignBtn");
 
-    // =========================================================
-    // NAVEGAÇÃO
-    // =========================================================
+    const joinModal = document.getElementById("joinCampaignModal");
+    const btnOpenJoinModal = document.getElementById("openJoinModalBtn");
+    const btnCloseJoinModal = document.getElementById("closeJoinModal");
+    const joinForm = document.getElementById("joinCampaignForm");
+    const joinMessage = document.getElementById("joinMessage");
+
+    const selectCharacterModal = document.getElementById("selectCharacterModal");
+    const userCharactersList = document.getElementById("userCharactersList");
+
     if (backBtn) {
-        backBtn.addEventListener("click", () => {
-            window.location.href = "index.html";
-        });
+        backBtn.addEventListener("click", () => window.location.href = "index.html");
     }
 
-    // =========================================================
-    // AUTENTICAÇÃO E SESSÃO
-    // =========================================================
     async function init() {
         const { data: { session }, error } = await supabase.auth.getSession();
         if (error || !session) {
@@ -44,9 +45,6 @@ document.addEventListener("DOMContentLoaded", async () => {
         await loadCampaigns();
     }
 
-    // =========================================================
-    // RENDERIZAR CAMPANHAS
-    // =========================================================
     function showState(state) {
         loadingEl.style.display = state === 'loading' ? 'block' : 'none';
         emptyEl.style.display = state === 'empty' ? 'block' : 'none';
@@ -55,20 +53,10 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     async function loadCampaigns() {
         showState('loading');
-        
         try {
-            // Busca as campanhas onde o usuário é membro
             const { data, error } = await supabase
                 .from('campaign_members')
-                .select(`
-                    role,
-                    campaigns (
-                        id,
-                        name,
-                        description,
-                        cover_url
-                    )
-                `)
+                .select(`role, campaigns (id, name, description, cover_url)`)
                 .eq('user_id', currentUser.id)
                 .order('joined_at', { ascending: false });
 
@@ -81,15 +69,11 @@ document.addEventListener("DOMContentLoaded", async () => {
 
             listContainer.innerHTML = '';
             data.forEach(item => {
-                if(item.campaigns) {
-                    listContainer.appendChild(createCampaignCard(item.campaigns, item.role));
-                }
+                if(item.campaigns) listContainer.appendChild(createCampaignCard(item.campaigns, item.role));
             });
             showState('list');
-
         } catch (error) {
             console.error("Erro ao carregar campanhas:", error);
-            alert("Ocorreu um erro ao buscar suas campanhas.");
             showState('empty');
         }
     }
@@ -97,11 +81,8 @@ document.addEventListener("DOMContentLoaded", async () => {
     function createCampaignCard(campaign, role) {
         const card = document.createElement('article');
         card.className = 'campaign-card';
-
         const roleText = role === 'master' ? 'Mestre' : 'Jogador';
         const roleClass = role === 'master' ? 'master' : 'player';
-        
-        // Proteção XSS
         const name = campaign.name.replace(/</g, "&lt;").replace(/>/g, "&gt;");
         const desc = (campaign.description || "Sem descrição.").replace(/</g, "&lt;").replace(/>/g, "&gt;");
         const cover = campaign.cover_url || 'https://via.placeholder.com/300x140?text=Sem+Capa';
@@ -119,111 +100,189 @@ document.addEventListener("DOMContentLoaded", async () => {
         `;
 
         card.querySelector('.enter-campaign-btn').addEventListener('click', () => {
-            // FASE 6: Aqui salvaremos o ID da campanha no localStorage e redirecionaremos.
-            // Por enquanto, apenas um alerta preparando o terreno.
             localStorage.setItem("aeriom_active_campaign", campaign.id);
-            alert(`Acesso autorizado ao painel da campanha: ${name}\n\n(A interface do Painel será implementada na Fase 3)`);
-            // window.location.href = "campanha.html"; 
+            window.location.href = "campanha.html"; 
         });
-
         return card;
     }
 
-    // =========================================================
-    // MODAL DE CRIAÇÃO
-    // =========================================================
-    function openModal() { createModal.style.display = 'flex'; }
-    function closeModal() { 
-        createModal.style.display = 'none'; 
+    // MODAIS DE CRIAÇÃO E CONVITE
+    function closeAllModals() {
+        createModal.style.display = 'none';
+        joinModal.style.display = 'none';
+        selectCharacterModal.style.display = 'none';
         createForm.reset();
+        joinForm.reset();
+        joinMessage.textContent = "";
     }
 
-    if(btnOpenModal) btnOpenModal.addEventListener('click', openModal);
-    if(btnEmptyCreate) btnEmptyCreate.addEventListener('click', openModal);
-    if(btnCloseModal) btnCloseModal.addEventListener('click', closeModal);
-    createModal.addEventListener('click', (e) => { if(e.target === createModal) closeModal(); });
+    if(btnOpenModal) btnOpenModal.addEventListener('click', () => createModal.style.display = 'flex');
+    if(btnEmptyCreate) btnEmptyCreate.addEventListener('click', () => createModal.style.display = 'flex');
+    if(btnCloseModal) btnCloseModal.addEventListener('click', closeAllModals);
+    
+    if(btnOpenJoinModal) btnOpenJoinModal.addEventListener('click', () => joinModal.style.display = 'flex');
+    if(btnCloseJoinModal) btnCloseJoinModal.addEventListener('click', closeAllModals);
+
+    window.addEventListener('click', (e) => {
+        if(e.target === createModal || e.target === joinModal) closeAllModals();
+    });
 
     // =========================================================
-    // CRIAR CAMPANHA (STORAGE + DATABASE)
+    // CRIAR CAMPANHA
     // =========================================================
     createForm.addEventListener('submit', async (e) => {
         e.preventDefault();
-        
         const name = document.getElementById("campaignName").value.trim();
         const desc = document.getElementById("campaignDesc").value.trim();
-        const fileInput = document.getElementById("campaignCover");
-        const file = fileInput.files[0];
+        const file = document.getElementById("campaignCover").files[0];
 
-        if (!name || !file) {
-            alert("Nome e imagem de capa são obrigatórios.");
-            return;
-        }
-
-        // Validação básica do arquivo (Tamanho: max 3MB)
-        if (file.size > 3 * 1024 * 1024) {
-            alert("A imagem da capa deve ter no máximo 3MB.");
-            return;
-        }
+        if (!name || !file) return alert("Nome e imagem são obrigatórios.");
+        if (file.size > 3 * 1024 * 1024) return alert("Capa max 3MB.");
 
         submitBtn.disabled = true;
         submitBtn.textContent = "Forjando o mundo...";
 
         try {
-            // 1. UPLOAD DA IMAGEM PARA O STORAGE
             const fileExt = file.name.split('.').pop();
             const filePath = `${currentUser.id}/${Date.now()}.${fileExt}`;
-            
-            const { error: uploadError } = await supabase.storage
-                .from('campaign_covers')
-                .upload(filePath, file, { cacheControl: '3600', upsert: false });
-
+            const { error: uploadError } = await supabase.storage.from('campaign_covers').upload(filePath, file);
             if (uploadError) throw uploadError;
 
-            // 2. OBTER URL PÚBLICA
-            const { data: publicUrlData } = supabase.storage
-                .from('campaign_covers')
-                .getPublicUrl(filePath);
+            const { data: publicUrlData } = supabase.storage.from('campaign_covers').getPublicUrl(filePath);
+            const { data: campData, error: campError } = await supabase.from('campaigns').insert({
+                name, description: desc, cover_url: publicUrlData.publicUrl, master_id: currentUser.id
+            }).select('id').single();
+            if (campError) throw campError;
+
+            await supabase.from('campaign_members').insert({ campaign_id: campData.id, user_id: currentUser.id, role: 'master' });
             
-            const coverUrl = publicUrlData.publicUrl;
-
-            // 3. INSERIR NA TABELA CAMPAIGNS
-            const { data: campaignData, error: campaignError } = await supabase
-                .from('campaigns')
-                .insert({
-                    name: name,
-                    description: desc,
-                    cover_url: coverUrl,
-                    master_id: currentUser.id
-                })
-                .select('id')
-                .single();
-
-            if (campaignError) throw campaignError;
-
-            // 4. INSERIR O USUÁRIO COMO MESTRE NA TABELA MEMBROS
-            const { error: memberError } = await supabase
-                .from('campaign_members')
-                .insert({
-                    campaign_id: campaignData.id,
-                    user_id: currentUser.id,
-                    role: 'master'
-                });
-
-            if (memberError) throw memberError;
-
-            // Sucesso!
-            closeModal();
-            await loadCampaigns(); // Recarrega a lista
-
+            closeAllModals();
+            await loadCampaigns();
         } catch (error) {
-            console.error("Erro na criação:", error);
-            alert("Falha ao criar campanha. Verifique se configurou o Storage e o SQL corretamente.");
+            console.error(error);
+            alert("Falha ao criar campanha.");
         } finally {
             submitBtn.disabled = false;
             submitBtn.textContent = "Criar Mundo";
         }
     });
 
-    // Iniciar tudo
+    // =========================================================
+    // ENTRAR VIA CONVITE
+    // =========================================================
+    joinForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const code = document.getElementById("inviteCodeInput").value.trim().toUpperCase();
+        if(!code) return;
+        joinMessage.textContent = "Verificando código...";
+
+        try {
+            // Verifica o convite
+            const { data: invite, error: inviteError } = await supabase
+                .from('campaign_invites')
+                .select('campaign_id')
+                .eq('code', code)
+                .eq('is_active', true)
+                .maybeSingle();
+
+            if (inviteError || !invite) {
+                joinMessage.textContent = "Convite inválido ou expirado.";
+                return;
+            }
+
+            pendingCampaignId = invite.campaign_id;
+
+            // Insere o usuário como membro (ignora erro se já for membro via unique constraint)
+            const { error: memberError } = await supabase
+                .from('campaign_members')
+                .insert({ campaign_id: pendingCampaignId, user_id: currentUser.id, role: 'player' });
+
+            if (memberError && memberError.code !== '23505') throw memberError;
+
+            // Passa para a seleção de ficha
+            joinModal.style.display = 'none';
+            openCharacterSelection();
+
+        } catch (error) {
+            console.error("Erro no convite:", error);
+            joinMessage.textContent = "Erro ao processar o convite.";
+        }
+    });
+
+    // =========================================================
+    // ESCOLHER FICHA
+    // =========================================================
+    async function openCharacterSelection() {
+        selectCharacterModal.style.display = 'flex';
+        userCharactersList.innerHTML = '<p style="text-align: center;">Carregando suas fichas...</p>';
+
+        try {
+            const { data: characters, error } = await supabase
+                .from('characters')
+                .select('id, name, race, class, avatar_url')
+                .eq('user_id', currentUser.id);
+
+            if (error) throw error;
+
+            if (!characters || characters.length === 0) {
+                userCharactersList.innerHTML = `<p style="text-align: center; color: var(--cream-muted);">Você não possui nenhuma ficha criada. Crie uma ficha primeiro.</p>`;
+                return;
+            }
+
+            userCharactersList.innerHTML = '';
+            characters.forEach(char => {
+                const charEl = document.createElement('div');
+                charEl.style.display = 'flex';
+                charEl.style.alignItems = 'center';
+                charEl.style.gap = '15px';
+                charEl.style.padding = '12px';
+                charEl.style.border = '1px solid rgba(200, 100, 50, 0.3)';
+                charEl.style.borderRadius = '10px';
+                charEl.style.background = 'rgba(25, 17, 15, 0.6)';
+                charEl.style.cursor = 'pointer';
+
+                const avatar = char.avatar_url ? `<img src="${char.avatar_url}" style="width:40px; height:40px; border-radius:50%; object-fit:cover;">` : `<div style="width:40px; height:40px; border-radius:50%; background:#222; display:grid; place-items:center; color:var(--gold); border:1px solid var(--gold);">${char.name.charAt(0)}</div>`;
+
+                charEl.innerHTML = `
+                    ${avatar}
+                    <div style="flex:1;">
+                        <h4 style="margin:0; color:var(--cream); font-family:var(--display-font);">${char.name}</h4>
+                        <span style="font-size:11px; color:var(--cream-muted);">${char.race || '?'} • ${char.class || '?'}</span>
+                    </div>
+                    <button class="secondary-button" style="min-height:30px; padding:5px 15px; font-size:10px;">Selecionar</button>
+                `;
+
+                charEl.addEventListener('click', () => selectCharacterForCampaign(char.id));
+                userCharactersList.appendChild(charEl);
+            });
+
+        } catch (error) {
+            console.error("Erro ao carregar fichas:", error);
+            userCharactersList.innerHTML = '<p style="color:#d46a4a;">Erro ao carregar fichas.</p>';
+        }
+    }
+
+    async function selectCharacterForCampaign(characterId) {
+        if (!pendingCampaignId) return;
+        
+        try {
+            const { error } = await supabase
+                .from('campaign_characters')
+                .insert({
+                    campaign_id: pendingCampaignId,
+                    user_id: currentUser.id,
+                    character_id: characterId
+                });
+
+            if (error && error.code !== '23505') throw error; // 23505 = já vinculado
+
+            localStorage.setItem("aeriom_active_campaign", pendingCampaignId);
+            window.location.href = "campanha.html";
+        } catch (error) {
+            console.error("Erro ao vincular ficha:", error);
+            alert("Não foi possível vincular sua ficha à campanha. Tente novamente.");
+        }
+    }
+
     init();
 });
