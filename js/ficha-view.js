@@ -1347,7 +1347,69 @@ document.addEventListener("DOMContentLoaded", () => {
             character.name
         );
 
+// =====================================================
+// RESTAURAR IDENTIDADE DO PERSONAGEM
+// =====================================================
 
+const hero = document.querySelector(".sheet-hero");
+const identity = document.querySelector(".sheet-identity");
+
+if (hero) {
+    hero.hidden = false;
+    hero.style.display = "";
+}
+
+if (identity) {
+    identity.hidden = false;
+    identity.style.display = "block";
+    identity.style.visibility = "visible";
+    identity.style.opacity = "1";
+}
+
+// Nome
+setValue(
+    "characterName",
+    character.name || ""
+);
+
+// Tags
+const raceTag = $("raceTag");
+const classTag = $("classTag");
+const powerTag = $("powerTag");
+
+if (raceTag) {
+    raceTag.hidden = false;
+    raceTag.textContent =
+        character.race || "Raça não definida";
+}
+
+if (classTag) {
+    classTag.hidden = false;
+    classTag.textContent =
+        character.class || "Classe não definida";
+}
+
+if (powerTag) {
+    powerTag.hidden = false;
+    powerTag.textContent =
+        character.power || "Poder não definido";
+}
+
+// Idade
+const ageInput = $("characterAge");
+
+if (ageInput) {
+    ageInput.hidden = false;
+    ageInput.value =
+        character.age ?? "";
+}
+
+// Data
+if (updatedLabel) {
+    updatedLabel.hidden = false;
+    updatedLabel.textContent =
+        formatUpdatedAt(character.updated_at);
+}
         /* =============================================
            ATRIBUTOS
         ============================================= */
