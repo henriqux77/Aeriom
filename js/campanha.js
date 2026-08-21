@@ -74,8 +74,10 @@ document.addEventListener("DOMContentLoaded", async () => {
                 const targetId = tab.getAttribute('data-tab');
                 document.getElementById(targetId).classList.add('active');
 
+                // Carrega os dados específicos apenas quando a aba é aberta
                 if (targetId === 'tab-mural') loadMural();
                 if (targetId === 'tab-logs') loadLogs();
+                // (Combate, Craft, Forja e Cozinha serão carregados aqui futuramente)
             });
         });
     }
@@ -127,20 +129,18 @@ document.addEventListener("DOMContentLoaded", async () => {
 
         if (userRole === 'master') {
             masterPanel.hidden = false;
-            // Garante que o navegador vai renderizar os botões do mestre corretamente
             document.querySelectorAll('.master-only').forEach(el => {
                 el.hidden = false;
                 el.style.display = el.tagName === 'BUTTON' && el.classList.contains('dash-tab') ? 'inline-block' : 'flex';
             });
             
-            // Preenche form de config
             settingsName.value = currentCampaign.name;
             settingsDesc.value = currentCampaign.description || "";
         }
     }
 
     // =========================================================
-    // PERSONAGENS, MURAL, LOGS, CONFIG (LÓGICA BASE)
+    // PERSONAGENS, MURAL, LOGS
     // =========================================================
     async function loadCampaignCharacters() {
         if (!campaignCharactersList) return;
@@ -225,7 +225,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         }
     }
 
-    // Atualizar Configurações (Apenas Mestre)
+    // Configurações
     if (settingsForm) {
         settingsForm.addEventListener('submit', async (e) => {
             e.preventDefault();
@@ -240,7 +240,6 @@ document.addEventListener("DOMContentLoaded", async () => {
                 }).eq('id', campaignId);
                 
                 if (error) throw error;
-                
                 bannerName.textContent = settingsName.value;
                 alert("Configurações atualizadas!");
             } catch (err) {
@@ -255,7 +254,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     // Excluir Campanha
     if (deleteCampaignBtn) {
         deleteCampaignBtn.addEventListener('click', async () => {
-            const conf = confirm("ATENÇÃO: Deseja mesmo EXCLUIR a campanha? Todos os dados serão perdidos. As fichas dos jogadores continuarão intactas, mas o progresso neste mundo sumirá.");
+            const conf = confirm("ATENÇÃO: Deseja mesmo EXCLUIR a campanha? Todos os dados serão perdidos.");
             if (!conf) return;
 
             try {
@@ -269,7 +268,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         });
     }
 
-    // Convite (Lógica mantida da Fase 2)
+    // Convite
     if (generateInviteBtn) {
         generateInviteBtn.addEventListener('click', async () => {
             generateInviteBtn.disabled = true;
