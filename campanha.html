@@ -48,11 +48,31 @@
             <!-- ÁREA DO MESTRE -->
             <div id="masterPanel" class="dash-panel master-panel" hidden>
                 <h3>Ferramentas do Mestre</h3>
-                <div style="display: flex; gap: 10px; align-items: center; margin-top: 15px;">
-                    <button id="generateInviteBtn" class="primary-button" style="width: auto; min-height: 40px; font-size: 12px;">Gerar Convite</button>
-                    <div id="inviteCodeDisplay" style="padding: 10px 15px; border: 1px dashed var(--gold); border-radius: 8px; color: var(--gold); font-family: monospace; font-size: 16px; letter-spacing: 2px;" hidden></div>
+                
+                <div class="master-tools-grid">
+                    <!-- Gerar Convite -->
+                    <div class="tool-section">
+                        <span class="tool-label">Adicionar Jogadores</span>
+                        <div style="display: flex; gap: 10px; align-items: center; margin-top: 8px;">
+                            <button id="generateInviteBtn" class="primary-button" style="width: auto; min-height: 35px; font-size: 11px;">Gerar Convite</button>
+                            <div id="inviteCodeDisplay" style="padding: 8px 12px; border: 1px dashed var(--gold); border-radius: 6px; color: var(--gold); font-family: monospace; font-size: 14px; letter-spacing: 2px;" hidden></div>
+                        </div>
+                    </div>
+                    
+                    <!-- Rolagem de Dados -->
+                    <div class="tool-section">
+                        <span class="tool-label">Rolagens Rápidas (Registra no Histórico)</span>
+                        <div class="dice-buttons-container">
+                            <button class="dice-btn" data-dice="4">1d4</button>
+                            <button class="dice-btn" data-dice="6">1d6</button>
+                            <button class="dice-btn" data-dice="8">1d8</button>
+                            <button class="dice-btn" data-dice="10">1d10</button>
+                            <button class="dice-btn" data-dice="12">1d12</button>
+                            <button class="dice-btn dice-d20" data-dice="20">1d20</button>
+                            <button class="dice-btn" data-dice="100">1d100</button>
+                        </div>
+                    </div>
                 </div>
-                <p style="margin-top:10px; font-size: 11px; color: var(--cream-muted);">Envie o código gerado para seus jogadores.</p>
             </div>
 
             <div class="campaign-section">
@@ -137,7 +157,7 @@
                     <h3>Mural de Aventuras</h3>
                     <p>Cartazes, mapas e avisos importantes.</p>
                 </div>
-                <button id="addMuralBtn" class="primary-button master-only" style="width: auto; min-height: 35px; font-size: 11px;" hidden>+ Novo Cartaz</button>
+                <button id="openMuralModalBtn" class="primary-button master-only" style="width: auto; min-height: 35px; font-size: 11px;" hidden>+ Novo Cartaz</button>
             </div>
             <div id="muralList" class="mural-grid">
                 <p style="color: var(--cream-muted);">O mural está vazio.</p>
@@ -179,7 +199,7 @@
     </section>
 </main>
 
-<!-- MODAL: ESTADO DO PERSONAGEM (FASE 6) -->
+<!-- MODAL: ESTADO DO PERSONAGEM -->
 <div id="characterStateModal" class="auth-modal" style="display: none; align-items: center; justify-content: center;">
     <div class="auth-box" style="max-width: 400px; text-align: center;">
         <button id="closeCharacterStateModal" class="auth-close">×</button>
@@ -219,10 +239,33 @@
     </div>
 </div>
 
+<!-- MODAL: CRIAR MURAL (FASE 7) -->
+<div id="muralModal" class="auth-modal" style="display: none; align-items: center; justify-content: center;">
+    <div class="auth-box" style="max-width: 500px;">
+        <button id="closeMuralModal" class="auth-close">×</button>
+        <h2>Aviso no Mural</h2>
+        <p>Crie cartazes ou avisos para os jogadores.</p>
+
+        <form id="muralForm">
+            <label class="sheet-field" style="display: block; margin-bottom: 15px;">
+                <span style="display: block; color: var(--gold); font-family: var(--display-font); font-size: 10px; margin-bottom: 5px;">Título do Cartaz</span>
+                <input type="text" id="muralTitle" placeholder="Ex: PROCURADO: Rei Goblin" required maxlength="100" style="width: 100%; padding: 12px; background: rgba(20, 15, 13, 0.8); border: 1px solid rgba(200, 100, 50, 0.3); color: var(--cream); border-radius: 8px;">
+            </label>
+            
+            <label class="sheet-field" style="display: block; margin-bottom: 20px;">
+                <span style="display: block; color: var(--gold); font-family: var(--display-font); font-size: 10px; margin-bottom: 5px;">Conteúdo</span>
+                <textarea id="muralContent" placeholder="Detalhes do aviso, recompensas, pistas..." required style="width: 100%; padding: 12px; background: rgba(20, 15, 13, 0.8); border: 1px solid rgba(200, 100, 50, 0.3); color: var(--cream); border-radius: 8px; min-height: 100px; font-family: 'Georgia', serif;"></textarea>
+            </label>
+
+            <button type="submit" id="saveMuralBtn" class="primary-button" style="width: 100%;">Fixar no Mural</button>
+        </form>
+    </div>
+</div>
+
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="js/supabase.js?v=11"></script>
-<script src="js/auth.js?v=11"></script>
-<script src="js/campanha.js?v=5"></script>
+<script src="js/supabase.js?v=12"></script>
+<script src="js/auth.js?v=12"></script>
+<script src="js/campanha.js?v=6"></script>
 
 </body>
 </html>
