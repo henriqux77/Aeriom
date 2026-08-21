@@ -7,6 +7,8 @@ document.addEventListener("DOMContentLoaded", async () => {
     let currentUser = null;
     let currentCampaign = null;
     let userRole = null;
+    let activeStateLinkId = null;
+    let activeStateCharName = "";
 
     const campaignId = localStorage.getItem("aeriom_active_campaign");
 
@@ -36,6 +38,16 @@ document.addEventListener("DOMContentLoaded", async () => {
     const settingsName = document.getElementById("settingsName");
     const settingsDesc = document.getElementById("settingsDesc");
     const deleteCampaignBtn = document.getElementById("deleteCampaignBtn");
+
+    // MODAL DE ESTADO
+    const stateModal = document.getElementById("characterStateModal");
+    const closeStateBtn = document.getElementById("closeCharacterStateModal");
+    const stateForm = document.getElementById("characterStateForm");
+    const stateNameEl = document.getElementById("stateModalName");
+    const stateHpInput = document.getElementById("stateHp");
+    const stateManaInput = document.getElementById("stateMana");
+    const stateConditionsInput = document.getElementById("stateConditions");
+    const saveStateBtn = document.getElementById("saveStateBtn");
 
     if (backBtn) {
         backBtn.addEventListener("click", () => {
@@ -74,10 +86,9 @@ document.addEventListener("DOMContentLoaded", async () => {
                 const targetId = tab.getAttribute('data-tab');
                 document.getElementById(targetId).classList.add('active');
 
-                // Carrega os dados específicos apenas quando a aba é aberta
                 if (targetId === 'tab-mural') loadMural();
                 if (targetId === 'tab-logs') loadLogs();
-                // (Combate, Craft, Forja e Cozinha serão carregados aqui futuramente)
+                if (targetId === 'tab-overview') loadCampaignCharacters();
             });
         });
     }
@@ -140,14 +151,15 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
 
     // =========================================================
-    // PERSONAGENS, MURAL, LOGS
+    // ESTADO DO PERSONAGEM (FASE 6)
     // =========================================================
     async function loadCampaignCharacters() {
         if (!campaignCharactersList) return;
         try {
+            // Seleciona agora também os campos temporários: current_hp, current_mana, conditions
             const { data, error } = await supabase
                 .from('campaign_characters')
-                .select(`id, user_id, characters(id, name, race, class, avatar_url)`)
+                .select(`id, user_id, current_hp, current_mana, conditions, characters(id, name, race, class, avatar_url)`)
                 .eq('campaign_id', campaignId);
 
             if (error) throw error;
@@ -169,6 +181,10 @@ document.addEventListener("DOMContentLoaded", async () => {
                     ? `<img src="${char.avatar_url}" class="char-card-avatar" onerror="this.outerHTML='<div class=\\'char-card-fallback\\'>${char.name.charAt(0)}</div>'">` 
                     : `<div class="char-card-fallback">${char.name.charAt(0)}</div>`;
 
+                // Badge de Estado visual
+                const conds = link.conditions ? `<div class="char-state-badge" style="border-color:var(--fire); color:#ff9d85;">⚠️ Condições</div>` : '';
+                const statsInfo = `<div style="font-size: 0.75rem; color: var(--gold); margin-top: 4px;">PV: ${link.current_hp || 0} | Mana: ${link.current_mana || 0}</div>`;
+
                 let actionHtml = '';
                 if (userRole === 'master') {
                     actionHtml = `<button class="secondary-button" style="min-height:30px; padding:5px 12px; font-size:10px;">Gerenciar</button>`;
@@ -176,7 +192,25 @@ document.addEventListener("DOMContentLoaded", async () => {
                     actionHtml = `<button class="primary-button" style="min-height:30px; padding:5px 12px; font-size:10px;">Acessar</button>`;
                 }
 
-                card.innerHTML = `${avatarHtml}<div class="char-card-info"><h4>${char.name}</h4><span>${char.race || '?'} • ${char.class || '?'}</span></div><div class="char-card-actions">${actionHtml}</div>`;
+                card.innerHTML = `
+                    ${avatarHtml}
+                    <div class="char-card-info">
+                        <h4>${char.name}</h4>
+                        <span>${char.race || '?'} • ${char.class || '?'}</span>
+                        ${statsInfo}
+                        ${conds}
+                    </div>
+                    <div class="char-card-actions">${actionHtml}</div>
+                `;
+
+                // Adiciona o evento de clique no botão (se existir)
+                const btn = card.querySelector('button');
+                if (btn) {
+                    btn.addEventListener('click', () => {
+                        openStateModal(link.id, char.name, link.current_hp, link.current_mana, link.conditions);
+                    });
+                }
+
                 campaignCharactersList.appendChild(card);
             });
         } catch (error) {
@@ -184,6 +218,70 @@ document.addEventListener("DOMContentLoaded", async () => {
         }
     }
 
+    function openStateModal(linkId, charName, hp, mana, conditions) {
+        activeStateLinkId = linkId;
+        activeStateCharName = charName;
+        stateNameEl.textContent = charName;
+        stateHpInput.value = hp || 0;
+        stateManaInput.value = mana || 0;
+        stateConditionsInput.value = conditions || "";
+        stateModal.style.display = "flex";
+    }
+
+    function closeStateModal() {
+        stateModal.style.display = "none";
+        activeStateLinkId = null;
+        activeStateCharName = "";
+    }
+
+    if (closeStateBtn) closeStateBtn.addEventListener("click", closeStateModal);
+    stateModal.addEventListener('click', (e) => { if(e.target === stateModal) closeStateModal(); });
+
+    if (stateForm) {
+        stateForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            if (!activeStateLinkId) return;
+
+            saveStateBtn.disabled = true;
+            saveStateBtn.textContent = "Salvando...";
+
+            try {
+                const hp = parseInt(stateHpInput.value) || 0;
+                const mana = parseInt(stateManaInput.value) || 0;
+                const cond = stateConditionsInput.value.trim();
+
+                // 1. Atualiza a tabela temporária
+                const { error: updateError } = await supabase
+                    .from('campaign_characters')
+                    .update({ current_hp: hp, current_mana: mana, conditions: cond })
+                    .eq('id', activeStateLinkId);
+
+                if (updateError) throw updateError;
+
+                // 2. Registra o Log
+                const actionUser = userRole === 'master' ? 'O Mestre' : activeStateCharName;
+                await supabase.from('campaign_logs').insert({
+                    campaign_id: campaignId,
+                    description: `${actionUser} atualizou o estado de ${activeStateCharName} (PV: ${hp}, Mana: ${mana}).`,
+                    log_type: 'combat'
+                });
+
+                closeStateModal();
+                await loadCampaignCharacters();
+
+            } catch (error) {
+                console.error("Erro ao salvar estado:", error);
+                alert("Falha ao salvar. Verifique se você tem permissão.");
+            } finally {
+                saveStateBtn.disabled = false;
+                saveStateBtn.textContent = "Salvar Estado";
+            }
+        });
+    }
+
+    // =========================================================
+    // MURAL E LOGS
+    // =========================================================
     async function loadMural() {
         try {
             const { data, error } = await supabase.from('campaign_mural').select('*').eq('campaign_id', campaignId).order('created_at', { ascending: false });
@@ -225,7 +323,9 @@ document.addEventListener("DOMContentLoaded", async () => {
         }
     }
 
-    // Configurações
+    // =========================================================
+    // CONFIGURAÇÕES
+    // =========================================================
     if (settingsForm) {
         settingsForm.addEventListener('submit', async (e) => {
             e.preventDefault();
@@ -251,7 +351,6 @@ document.addEventListener("DOMContentLoaded", async () => {
         });
     }
 
-    // Excluir Campanha
     if (deleteCampaignBtn) {
         deleteCampaignBtn.addEventListener('click', async () => {
             const conf = confirm("ATENÇÃO: Deseja mesmo EXCLUIR a campanha? Todos os dados serão perdidos.");
@@ -268,7 +367,9 @@ document.addEventListener("DOMContentLoaded", async () => {
         });
     }
 
-    // Convite
+    // =========================================================
+    // CONVITE
+    // =========================================================
     if (generateInviteBtn) {
         generateInviteBtn.addEventListener('click', async () => {
             generateInviteBtn.disabled = true;
