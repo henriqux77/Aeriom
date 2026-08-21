@@ -34,6 +34,10 @@
         <!-- NAVEGAÇÃO INTERNA (TABS) -->
         <nav class="dash-nav">
             <button class="dash-tab active" data-tab="tab-overview">Visão Geral</button>
+            <button class="dash-tab" data-tab="tab-combate">Combate</button>
+            <button class="dash-tab" data-tab="tab-craft">Craft</button>
+            <button class="dash-tab" data-tab="tab-forja">Forja</button>
+            <button class="dash-tab" data-tab="tab-cozinha">Cozinha</button>
             <button class="dash-tab" data-tab="tab-mural">Mural</button>
             <button class="dash-tab" data-tab="tab-logs">Histórico</button>
             <button class="dash-tab master-only" data-tab="tab-settings" hidden>Configurações</button>
@@ -60,17 +64,81 @@
                     <p style="color: var(--cream-muted); font-size: 0.9rem;">Buscando aventureiros...</p>
                 </div>
             </div>
-            
-            <div class="dash-modules">
-                <div class="dash-module-card">
-                    <h3>Combate</h3>
-                    <p>Iniciativa, turnos e campo de batalha.</p>
-                    <button class="secondary-button" disabled>Em breve (Fase 5)</button>
+        </div>
+
+        <!-- ABA 2: COMBATE (ESQUELETO) -->
+        <div id="tab-combate" class="dash-tab-content" hidden>
+            <div class="section-header">
+                <h3>Campo de Batalha</h3>
+                <p>Gerenciamento de turnos, iniciativa e condições.</p>
+            </div>
+            <div class="dash-panel placeholder-panel">
+                <div class="placeholder-icon">⚔️</div>
+                <h3>Combate em Repouso</h3>
+                <p>A arquitetura de combate será implementada nas próximas fases.</p>
+                <button class="secondary-button" disabled style="max-width: 200px; margin: 0 auto;">Iniciar Combate (Em breve)</button>
+            </div>
+        </div>
+
+        <!-- ABA 3: CRAFT (ESQUELETO) -->
+        <div id="tab-craft" class="dash-tab-content" hidden>
+            <div class="section-header">
+                <h3>Bancada de Criação</h3>
+                <p>Crie itens, elixires e equipamentos úteis.</p>
+            </div>
+            <div class="dash-panel placeholder-panel">
+                <div class="placeholder-icon">🧪</div>
+                <h3>Sistema de Crafting</h3>
+                <p>A arquitetura de criação de itens será implementada nas próximas fases.</p>
+            </div>
+        </div>
+
+        <!-- ABA 4: FORJA (ESQUELETO) -->
+        <div id="tab-forja" class="dash-tab-content" hidden>
+            <div class="section-header">
+                <h3>Forja Ancestral</h3>
+                <p>Melhore armas e crie armaduras poderosas.</p>
+            </div>
+            <div class="dash-panel placeholder-panel">
+                <div class="placeholder-icon">🔨</div>
+                <h3>Sistema de Forja</h3>
+                <p>A arquitetura da forja será implementada nas próximas fases.</p>
+            </div>
+        </div>
+
+        <!-- ABA 5: COZINHA (ESQUELETO - INSPIRADO NO PDF) -->
+        <div id="tab-cozinha" class="dash-tab-content" hidden>
+            <div class="section-header">
+                <h3>Acampamento & Culinária</h3>
+                <p>Cozinhe ingredientes raros para obter bônus e recuperar energias.</p>
+            </div>
+
+            <!-- Efeito Ativo -->
+            <div class="cooking-active-meal">
+                <h4>🍲 Refeição Ativa</h4>
+                <p>Nenhum efeito alimentar ativo no momento.</p>
+                <div class="meal-bonus-box">
+                    <span>Bônus:</span> N/A
+                </div>
+            </div>
+
+            <!-- Grid Cozinha -->
+            <div class="cooking-grid">
+                <div class="dash-panel" style="margin-bottom: 0;">
+                    <h3>Bolsa de Ingredientes</h3>
+                    <p style="font-size: 0.8rem; color: var(--cream-muted); margin-bottom: 15px;">Itens coletados durante a aventura.</p>
+                    <div class="empty-list">Inventário de comida vazio.</div>
+                </div>
+                <div class="dash-panel" style="margin-bottom: 0;">
+                    <h3>Caderno de Receitas</h3>
+                    <p style="font-size: 0.8rem; color: var(--cream-muted); margin-bottom: 15px;">Combinações que deram certo.</p>
+                    <div class="empty-list">Nenhuma receita descoberta.</div>
+                    <button class="primary-button" style="width: 100%; margin-top: 15px;" disabled>Cozinhar Nova Refeição</button>
                 </div>
             </div>
         </div>
 
-        <!-- ABA 2: MURAL -->
+        <!-- ABA 6: MURAL -->
         <div id="tab-mural" class="dash-tab-content" hidden>
             <div class="section-header" style="display: flex; justify-content: space-between; align-items: center;">
                 <div>
@@ -84,7 +152,7 @@
             </div>
         </div>
 
-        <!-- ABA 3: LOGS -->
+        <!-- ABA 7: LOGS -->
         <div id="tab-logs" class="dash-tab-content" hidden>
             <div class="section-header">
                 <h3>Histórico do Mundo</h3>
@@ -95,7 +163,7 @@
             </div>
         </div>
 
-        <!-- ABA 4: CONFIGURAÇÕES -->
+        <!-- ABA 8: CONFIGURAÇÕES -->
         <div id="tab-settings" class="dash-tab-content" hidden>
             <div class="dash-panel">
                 <h3>Ajustes da Campanha</h3>
@@ -120,9 +188,9 @@
 </main>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="js/supabase.js?v=9"></script>
-<script src="js/auth.js?v=9"></script>
-<script src="js/campanha.js?v=3"></script>
+<script src="js/supabase.js?v=10"></script>
+<script src="js/auth.js?v=10"></script>
+<script src="js/campanha.js?v=4"></script>
 
 </body>
 </html>
