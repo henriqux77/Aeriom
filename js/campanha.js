@@ -127,7 +127,11 @@ document.addEventListener("DOMContentLoaded", async () => {
 
         if (userRole === 'master') {
             masterPanel.hidden = false;
-            document.querySelectorAll('.master-only').forEach(el => el.hidden = false);
+            // Garante que o navegador vai renderizar os botões do mestre corretamente
+            document.querySelectorAll('.master-only').forEach(el => {
+                el.hidden = false;
+                el.style.display = el.tagName === 'BUTTON' && el.classList.contains('dash-tab') ? 'inline-block' : 'flex';
+            });
             
             // Preenche form de config
             settingsName.value = currentCampaign.name;
