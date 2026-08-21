@@ -43,7 +43,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     const stateConditionsInput = document.getElementById("stateConditions");
     const saveStateBtn = document.getElementById("saveStateBtn");
 
-    // MODAL DO MURAL (FASE 7)
+    // MODAL DO MURAL
     const muralModal = document.getElementById("muralModal");
     const openMuralBtn = document.getElementById("openMuralModalBtn");
     const closeMuralBtn = document.getElementById("closeMuralModal");
@@ -52,7 +52,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     const muralContentInput = document.getElementById("muralContent");
     const saveMuralBtn = document.getElementById("saveMuralBtn");
 
-    // ROLAGEM DE DADOS (FASE 7)
+    // ROLAGEM DE DADOS
     const diceBtns = document.querySelectorAll('.dice-btn');
 
     // CONFIGURAÇÕES
@@ -60,6 +60,12 @@ document.addEventListener("DOMContentLoaded", async () => {
     const settingsName = document.getElementById("settingsName");
     const settingsDesc = document.getElementById("settingsDesc");
     const deleteCampaignBtn = document.getElementById("deleteCampaignBtn");
+
+    // ESCOLHER FICHA IN-GAME (QoL FASE 8)
+    const addMyCharacterBtn = document.getElementById("addMyCharacterBtn");
+    const selectCharacterModal = document.getElementById("selectCharacterModal");
+    const closeSelectCharacterModal = document.getElementById("closeSelectCharacterModal");
+    const userCharactersList = document.getElementById("userCharactersList");
 
     if (backBtn) {
         backBtn.addEventListener("click", () => {
@@ -161,6 +167,111 @@ document.addEventListener("DOMContentLoaded", async () => {
             settingsDesc.value = currentCampaign.description || "";
         }
     }
+
+    // =========================================================
+    // VINCULAR FICHA (NOVO)
+    // =========================================================
+    if (addMyCharacterBtn) {
+        addMyCharacterBtn.addEventListener('click', async () => {
+            selectCharacterModal.style.display = 'flex';
+            userCharactersList.innerHTML = '<p style="text-align: center; color: var(--cream-muted);">Carregando suas fichas...</p>';
+
+            try {
+                // 1. Busca TODAS as fichas do usuário
+                const { data: allChars, error: charError } = await supabase
+                    .from('characters')
+                    .select('id, name, race, class, avatar_url')
+                    .eq('user_id', currentUser.id);
+
+                if (charError) throw charError;
+
+                // 2. Busca quais fichas já estão na campanha
+                const { data: linkedChars, error: linkedError } = await supabase
+                    .from('campaign_characters')
+                    .select('character_id')
+                    .eq('campaign_id', campaignId);
+
+                if (linkedError) throw linkedError;
+                
+                const linkedIds = linkedChars.map(lc => lc.character_id);
+
+                if (!allChars || allChars.length === 0) {
+                    userCharactersList.innerHTML = `<p style="text-align: center; color: var(--cream-muted);">Você não possui nenhuma ficha criada. Volte à página inicial para criar uma.</p>`;
+                    return;
+                }
+
+                userCharactersList.innerHTML = '';
+                allChars.forEach(char => {
+                    const isLinked = linkedIds.includes(char.id);
+                    
+                    const charEl = document.createElement('div');
+                    charEl.style.display = 'flex';
+                    charEl.style.alignItems = 'center';
+                    charEl.style.gap = '15px';
+                    charEl.style.padding = '12px';
+                    charEl.style.border = '1px solid rgba(200, 100, 50, 0.3)';
+                    charEl.style.borderRadius = '10px';
+                    charEl.style.background = isLinked ? 'rgba(5, 3, 3, 0.6)' : 'rgba(25, 17, 15, 0.6)';
+                    charEl.style.opacity = isLinked ? '0.5' : '1';
+                    charEl.style.cursor = isLinked ? 'not-allowed' : 'pointer';
+
+                    const avatar = char.avatar_url 
+                        ? `<img src="${char.avatar_url}" style="width:40px; height:40px; border-radius:50%; object-fit:cover;">` 
+                        : `<div style="width:40px; height:40px; border-radius:50%; background:#222; display:grid; place-items:center; color:var(--gold); border:1px solid var(--gold);">${char.name.charAt(0)}</div>`;
+
+                    charEl.innerHTML = `
+                        ${avatar}
+                        <div style="flex:1;">
+                            <h4 style="margin:0; color:var(--cream); font-family:var(--display-font);">${char.name}</h4>
+                            <span style="font-size:11px; color:var(--cream-muted);">${char.race || '?'} • ${char.class || '?'}</span>
+                        </div>
+                        <button class="secondary-button" style="min-height:30px; padding:5px 15px; font-size:10px;" ${isLinked ? 'disabled' : ''}>${isLinked ? 'Já Adicionado' : 'Selecionar'}</button>
+                    `;
+
+                    if (!isLinked) {
+                        charEl.addEventListener('click', async () => {
+                            try {
+                                const { error: insertError } = await supabase
+                                    .from('campaign_characters')
+                                    .insert({
+                                        campaign_id: campaignId,
+                                        user_id: currentUser.id,
+                                        character_id: char.id
+                                    });
+
+                                if (insertError) throw insertError;
+                                
+                                await generateLog(`Um novo aventureiro entrou no mundo: ${char.name}.`, 'system');
+                                
+                                selectCharacterModal.style.display = 'none';
+                                await loadCampaignCharacters();
+                                alert(`${char.name} foi adicionado à campanha com sucesso!`);
+                                
+                            } catch (err) {
+                                console.error("Erro ao vincular ficha:", err);
+                                alert("Não foi possível adicionar o personagem.");
+                            }
+                        });
+                    }
+
+                    userCharactersList.appendChild(charEl);
+                });
+
+            } catch (error) {
+                console.error("Erro ao carregar fichas:", error);
+                userCharactersList.innerHTML = '<p style="color:#d46a4a;">Erro ao carregar fichas.</p>';
+            }
+        });
+    }
+
+    if (closeSelectCharacterModal) {
+        closeSelectCharacterModal.addEventListener('click', () => { selectCharacterModal.style.display = 'none'; });
+    }
+    
+    selectCharacterModal.addEventListener('click', (e) => { 
+        if(e.target === selectCharacterModal) selectCharacterModal.style.display = 'none'; 
+    });
+
 
     // =========================================================
     // ESTADO DO PERSONAGEM
@@ -320,7 +431,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
 
     // =========================================================
-    // CRIAR AVISO NO MURAL (FASE 7)
+    // CRIAR AVISO NO MURAL
     // =========================================================
     if (openMuralBtn) openMuralBtn.addEventListener('click', () => { muralForm.reset(); muralModal.style.display = 'flex'; });
     if (closeMuralBtn) closeMuralBtn.addEventListener('click', () => muralModal.style.display = 'none');
@@ -348,7 +459,7 @@ document.addEventListener("DOMContentLoaded", async () => {
                 await generateLog(`O Mestre fixou um novo cartaz no Mural: "${title}"`, 'system');
                 
                 muralModal.style.display = 'none';
-                await loadMural(); // Recarrega o mural imediatamente
+                await loadMural(); 
                 
             } catch (error) {
                 console.error("Erro ao salvar mural", error);
@@ -361,14 +472,13 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
 
     // =========================================================
-    // ROLAGEM DE DADOS DO MESTRE (FASE 7)
+    // ROLAGEM DE DADOS DO MESTRE
     // =========================================================
     diceBtns.forEach(btn => {
         btn.addEventListener('click', async () => {
             const sides = parseInt(btn.getAttribute('data-dice'));
             const result = Math.floor(Math.random() * sides) + 1;
             
-            // Efeito visual no botão
             const originalText = btn.textContent;
             btn.textContent = `[ ${result} ]`;
             btn.style.borderColor = "var(--fire)";
@@ -380,7 +490,6 @@ document.addEventListener("DOMContentLoaded", async () => {
                 btn.style.color = "";
             }, 1000);
 
-            // Salva no Log do Servidor
             await generateLog(`O Mestre rolou 1d${sides}. Resultado: ${result}`, 'combat');
         });
     });
