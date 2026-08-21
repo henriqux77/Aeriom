@@ -66,7 +66,7 @@
             </div>
         </div>
 
-        <!-- ABA 2: COMBATE (ESQUELETO) -->
+        <!-- ABA 2: COMBATE -->
         <div id="tab-combate" class="dash-tab-content" hidden>
             <div class="section-header">
                 <h3>Campo de Batalha</h3>
@@ -76,11 +76,10 @@
                 <div class="placeholder-icon">⚔️</div>
                 <h3>Combate em Repouso</h3>
                 <p>A arquitetura de combate será implementada nas próximas fases.</p>
-                <button class="secondary-button" disabled style="max-width: 200px; margin: 0 auto;">Iniciar Combate (Em breve)</button>
             </div>
         </div>
 
-        <!-- ABA 3: CRAFT (ESQUELETO) -->
+        <!-- ABA 3: CRAFT -->
         <div id="tab-craft" class="dash-tab-content" hidden>
             <div class="section-header">
                 <h3>Bancada de Criação</h3>
@@ -93,7 +92,7 @@
             </div>
         </div>
 
-        <!-- ABA 4: FORJA (ESQUELETO) -->
+        <!-- ABA 4: FORJA -->
         <div id="tab-forja" class="dash-tab-content" hidden>
             <div class="section-header">
                 <h3>Forja Ancestral</h3>
@@ -106,23 +105,17 @@
             </div>
         </div>
 
-        <!-- ABA 5: COZINHA (ESQUELETO - INSPIRADO NO PDF) -->
+        <!-- ABA 5: COZINHA -->
         <div id="tab-cozinha" class="dash-tab-content" hidden>
             <div class="section-header">
                 <h3>Acampamento & Culinária</h3>
                 <p>Cozinhe ingredientes raros para obter bônus e recuperar energias.</p>
             </div>
-
-            <!-- Efeito Ativo -->
             <div class="cooking-active-meal">
                 <h4>🍲 Refeição Ativa</h4>
                 <p>Nenhum efeito alimentar ativo no momento.</p>
-                <div class="meal-bonus-box">
-                    <span>Bônus:</span> N/A
-                </div>
+                <div class="meal-bonus-box"><span>Bônus:</span> N/A</div>
             </div>
-
-            <!-- Grid Cozinha -->
             <div class="cooking-grid">
                 <div class="dash-panel" style="margin-bottom: 0;">
                     <h3>Bolsa de Ingredientes</h3>
@@ -133,7 +126,6 @@
                     <h3>Caderno de Receitas</h3>
                     <p style="font-size: 0.8rem; color: var(--cream-muted); margin-bottom: 15px;">Combinações que deram certo.</p>
                     <div class="empty-list">Nenhuma receita descoberta.</div>
-                    <button class="primary-button" style="width: 100%; margin-top: 15px;" disabled>Cozinhar Nova Refeição</button>
                 </div>
             </div>
         </div>
@@ -187,10 +179,50 @@
     </section>
 </main>
 
+<!-- MODAL: ESTADO DO PERSONAGEM (FASE 6) -->
+<div id="characterStateModal" class="auth-modal" style="display: none; align-items: center; justify-content: center;">
+    <div class="auth-box" style="max-width: 400px; text-align: center;">
+        <button id="closeCharacterStateModal" class="auth-close">×</button>
+        <h2 id="stateModalName">Personagem</h2>
+        <p>Estado atual na campanha</p>
+
+        <form id="characterStateForm">
+            <div style="display: flex; gap: 15px; margin-bottom: 15px;">
+                <label class="sheet-field" style="flex: 1;">
+                    <span style="display: block; color: var(--gold); font-family: var(--display-font); font-size: 10px; margin-bottom: 5px; text-align: left;">PV Atual</span>
+                    <div style="display: flex; gap: 5px;">
+                        <button type="button" class="state-adj-btn" onclick="document.getElementById('stateHp').value = Number(document.getElementById('stateHp').value) - 1">-</button>
+                        <input type="number" id="stateHp" required style="width: 100%; text-align: center; padding: 12px; background: rgba(20, 15, 13, 0.8); border: 1px solid rgba(200, 100, 50, 0.3); color: var(--cream); border-radius: 8px;">
+                        <button type="button" class="state-adj-btn" onclick="document.getElementById('stateHp').value = Number(document.getElementById('stateHp').value) + 1">+</button>
+                    </div>
+                </label>
+            </div>
+
+            <div style="display: flex; gap: 15px; margin-bottom: 20px;">
+                <label class="sheet-field" style="flex: 1;">
+                    <span style="display: block; color: var(--gold); font-family: var(--display-font); font-size: 10px; margin-bottom: 5px; text-align: left;">Mana Atual</span>
+                    <div style="display: flex; gap: 5px;">
+                        <button type="button" class="state-adj-btn" onclick="document.getElementById('stateMana').value = Number(document.getElementById('stateMana').value) - 1">-</button>
+                        <input type="number" id="stateMana" required style="width: 100%; text-align: center; padding: 12px; background: rgba(20, 15, 13, 0.8); border: 1px solid rgba(200, 100, 50, 0.3); color: var(--cream); border-radius: 8px;">
+                        <button type="button" class="state-adj-btn" onclick="document.getElementById('stateMana').value = Number(document.getElementById('stateMana').value) + 1">+</button>
+                    </div>
+                </label>
+            </div>
+
+            <label class="sheet-field" style="display: block; margin-bottom: 20px;">
+                <span style="display: block; color: var(--gold); font-family: var(--display-font); font-size: 10px; margin-bottom: 5px; text-align: left;">Condições e Efeitos</span>
+                <textarea id="stateConditions" placeholder="Ex: Envenenado, Cego, +2 Força..." style="width: 100%; padding: 12px; background: rgba(20, 15, 13, 0.8); border: 1px solid rgba(200, 100, 50, 0.3); color: var(--cream); border-radius: 8px; min-height: 80px;"></textarea>
+            </label>
+
+            <button type="submit" id="saveStateBtn" class="primary-button" style="width: 100%;">Salvar Estado</button>
+        </form>
+    </div>
+</div>
+
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="js/supabase.js?v=10"></script>
-<script src="js/auth.js?v=10"></script>
-<script src="js/campanha.js?v=4"></script>
+<script src="js/supabase.js?v=11"></script>
+<script src="js/auth.js?v=11"></script>
+<script src="js/campanha.js?v=5"></script>
 
 </body>
 </html>
