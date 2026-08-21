@@ -76,9 +76,13 @@
             </div>
 
             <div class="campaign-section">
-                <div class="section-header">
-                    <h3>Aventureiros</h3>
-                    <p>Os heróis presentes neste mundo.</p>
+                <!-- CABEÇALHO AVENTUREIROS COM BOTÃO NOVO -->
+                <div class="section-header" style="display: flex; justify-content: space-between; align-items: center;">
+                    <div>
+                        <h3>Aventureiros</h3>
+                        <p>Os heróis presentes neste mundo.</p>
+                    </div>
+                    <button id="addMyCharacterBtn" class="primary-button" style="width: auto; min-height: 35px; font-size: 11px;">+ Adicionar Ficha</button>
                 </div>
                 <div id="campaignCharactersList" class="campaign-characters-grid">
                     <p style="color: var(--cream-muted); font-size: 0.9rem;">Buscando aventureiros...</p>
@@ -239,7 +243,7 @@
     </div>
 </div>
 
-<!-- MODAL: CRIAR MURAL (FASE 7) -->
+<!-- MODAL: CRIAR MURAL -->
 <div id="muralModal" class="auth-modal" style="display: none; align-items: center; justify-content: center;">
     <div class="auth-box" style="max-width: 500px;">
         <button id="closeMuralModal" class="auth-close">×</button>
@@ -262,10 +266,22 @@
     </div>
 </div>
 
+<!-- MODAL: ESCOLHER FICHA IN-GAME -->
+<div id="selectCharacterModal" class="auth-modal" style="display: none; align-items: center; justify-content: center;">
+    <div class="auth-box" style="max-width: 600px;">
+        <button id="closeSelectCharacterModal" class="auth-close">×</button>
+        <h2>Vincular Ficha</h2>
+        <p>Escolha qual personagem você quer adicionar à campanha.</p>
+        <div id="userCharactersList" style="display: flex; flex-direction: column; gap: 10px; max-height: 400px; overflow-y: auto; margin-bottom: 20px;">
+            <p style="text-align: center; color: var(--cream-muted);">Buscando suas fichas...</p>
+        </div>
+    </div>
+</div>
+
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="js/supabase.js?v=12"></script>
-<script src="js/auth.js?v=12"></script>
-<script src="js/campanha.js?v=6"></script>
+<script src="js/supabase.js?v=13"></script>
+<script src="js/auth.js?v=13"></script>
+<script src="js/campanha.js?v=7"></script>
 
 </body>
 </html>
