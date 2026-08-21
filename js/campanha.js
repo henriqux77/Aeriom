@@ -33,12 +33,6 @@ document.addEventListener("DOMContentLoaded", async () => {
     const muralList = document.getElementById("muralList");
     const logsList = document.getElementById("logsList");
 
-    // CONFIGURAÇÕES
-    const settingsForm = document.getElementById("campaignSettingsForm");
-    const settingsName = document.getElementById("settingsName");
-    const settingsDesc = document.getElementById("settingsDesc");
-    const deleteCampaignBtn = document.getElementById("deleteCampaignBtn");
-
     // MODAL DE ESTADO
     const stateModal = document.getElementById("characterStateModal");
     const closeStateBtn = document.getElementById("closeCharacterStateModal");
@@ -48,6 +42,24 @@ document.addEventListener("DOMContentLoaded", async () => {
     const stateManaInput = document.getElementById("stateMana");
     const stateConditionsInput = document.getElementById("stateConditions");
     const saveStateBtn = document.getElementById("saveStateBtn");
+
+    // MODAL DO MURAL (FASE 7)
+    const muralModal = document.getElementById("muralModal");
+    const openMuralBtn = document.getElementById("openMuralModalBtn");
+    const closeMuralBtn = document.getElementById("closeMuralModal");
+    const muralForm = document.getElementById("muralForm");
+    const muralTitleInput = document.getElementById("muralTitle");
+    const muralContentInput = document.getElementById("muralContent");
+    const saveMuralBtn = document.getElementById("saveMuralBtn");
+
+    // ROLAGEM DE DADOS (FASE 7)
+    const diceBtns = document.querySelectorAll('.dice-btn');
+
+    // CONFIGURAÇÕES
+    const settingsForm = document.getElementById("campaignSettingsForm");
+    const settingsName = document.getElementById("settingsName");
+    const settingsDesc = document.getElementById("settingsDesc");
+    const deleteCampaignBtn = document.getElementById("deleteCampaignBtn");
 
     if (backBtn) {
         backBtn.addEventListener("click", () => {
@@ -151,12 +163,11 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
 
     // =========================================================
-    // ESTADO DO PERSONAGEM (FASE 6)
+    // ESTADO DO PERSONAGEM
     // =========================================================
     async function loadCampaignCharacters() {
         if (!campaignCharactersList) return;
         try {
-            // Seleciona agora também os campos temporários: current_hp, current_mana, conditions
             const { data, error } = await supabase
                 .from('campaign_characters')
                 .select(`id, user_id, current_hp, current_mana, conditions, characters(id, name, race, class, avatar_url)`)
@@ -181,7 +192,6 @@ document.addEventListener("DOMContentLoaded", async () => {
                     ? `<img src="${char.avatar_url}" class="char-card-avatar" onerror="this.outerHTML='<div class=\\'char-card-fallback\\'>${char.name.charAt(0)}</div>'">` 
                     : `<div class="char-card-fallback">${char.name.charAt(0)}</div>`;
 
-                // Badge de Estado visual
                 const conds = link.conditions ? `<div class="char-state-badge" style="border-color:var(--fire); color:#ff9d85;">⚠️ Condições</div>` : '';
                 const statsInfo = `<div style="font-size: 0.75rem; color: var(--gold); margin-top: 4px;">PV: ${link.current_hp || 0} | Mana: ${link.current_mana || 0}</div>`;
 
@@ -192,24 +202,10 @@ document.addEventListener("DOMContentLoaded", async () => {
                     actionHtml = `<button class="primary-button" style="min-height:30px; padding:5px 12px; font-size:10px;">Acessar</button>`;
                 }
 
-                card.innerHTML = `
-                    ${avatarHtml}
-                    <div class="char-card-info">
-                        <h4>${char.name}</h4>
-                        <span>${char.race || '?'} • ${char.class || '?'}</span>
-                        ${statsInfo}
-                        ${conds}
-                    </div>
-                    <div class="char-card-actions">${actionHtml}</div>
-                `;
+                card.innerHTML = `${avatarHtml}<div class="char-card-info"><h4>${char.name}</h4><span>${char.race || '?'} • ${char.class || '?'}</span>${statsInfo}${conds}</div><div class="char-card-actions">${actionHtml}</div>`;
 
-                // Adiciona o evento de clique no botão (se existir)
                 const btn = card.querySelector('button');
-                if (btn) {
-                    btn.addEventListener('click', () => {
-                        openStateModal(link.id, char.name, link.current_hp, link.current_mana, link.conditions);
-                    });
-                }
+                if (btn) btn.addEventListener('click', () => openStateModal(link.id, char.name, link.current_hp, link.current_mana, link.conditions));
 
                 campaignCharactersList.appendChild(card);
             });
@@ -241,7 +237,6 @@ document.addEventListener("DOMContentLoaded", async () => {
         stateForm.addEventListener('submit', async (e) => {
             e.preventDefault();
             if (!activeStateLinkId) return;
-
             saveStateBtn.disabled = true;
             saveStateBtn.textContent = "Salvando...";
 
@@ -250,25 +245,14 @@ document.addEventListener("DOMContentLoaded", async () => {
                 const mana = parseInt(stateManaInput.value) || 0;
                 const cond = stateConditionsInput.value.trim();
 
-                // 1. Atualiza a tabela temporária
-                const { error: updateError } = await supabase
-                    .from('campaign_characters')
-                    .update({ current_hp: hp, current_mana: mana, conditions: cond })
-                    .eq('id', activeStateLinkId);
-
+                const { error: updateError } = await supabase.from('campaign_characters').update({ current_hp: hp, current_mana: mana, conditions: cond }).eq('id', activeStateLinkId);
                 if (updateError) throw updateError;
 
-                // 2. Registra o Log
                 const actionUser = userRole === 'master' ? 'O Mestre' : activeStateCharName;
-                await supabase.from('campaign_logs').insert({
-                    campaign_id: campaignId,
-                    description: `${actionUser} atualizou o estado de ${activeStateCharName} (PV: ${hp}, Mana: ${mana}).`,
-                    log_type: 'combat'
-                });
+                await generateLog(`${actionUser} atualizou o estado de ${activeStateCharName} (PV: ${hp}, Mana: ${mana}).`, 'combat');
 
                 closeStateModal();
                 await loadCampaignCharacters();
-
             } catch (error) {
                 console.error("Erro ao salvar estado:", error);
                 alert("Falha ao salvar. Verifique se você tem permissão.");
@@ -323,8 +307,86 @@ document.addEventListener("DOMContentLoaded", async () => {
         }
     }
 
+    async function generateLog(description, type = 'system') {
+        try {
+            await supabase.from('campaign_logs').insert({
+                campaign_id: campaignId,
+                description: description,
+                log_type: type
+            });
+        } catch (e) {
+            console.error("Falha ao salvar log", e);
+        }
+    }
+
     // =========================================================
-    // CONFIGURAÇÕES
+    // CRIAR AVISO NO MURAL (FASE 7)
+    // =========================================================
+    if (openMuralBtn) openMuralBtn.addEventListener('click', () => { muralForm.reset(); muralModal.style.display = 'flex'; });
+    if (closeMuralBtn) closeMuralBtn.addEventListener('click', () => muralModal.style.display = 'none');
+    muralModal.addEventListener('click', (e) => { if(e.target === muralModal) muralModal.style.display = 'none'; });
+
+    if (muralForm) {
+        muralForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            saveMuralBtn.disabled = true;
+            saveMuralBtn.textContent = "Fixando cartaz...";
+
+            try {
+                const title = muralTitleInput.value.trim();
+                const content = muralContentInput.value.trim();
+
+                const { error } = await supabase.from('campaign_mural').insert({
+                    campaign_id: campaignId,
+                    title: title,
+                    content: content,
+                    type: 'cartaz'
+                });
+
+                if (error) throw error;
+
+                await generateLog(`O Mestre fixou um novo cartaz no Mural: "${title}"`, 'system');
+                
+                muralModal.style.display = 'none';
+                await loadMural(); // Recarrega o mural imediatamente
+                
+            } catch (error) {
+                console.error("Erro ao salvar mural", error);
+                alert("Falha ao criar cartaz.");
+            } finally {
+                saveMuralBtn.disabled = false;
+                saveMuralBtn.textContent = "Fixar no Mural";
+            }
+        });
+    }
+
+    // =========================================================
+    // ROLAGEM DE DADOS DO MESTRE (FASE 7)
+    // =========================================================
+    diceBtns.forEach(btn => {
+        btn.addEventListener('click', async () => {
+            const sides = parseInt(btn.getAttribute('data-dice'));
+            const result = Math.floor(Math.random() * sides) + 1;
+            
+            // Efeito visual no botão
+            const originalText = btn.textContent;
+            btn.textContent = `[ ${result} ]`;
+            btn.style.borderColor = "var(--fire)";
+            btn.style.color = "var(--cream)";
+            
+            setTimeout(() => {
+                btn.textContent = originalText;
+                btn.style.borderColor = "";
+                btn.style.color = "";
+            }, 1000);
+
+            // Salva no Log do Servidor
+            await generateLog(`O Mestre rolou 1d${sides}. Resultado: ${result}`, 'combat');
+        });
+    });
+
+    // =========================================================
+    // CONFIGURAÇÕES E CONVITE
     // =========================================================
     if (settingsForm) {
         settingsForm.addEventListener('submit', async (e) => {
@@ -367,9 +429,6 @@ document.addEventListener("DOMContentLoaded", async () => {
         });
     }
 
-    // =========================================================
-    // CONVITE
-    // =========================================================
     if (generateInviteBtn) {
         generateInviteBtn.addEventListener('click', async () => {
             generateInviteBtn.disabled = true;
