@@ -50,17 +50,36 @@
                 <h3>Ferramentas do Mestre</h3>
                 
                 <div class="master-tools-grid">
+                    <!-- Solicitação de Teste (FASE 9) -->
+                    <div class="tool-section">
+                        <span class="tool-label">Solicitar Teste aos Jogadores</span>
+                        <div style="display: flex; gap: 10px; align-items: center; margin-top: 8px;">
+                            <select id="requestRollSelect" style="flex: 1; padding: 10px; background: rgba(20, 15, 13, 0.8); border: 1px solid rgba(200, 100, 50, 0.3); color: var(--cream); border-radius: 6px;">
+                                <option value="Percepção">Percepção</option>
+                                <option value="Força">Força</option>
+                                <option value="Agilidade">Agilidade</option>
+                                <option value="Vigor">Vigor</option>
+                                <option value="Intelecto">Intelecto</option>
+                                <option value="Presença">Presença</option>
+                                <option value="Precisão">Precisão</option>
+                                <option value="Controle">Controle</option>
+                                <option value="Puro (1d20)">Puro (Sem atributo)</option>
+                            </select>
+                            <button id="sendRollRequestBtn" class="primary-button" style="width: auto; min-height: 38px; font-size: 11px; white-space: nowrap;">Pedir Teste</button>
+                        </div>
+                    </div>
+
                     <!-- Gerar Convite -->
                     <div class="tool-section">
                         <span class="tool-label">Adicionar Jogadores</span>
                         <div style="display: flex; gap: 10px; align-items: center; margin-top: 8px;">
-                            <button id="generateInviteBtn" class="primary-button" style="width: auto; min-height: 35px; font-size: 11px;">Gerar Convite</button>
+                            <button id="generateInviteBtn" class="secondary-button" style="width: auto; min-height: 35px; font-size: 11px;">Gerar Convite</button>
                             <div id="inviteCodeDisplay" style="padding: 8px 12px; border: 1px dashed var(--gold); border-radius: 6px; color: var(--gold); font-family: monospace; font-size: 14px; letter-spacing: 2px;" hidden></div>
                         </div>
                     </div>
                     
                     <!-- Rolagem de Dados -->
-                    <div class="tool-section">
+                    <div class="tool-section" style="grid-column: 1 / -1;">
                         <span class="tool-label">Rolagens Rápidas (Registra no Histórico)</span>
                         <div class="dice-buttons-container">
                             <button class="dice-btn master-dice-btn" data-dice="4">1d4</button>
@@ -203,13 +222,12 @@
     </section>
 </main>
 
-<!-- MODAL: ESTADO RÁPIDO DO PERSONAGEM (USADO PELO MESTRE) -->
+<!-- MODAIS GERAIS (ESTADO, ESCOLHER FICHA) -->
 <div id="characterStateModal" class="auth-modal" style="display: none; align-items: center; justify-content: center;">
     <div class="auth-box" style="max-width: 400px; text-align: center;">
         <button id="closeCharacterStateModal" class="auth-close">×</button>
         <h2 id="stateModalName">Personagem</h2>
         <p>Estado atual na campanha</p>
-
         <form id="characterStateForm">
             <div style="display: flex; gap: 15px; margin-bottom: 15px;">
                 <label class="sheet-field" style="flex: 1;">
@@ -221,7 +239,6 @@
                     </div>
                 </label>
             </div>
-
             <div style="display: flex; gap: 15px; margin-bottom: 20px;">
                 <label class="sheet-field" style="flex: 1;">
                     <span style="display: block; color: var(--gold); font-family: var(--display-font); font-size: 10px; margin-bottom: 5px; text-align: left;">Mana Atual</span>
@@ -232,41 +249,15 @@
                     </div>
                 </label>
             </div>
-
             <label class="sheet-field" style="display: block; margin-bottom: 20px;">
                 <span style="display: block; color: var(--gold); font-family: var(--display-font); font-size: 10px; margin-bottom: 5px; text-align: left;">Condições e Efeitos</span>
-                <textarea id="stateConditions" placeholder="Ex: Envenenado, Cego, +2 Força..." style="width: 100%; padding: 12px; background: rgba(20, 15, 13, 0.8); border: 1px solid rgba(200, 100, 50, 0.3); color: var(--cream); border-radius: 8px; min-height: 80px;"></textarea>
+                <textarea id="stateConditions" placeholder="Ex: Envenenado, Cego..." style="width: 100%; padding: 12px; background: rgba(20, 15, 13, 0.8); border: 1px solid rgba(200, 100, 50, 0.3); color: var(--cream); border-radius: 8px; min-height: 80px;"></textarea>
             </label>
-
             <button type="submit" id="saveStateBtn" class="primary-button" style="width: 100%;">Salvar Estado</button>
         </form>
     </div>
 </div>
 
-<!-- MODAL: CRIAR MURAL -->
-<div id="muralModal" class="auth-modal" style="display: none; align-items: center; justify-content: center;">
-    <div class="auth-box" style="max-width: 500px;">
-        <button id="closeMuralModal" class="auth-close">×</button>
-        <h2>Aviso no Mural</h2>
-        <p>Crie cartazes ou avisos para os jogadores.</p>
-
-        <form id="muralForm">
-            <label class="sheet-field" style="display: block; margin-bottom: 15px;">
-                <span style="display: block; color: var(--gold); font-family: var(--display-font); font-size: 10px; margin-bottom: 5px;">Título do Cartaz</span>
-                <input type="text" id="muralTitle" placeholder="Ex: PROCURADO: Rei Goblin" required maxlength="100" style="width: 100%; padding: 12px; background: rgba(20, 15, 13, 0.8); border: 1px solid rgba(200, 100, 50, 0.3); color: var(--cream); border-radius: 8px;">
-            </label>
-            
-            <label class="sheet-field" style="display: block; margin-bottom: 20px;">
-                <span style="display: block; color: var(--gold); font-family: var(--display-font); font-size: 10px; margin-bottom: 5px;">Conteúdo</span>
-                <textarea id="muralContent" placeholder="Detalhes do aviso, recompensas, pistas..." required style="width: 100%; padding: 12px; background: rgba(20, 15, 13, 0.8); border: 1px solid rgba(200, 100, 50, 0.3); color: var(--cream); border-radius: 8px; min-height: 100px; font-family: 'Georgia', serif;"></textarea>
-            </label>
-
-            <button type="submit" id="saveMuralBtn" class="primary-button" style="width: 100%;">Fixar no Mural</button>
-        </form>
-    </div>
-</div>
-
-<!-- MODAL: ESCOLHER FICHA IN-GAME -->
 <div id="selectCharacterModal" class="auth-modal" style="display: none; align-items: center; justify-content: center;">
     <div class="auth-box" style="max-width: 600px;">
         <button id="closeSelectCharacterModal" class="auth-close">×</button>
@@ -278,12 +269,38 @@
     </div>
 </div>
 
-<!-- MODAL: FICHA DO JOGADOR IN-GAME (FASE 8) -->
+<!-- MODAL: CRIAR MURAL (COM IMAGEM FASE 9) -->
+<div id="muralModal" class="auth-modal" style="display: none; align-items: center; justify-content: center;">
+    <div class="auth-box" style="max-width: 500px;">
+        <button id="closeMuralModal" class="auth-close">×</button>
+        <h2>Aviso no Mural</h2>
+        <p>Crie cartazes, fixe mapas ou avisos para os jogadores.</p>
+
+        <form id="muralForm">
+            <label class="sheet-field" style="display: block; margin-bottom: 15px;">
+                <span style="display: block; color: var(--gold); font-family: var(--display-font); font-size: 10px; margin-bottom: 5px;">Título do Cartaz</span>
+                <input type="text" id="muralTitle" placeholder="Ex: PROCURADO: Rei Goblin" required maxlength="100" style="width: 100%; padding: 12px; background: rgba(20, 15, 13, 0.8); border: 1px solid rgba(200, 100, 50, 0.3); color: var(--cream); border-radius: 8px;">
+            </label>
+            
+            <label class="sheet-field" style="display: block; margin-bottom: 15px;">
+                <span style="display: block; color: var(--gold); font-family: var(--display-font); font-size: 10px; margin-bottom: 5px;">Imagem (Opcional - Mapas, Escudos, etc)</span>
+                <input type="file" id="muralImage" accept="image/png,image/jpeg,image/webp" style="width: 100%; padding: 10px; background: rgba(20, 15, 13, 0.8); border: 1px dashed rgba(200, 100, 50, 0.3); color: var(--cream); border-radius: 8px;">
+            </label>
+
+            <label class="sheet-field" style="display: block; margin-bottom: 20px;">
+                <span style="display: block; color: var(--gold); font-family: var(--display-font); font-size: 10px; margin-bottom: 5px;">Conteúdo</span>
+                <textarea id="muralContent" placeholder="Detalhes do aviso, recompensas, pistas..." style="width: 100%; padding: 12px; background: rgba(20, 15, 13, 0.8); border: 1px solid rgba(200, 100, 50, 0.3); color: var(--cream); border-radius: 8px; min-height: 80px; font-family: 'Georgia', serif;"></textarea>
+            </label>
+
+            <button type="submit" id="saveMuralBtn" class="primary-button" style="width: 100%;">Fixar no Mural</button>
+        </form>
+    </div>
+</div>
+
+<!-- MODAL: FICHA DO JOGADOR IN-GAME -->
 <div id="playerSheetModal" class="auth-modal player-sheet-modal" style="display: none; align-items: flex-start; justify-content: center; padding: 20px;">
     <div class="auth-box player-sheet-box" style="width: 100%; max-width: 800px; max-height: 90vh; overflow-y: auto; position: relative;">
         <button id="closePlayerSheetModal" class="auth-close" style="position: sticky; top: 10px; right: 10px; z-index: 10;">×</button>
-        
-        <!-- Cabeçalho Visual da Ficha -->
         <div class="player-sheet-header">
             <div id="psAvatarContainer"></div>
             <div class="ps-header-info">
@@ -291,8 +308,6 @@
                 <span id="psSubinfo">Raça • Classe • Origem</span>
             </div>
         </div>
-
-        <!-- Seção: Estado Temporário (Editável) -->
         <div class="dash-panel" style="margin-bottom: 20px; padding: 15px;">
             <h3 style="font-size: 1rem; margin-bottom: 10px;">Estado na Campanha (Temporário)</h3>
             <form id="psStateForm" style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
@@ -319,38 +334,42 @@
                 <button type="submit" id="psSaveStateBtn" class="primary-button" style="grid-column: span 2;">Atualizar Estado</button>
             </form>
         </div>
-
-        <!-- Seção: Rolagens e Atributos Permanentes (Somente Leitura) -->
         <div class="dash-panel" style="margin-bottom: 20px; padding: 15px;">
             <h3 style="font-size: 1rem; margin-bottom: 5px;">🎲 Rolagens (Atributos Base)</h3>
             <p style="font-size: 0.8rem; color: var(--cream-muted); margin-bottom: 15px;">Toque em um atributo para rolar os dados no Histórico.</p>
-            <div id="psAttributesGrid" class="attributes-roll-grid">
-                <!-- Preenchido via JS -->
-            </div>
+            <div id="psAttributesGrid" class="attributes-roll-grid"></div>
         </div>
-
-        <!-- Seção: Outras Informações da Ficha Permanente -->
         <div class="dash-panel" style="margin-bottom: 10px; padding: 15px;">
             <h3 style="font-size: 1rem; margin-bottom: 15px;">Informações Permanentes</h3>
-            
             <div class="ps-readonly-section">
                 <h4 style="color: var(--gold); font-size: 0.85rem; border-bottom: 1px solid rgba(200, 100, 50, 0.2); padding-bottom: 5px;">Inventário / Equipamentos</h4>
                 <p id="psInventory" style="white-space: pre-wrap; font-size: 0.85rem; color: var(--cream-muted); margin-top: 10px;">Vazio</p>
             </div>
-
             <div class="ps-readonly-section" style="margin-top: 15px;">
                 <h4 style="color: var(--gold); font-size: 0.85rem; border-bottom: 1px solid rgba(200, 100, 50, 0.2); padding-bottom: 5px;">Técnicas / Perícias / Outros</h4>
                 <p id="psSkills" style="white-space: pre-wrap; font-size: 0.85rem; color: var(--cream-muted); margin-top: 10px;">Sem registros</p>
             </div>
         </div>
+    </div>
+</div>
 
+<!-- TOAST DE SOLICITAÇÃO (FASE 9) -->
+<div id="requestToast" class="request-toast" hidden>
+    <div class="request-toast-content">
+        <span class="request-icon">🎲</span>
+        <div style="flex: 1;">
+            <strong style="color: var(--gold); display: block; font-size: 14px; font-family: var(--display-font);">O Mestre Solicitou</strong>
+            <span id="requestToastMsg" style="font-size: 13px; color: var(--cream);">Teste de Percepção</span>
+        </div>
+        <button id="requestToastRollBtn" class="primary-button" style="min-height: 35px; padding: 5px 15px; font-size: 12px; margin-left: 10px;">Rolar</button>
+        <button id="requestToastCloseBtn" style="background:none; border:none; color: var(--cream-muted); font-size: 18px; cursor: pointer; padding: 0 5px;">×</button>
     </div>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="js/supabase.js?v=14"></script>
-<script src="js/auth.js?v=14"></script>
-<script src="js/campanha.js?v=8"></script>
+<script src="js/supabase.js?v=15"></script>
+<script src="js/auth.js?v=15"></script>
+<script src="js/campanha.js?v=9"></script>
 
 </body>
 </html>
