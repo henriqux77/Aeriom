@@ -12,7 +12,9 @@ document.addEventListener("DOMContentLoaded", async () => {
     let playerSheetLinkId = null;
     let playerSheetCharName = "";
     
-    // Variável para armazenar o valor do atributo na hora da rolagem do Request
+    // Variáveis de Combate (FASE 10)
+    let combatState = null;
+
     let currentRequestAttrValue = 0;
     let currentRequestAttrName = "";
 
@@ -22,7 +24,6 @@ document.addEventListener("DOMContentLoaded", async () => {
     const contentEl = document.getElementById("dashContent");
     const backBtn = document.getElementById("backToCampaignsBtn");
     const roleLabel = document.getElementById("campaignRoleLabel");
-    
     const banner = document.getElementById("campaignBanner");
     const bannerName = document.getElementById("bannerName");
     const masterPanel = document.getElementById("masterPanel");
@@ -77,6 +78,18 @@ document.addEventListener("DOMContentLoaded", async () => {
     const closeSelectCharacterModal = document.getElementById("closeSelectCharacterModal");
     const userCharactersList = document.getElementById("userCharactersList");
 
+    // ELEMENTOS DO COMBATE (FASE 10)
+    const toggleCombatBtn = document.getElementById("toggleCombatBtn");
+    const combatMasterPanel = document.getElementById("combatMasterPanel");
+    const addCombatantForm = document.getElementById("addCombatantForm");
+    const combatantNameInput = document.getElementById("combatantName");
+    const combatantInitInput = document.getElementById("combatantInit");
+    const combatTrackerContainer = document.getElementById("combatTrackerContainer");
+    const noCombatPlaceholder = document.getElementById("noCombatPlaceholder");
+    const combatRoundDisplay = document.getElementById("combatRoundDisplay");
+    const initiativeList = document.getElementById("initiativeList");
+    const nextTurnBtn = document.getElementById("nextTurnBtn");
+
     if (backBtn) {
         backBtn.addEventListener("click", () => {
             localStorage.removeItem("aeriom_active_campaign");
@@ -103,27 +116,21 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
 
     // =========================================================
-    // SUPABASE REALTIME (FASE 9)
+    // SUPABASE REALTIME
     // =========================================================
     function setupRealtime() {
         supabase.channel('campaign-events')
             .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'campaign_logs', filter: `campaign_id=eq.${campaignId}` }, async (payload) => {
                 const newLog = payload.new;
-                
-                // Se estamos com a aba de histórico aberta, atualizamos a lista
-                if (document.getElementById('tab-logs').classList.contains('active')) {
-                    loadLogs(); 
-                }
-
-                // Se for um Request e quem está recebendo é um Jogador
-                if (newLog.log_type === 'request_roll' && userRole !== 'master') {
-                    showRollRequest(newLog.description);
-                }
+                if (document.getElementById('tab-logs').classList.contains('active')) loadLogs(); 
+                if (newLog.log_type === 'request_roll' && userRole !== 'master') showRollRequest(newLog.description);
             })
             .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'campaign_mural', filter: `campaign_id=eq.${campaignId}` }, (payload) => {
-                if (document.getElementById('tab-mural').classList.contains('active')) {
-                    loadMural(); 
-                }
+                if (document.getElementById('tab-mural').classList.contains('active')) loadMural(); 
+            })
+            .on('postgres_changes', { event: '*', schema: 'public', table: 'campaign_combat', filter: `campaign_id=eq.${campaignId}` }, (payload) => {
+                combatState = payload.new;
+                if (document.getElementById('tab-combate').classList.contains('active')) renderCombat();
             })
             .subscribe();
     }
@@ -143,6 +150,7 @@ document.addEventListener("DOMContentLoaded", async () => {
                 if (targetId === 'tab-mural') loadMural();
                 if (targetId === 'tab-logs') loadLogs();
                 if (targetId === 'tab-overview') loadCampaignCharacters();
+                if (targetId === 'tab-combate') loadCombatState(); // Carrega combate ao abrir a aba
             });
         });
     }
@@ -167,7 +175,6 @@ document.addEventListener("DOMContentLoaded", async () => {
     function renderDashboard() {
         loadingEl.style.display = "none";
         contentEl.hidden = false;
-
         roleLabel.textContent = userRole === 'master' ? 'Mestre da Campanha' : 'Jogador';
         roleLabel.style.color = userRole === 'master' ? 'var(--fire)' : 'var(--orange)';
         bannerName.textContent = currentCampaign.name;
@@ -185,7 +192,173 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
 
     // =========================================================
-    // VINCULAR FICHA
+    // COMBATE E INICIATIVA (FASE 10)
+    // =========================================================
+    async function loadCombatState() {
+        try {
+            const { data, error } = await supabase.from('campaign_combat').select('*').eq('campaign_id', campaignId).maybeSingle();
+            if (error) throw error;
+            if (data) {
+                combatState = data;
+            } else {
+                combatState = { is_active: false, round_number: 1, turn_index: 0, combatants: [] };
+            }
+            renderCombat();
+        } catch(e) { console.error("Erro load combat", e); }
+    }
+
+    function renderCombat() {
+        if (!combatState || !combatState.is_active) {
+            combatTrackerContainer.style.display = "none";
+            noCombatPlaceholder.style.display = "flex";
+            if (userRole === 'master') {
+                toggleCombatBtn.textContent = "Iniciar Combate";
+                toggleCombatBtn.style.background = "";
+                combatMasterPanel.hidden = true;
+            }
+        } else {
+            noCombatPlaceholder.style.display = "none";
+            combatTrackerContainer.style.display = "block";
+            combatRoundDisplay.textContent = combatState.round_number;
+            
+            if (userRole === 'master') {
+                toggleCombatBtn.textContent = "Encerrar Combate";
+                toggleCombatBtn.style.background = "#8b2518"; // Cor vermelha para indicar parada
+                combatMasterPanel.hidden = false;
+            }
+
+            // Renderiza a lista de iniciativa
+            initiativeList.innerHTML = '';
+            
+            if (!combatState.combatants || combatState.combatants.length === 0) {
+                initiativeList.innerHTML = '<p style="color: var(--cream-muted); text-align: center; font-size: 0.9rem;">O campo de batalha está vazio.</p>';
+            } else {
+                combatState.combatants.forEach((c, index) => {
+                    const isActiveTurn = index === combatState.turn_index;
+                    const card = document.createElement('div');
+                    card.className = `combatant-card ${isActiveTurn ? 'active-turn' : ''}`;
+                    
+                    const removeBtnHtml = userRole === 'master' ? `<button class="remove-combatant-btn" data-index="${index}">×</button>` : '';
+
+                    card.innerHTML = `
+                        <div class="combatant-init">${c.init}</div>
+                        <div class="combatant-name" style="flex: 1;">${c.name}</div>
+                        ${removeBtnHtml}
+                    `;
+                    initiativeList.appendChild(card);
+                });
+
+                // Adicionar eventos aos botões de remover
+                if (userRole === 'master') {
+                    document.querySelectorAll('.remove-combatant-btn').forEach(btn => {
+                        btn.addEventListener('click', async (e) => {
+                            const idx = parseInt(e.target.getAttribute('data-index'));
+                            await removeCombatant(idx);
+                        });
+                    });
+                }
+            }
+        }
+    }
+
+    async function saveCombatState() {
+        try {
+            // Upsert para garantir que crie se não existir e atualize se existir
+            const { error } = await supabase.from('campaign_combat').upsert({
+                campaign_id: campaignId,
+                is_active: combatState.is_active,
+                round_number: combatState.round_number,
+                turn_index: combatState.turn_index,
+                combatants: combatState.combatants,
+                updated_at: new Date().toISOString()
+            });
+            if (error) throw error;
+        } catch (e) {
+            console.error("Falha ao salvar combate:", e);
+            alert("Erro ao sincronizar combate com o servidor.");
+        }
+    }
+
+    if (toggleCombatBtn) {
+        toggleCombatBtn.addEventListener('click', async () => {
+            if (!combatState) combatState = { is_active: false, round_number: 1, turn_index: 0, combatants: [] };
+            
+            if (combatState.is_active) {
+                const conf = confirm("Deseja encerrar o combate e limpar a lista de iniciativa?");
+                if (!conf) return;
+                combatState.is_active = false;
+                combatState.combatants = [];
+                combatState.turn_index = 0;
+                combatState.round_number = 1;
+                await generateLog("O Mestre encerrou o combate.", "system");
+            } else {
+                combatState.is_active = true;
+                await generateLog("O Mestre iniciou um novo combate!", "system");
+            }
+            
+            renderCombat();
+            await saveCombatState();
+        });
+    }
+
+    if (addCombatantForm) {
+        addCombatantForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const name = combatantNameInput.value.trim();
+            const init = parseInt(combatantInitInput.value) || 0;
+            
+            if (!combatState.combatants) combatState.combatants = [];
+            
+            combatState.combatants.push({ name: name, init: init });
+            
+            // Ordena a lista do maior para o menor
+            combatState.combatants.sort((a, b) => b.init - a.init);
+            
+            // Reseta o turno temporariamente (para evitar bugs de índice ao adicionar no meio)
+            // Em uma VTT avançada faríamos matemática para manter a vez da pessoa, mas para iniciar é mais seguro assim.
+            combatState.turn_index = 0; 
+            
+            combatantNameInput.value = '';
+            combatantInitInput.value = '';
+            
+            renderCombat();
+            await saveCombatState();
+        });
+    }
+
+    if (nextTurnBtn) {
+        nextTurnBtn.addEventListener('click', async () => {
+            if (!combatState.combatants || combatState.combatants.length === 0) return;
+            
+            combatState.turn_index++;
+            if (combatState.turn_index >= combatState.combatants.length) {
+                combatState.turn_index = 0;
+                combatState.round_number++;
+            }
+            
+            renderCombat();
+            await saveCombatState();
+        });
+    }
+
+    async function removeCombatant(index) {
+        if (!combatState.combatants) return;
+        combatState.combatants.splice(index, 1);
+        
+        // Ajusta o turno se removeu alguém que estava antes do turno atual
+        if (index < combatState.turn_index) {
+            combatState.turn_index--;
+        } else if (combatState.turn_index >= combatState.combatants.length) {
+            combatState.turn_index = 0;
+        }
+        
+        renderCombat();
+        await saveCombatState();
+    }
+
+
+    // =========================================================
+    // VINCULAR FICHA E AVENTUREIROS
     // =========================================================
     if (addMyCharacterBtn) {
         addMyCharacterBtn.addEventListener('click', async () => {
@@ -243,16 +416,13 @@ document.addEventListener("DOMContentLoaded", async () => {
     if (closeSelectCharacterModal) closeSelectCharacterModal.addEventListener('click', () => { selectCharacterModal.style.display = 'none'; });
     selectCharacterModal.addEventListener('click', (e) => { if(e.target === selectCharacterModal) selectCharacterModal.style.display = 'none'; });
 
-    // =========================================================
-    // AVENTUREIROS (OVERVIEW)
-    // =========================================================
     async function loadCampaignCharacters() {
         if (!campaignCharactersList) return;
         try {
             const { data, error } = await supabase.from('campaign_characters').select(`id, user_id, character_id, current_hp, current_mana, conditions, characters(id, name, race, class, avatar_url)`).eq('campaign_id', campaignId);
             if (error) throw error;
             if (!data || data.length === 0) {
-                campaignCharactersList.innerHTML = '<p style="color: var(--cream-muted);">Nenhum aventureiro.</p>';
+                campaignCharactersList.innerHTML = '<p style="color: var(--cream-muted);">Nenhum aventureiro entrou neste mundo ainda.</p>';
                 return;
             }
 
@@ -406,7 +576,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
 
     // =========================================================
-    // MURAL (COM IMAGENS FASE 9)
+    // MURAL E LOGS
     // =========================================================
     async function loadMural() {
         try {
@@ -466,9 +636,6 @@ document.addEventListener("DOMContentLoaded", async () => {
         });
     }
 
-    // =========================================================
-    // LOGS & REQUESTS (FASE 9)
-    // =========================================================
     async function loadLogs() {
         try {
             const { data, error } = await supabase.from('campaign_logs').select('*').eq('campaign_id', campaignId).order('created_at', { ascending: false });
@@ -499,7 +666,9 @@ document.addEventListener("DOMContentLoaded", async () => {
         } catch (e) {}
     }
 
-    // Enviar Solicitação de Teste (Mestre)
+    // =========================================================
+    // REQUEST DE TESTES DO MESTRE (FASE 9)
+    // =========================================================
     if (sendRollRequestBtn) {
         sendRollRequestBtn.addEventListener('click', async () => {
             const attr = requestRollSelect.value;
@@ -512,21 +681,15 @@ document.addEventListener("DOMContentLoaded", async () => {
         });
     }
 
-    // Exibir Toast de Solicitação para o Jogador
     function showRollRequest(requestStr) {
-        // requestStr esperado: "Teste Solicitado: Percepção"
         const parts = requestStr.split(': ');
         if(parts.length < 2) return;
         currentRequestAttrName = parts[1].trim();
-        
         requestToastMsg.textContent = `Teste de ${currentRequestAttrName}`;
         requestToast.hidden = false;
         
-        // Tenta buscar o valor do atributo na ficha ativa do jogador, se ele tiver uma
-        currentRequestAttrValue = 0; // Default
+        currentRequestAttrValue = 0; 
         if (playerSheetCharName && currentRequestAttrName !== 'Puro (1d20)') {
-            // Busca visualmente nos botões de rolagem se a ficha já foi carregada
-            // Se a ficha não foi aberta ainda, o valor será 0, mas pelo menos ele roda o d20.
             const btns = document.querySelectorAll('.ps-roll-btn');
             btns.forEach(b => {
                 if(b.textContent.includes(currentRequestAttrName)) {
@@ -537,7 +700,6 @@ document.addEventListener("DOMContentLoaded", async () => {
         }
     }
 
-    // Ação do botão do Toast
     if (requestToastRollBtn) {
         requestToastRollBtn.addEventListener('click', async () => {
             requestToast.hidden = true;
@@ -557,7 +719,6 @@ document.addEventListener("DOMContentLoaded", async () => {
         requestToastCloseBtn.addEventListener('click', () => { requestToast.hidden = true; });
     }
 
-    // Rolagens Manuais do Mestre
     masterDiceBtns.forEach(btn => {
         btn.addEventListener('click', async () => {
             const sides = parseInt(btn.getAttribute('data-dice'));
@@ -572,7 +733,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     });
 
     // =========================================================
-    // CONFIGURAÇÕES
+    // CONFIGURAÇÕES E CONVITE
     // =========================================================
     if (settingsForm) {
         settingsForm.addEventListener('submit', async (e) => {
