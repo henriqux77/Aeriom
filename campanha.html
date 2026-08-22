@@ -63,20 +63,20 @@
                     <div class="tool-section">
                         <span class="tool-label">Rolagens Rápidas (Registra no Histórico)</span>
                         <div class="dice-buttons-container">
-                            <button class="dice-btn" data-dice="4">1d4</button>
-                            <button class="dice-btn" data-dice="6">1d6</button>
-                            <button class="dice-btn" data-dice="8">1d8</button>
-                            <button class="dice-btn" data-dice="10">1d10</button>
-                            <button class="dice-btn" data-dice="12">1d12</button>
-                            <button class="dice-btn dice-d20" data-dice="20">1d20</button>
-                            <button class="dice-btn" data-dice="100">1d100</button>
+                            <button class="dice-btn master-dice-btn" data-dice="4">1d4</button>
+                            <button class="dice-btn master-dice-btn" data-dice="6">1d6</button>
+                            <button class="dice-btn master-dice-btn" data-dice="8">1d8</button>
+                            <button class="dice-btn master-dice-btn" data-dice="10">1d10</button>
+                            <button class="dice-btn master-dice-btn" data-dice="12">1d12</button>
+                            <button class="dice-btn master-dice-btn dice-d20" data-dice="20">1d20</button>
+                            <button class="dice-btn master-dice-btn" data-dice="100">1d100</button>
                         </div>
                     </div>
                 </div>
             </div>
 
             <div class="campaign-section">
-                <!-- CABEÇALHO AVENTUREIROS COM BOTÃO NOVO -->
+                <!-- CABEÇALHO AVENTUREIROS -->
                 <div class="section-header" style="display: flex; justify-content: space-between; align-items: center;">
                     <div>
                         <h3>Aventureiros</h3>
@@ -203,7 +203,7 @@
     </section>
 </main>
 
-<!-- MODAL: ESTADO DO PERSONAGEM -->
+<!-- MODAL: ESTADO RÁPIDO DO PERSONAGEM (USADO PELO MESTRE) -->
 <div id="characterStateModal" class="auth-modal" style="display: none; align-items: center; justify-content: center;">
     <div class="auth-box" style="max-width: 400px; text-align: center;">
         <button id="closeCharacterStateModal" class="auth-close">×</button>
@@ -278,10 +278,79 @@
     </div>
 </div>
 
+<!-- MODAL: FICHA DO JOGADOR IN-GAME (FASE 8) -->
+<div id="playerSheetModal" class="auth-modal player-sheet-modal" style="display: none; align-items: flex-start; justify-content: center; padding: 20px;">
+    <div class="auth-box player-sheet-box" style="width: 100%; max-width: 800px; max-height: 90vh; overflow-y: auto; position: relative;">
+        <button id="closePlayerSheetModal" class="auth-close" style="position: sticky; top: 10px; right: 10px; z-index: 10;">×</button>
+        
+        <!-- Cabeçalho Visual da Ficha -->
+        <div class="player-sheet-header">
+            <div id="psAvatarContainer"></div>
+            <div class="ps-header-info">
+                <h2 id="psName">Nome do Personagem</h2>
+                <span id="psSubinfo">Raça • Classe • Origem</span>
+            </div>
+        </div>
+
+        <!-- Seção: Estado Temporário (Editável) -->
+        <div class="dash-panel" style="margin-bottom: 20px; padding: 15px;">
+            <h3 style="font-size: 1rem; margin-bottom: 10px;">Estado na Campanha (Temporário)</h3>
+            <form id="psStateForm" style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                <label class="sheet-field">
+                    <span style="display: block; color: var(--gold); font-size: 10px; margin-bottom: 5px;">PV Atual</span>
+                    <div style="display: flex; gap: 5px;">
+                        <button type="button" class="state-adj-btn" onclick="document.getElementById('psHp').value = Number(document.getElementById('psHp').value) - 1">-</button>
+                        <input type="number" id="psHp" required style="width: 100%; text-align: center; background: rgba(20, 15, 13, 0.8); border: 1px solid rgba(200, 100, 50, 0.3); color: var(--cream); border-radius: 8px;">
+                        <button type="button" class="state-adj-btn" onclick="document.getElementById('psHp').value = Number(document.getElementById('psHp').value) + 1">+</button>
+                    </div>
+                </label>
+                <label class="sheet-field">
+                    <span style="display: block; color: var(--gold); font-size: 10px; margin-bottom: 5px;">Mana Atual</span>
+                    <div style="display: flex; gap: 5px;">
+                        <button type="button" class="state-adj-btn" onclick="document.getElementById('psMana').value = Number(document.getElementById('psMana').value) - 1">-</button>
+                        <input type="number" id="psMana" required style="width: 100%; text-align: center; background: rgba(20, 15, 13, 0.8); border: 1px solid rgba(200, 100, 50, 0.3); color: var(--cream); border-radius: 8px;">
+                        <button type="button" class="state-adj-btn" onclick="document.getElementById('psMana').value = Number(document.getElementById('psMana').value) + 1">+</button>
+                    </div>
+                </label>
+                <label class="sheet-field" style="grid-column: span 2;">
+                    <span style="display: block; color: var(--gold); font-size: 10px; margin-bottom: 5px;">Condições / Efeitos</span>
+                    <textarea id="psConditions" style="width: 100%; padding: 10px; background: rgba(20, 15, 13, 0.8); border: 1px solid rgba(200, 100, 50, 0.3); color: var(--cream); border-radius: 8px; min-height: 50px;"></textarea>
+                </label>
+                <button type="submit" id="psSaveStateBtn" class="primary-button" style="grid-column: span 2;">Atualizar Estado</button>
+            </form>
+        </div>
+
+        <!-- Seção: Rolagens e Atributos Permanentes (Somente Leitura) -->
+        <div class="dash-panel" style="margin-bottom: 20px; padding: 15px;">
+            <h3 style="font-size: 1rem; margin-bottom: 5px;">🎲 Rolagens (Atributos Base)</h3>
+            <p style="font-size: 0.8rem; color: var(--cream-muted); margin-bottom: 15px;">Toque em um atributo para rolar os dados no Histórico.</p>
+            <div id="psAttributesGrid" class="attributes-roll-grid">
+                <!-- Preenchido via JS -->
+            </div>
+        </div>
+
+        <!-- Seção: Outras Informações da Ficha Permanente -->
+        <div class="dash-panel" style="margin-bottom: 10px; padding: 15px;">
+            <h3 style="font-size: 1rem; margin-bottom: 15px;">Informações Permanentes</h3>
+            
+            <div class="ps-readonly-section">
+                <h4 style="color: var(--gold); font-size: 0.85rem; border-bottom: 1px solid rgba(200, 100, 50, 0.2); padding-bottom: 5px;">Inventário / Equipamentos</h4>
+                <p id="psInventory" style="white-space: pre-wrap; font-size: 0.85rem; color: var(--cream-muted); margin-top: 10px;">Vazio</p>
+            </div>
+
+            <div class="ps-readonly-section" style="margin-top: 15px;">
+                <h4 style="color: var(--gold); font-size: 0.85rem; border-bottom: 1px solid rgba(200, 100, 50, 0.2); padding-bottom: 5px;">Técnicas / Perícias / Outros</h4>
+                <p id="psSkills" style="white-space: pre-wrap; font-size: 0.85rem; color: var(--cream-muted); margin-top: 10px;">Sem registros</p>
+            </div>
+        </div>
+
+    </div>
+</div>
+
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="js/supabase.js?v=13"></script>
-<script src="js/auth.js?v=13"></script>
-<script src="js/campanha.js?v=7"></script>
+<script src="js/supabase.js?v=14"></script>
+<script src="js/auth.js?v=14"></script>
+<script src="js/campanha.js?v=8"></script>
 
 </body>
 </html>
