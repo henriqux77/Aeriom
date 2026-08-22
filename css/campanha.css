@@ -1,5 +1,5 @@
 /* =========================================================
-   AERION — PAINEL DA CAMPANHA (FASE 7)
+   AERION — PAINEL DA CAMPANHA (FASE 8)
 ========================================================= */
 
 .campaign-dashboard { width: min(100%, 1000px); margin: 0 auto; padding: 0 1rem 4rem; min-height: 100vh; }
@@ -27,7 +27,7 @@
 .master-panel { border-color: rgba(188, 48, 28, 0.4); box-shadow: 0 0 20px rgba(188, 48, 28, 0.05); }
 .dash-panel h3 { font-family: var(--display-font); font-size: 1.1rem; color: var(--gold); margin: 0 0 5px 0; }
 
-/* FERRAMENTAS DO MESTRE (FASE 7) */
+/* FERRAMENTAS DO MESTRE */
 .master-tools-grid { display: grid; grid-template-columns: 1fr; gap: 20px; margin-top: 15px; }
 @media(min-width: 700px) { .master-tools-grid { grid-template-columns: 1fr 1.5fr; } }
 .tool-section { background: rgba(15, 10, 8, 0.5); border: 1px solid rgba(200, 100, 50, 0.15); padding: 15px; border-radius: 10px; }
@@ -68,7 +68,7 @@
 .log-item:last-child { border-bottom: none; }
 .log-time { color: var(--gold); font-family: monospace; font-size: 0.75rem; min-width: 65px; }
 
-/* ESQUELETOS (MÓDULOS FUTUROS) */
+/* ESQUELETOS */
 .placeholder-panel { text-align: center; display: flex; flex-direction: column; justify-content: center; align-items: center; min-height: 250px; }
 .placeholder-icon { font-size: 3rem; margin-bottom: 15px; filter: grayscale(1) opacity(0.5); }
 .cooking-active-meal { border: 1px solid var(--gold); border-radius: 12px; background: linear-gradient(145deg, rgba(40, 30, 20, 0.8), rgba(20, 15, 10, 0.9)); padding: 20px; text-align: center; margin-bottom: 30px; box-shadow: 0 0 20px rgba(200, 100, 50, 0.15); }
@@ -79,7 +79,17 @@
 .cooking-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; }
 .empty-list { border: 1px dashed rgba(131, 65, 43, 0.4); border-radius: 8px; padding: 20px; text-align: center; color: var(--cream-muted); font-size: 0.85rem; }
 
-/* MODAL DE ESTADO */
+/* MODAL DE ESTADO RÁPIDO */
 .state-adj-btn { width: 40px; height: 100%; border-radius: 8px; border: 1px solid rgba(131, 65, 43, 0.5); background: rgba(20, 15, 13, 0.8); color: var(--gold); font-size: 1.2rem; cursor: pointer; transition: all 0.2s; }
 .state-adj-btn:hover { background: rgba(40, 30, 25, 0.8); border-color: var(--gold); }
 .state-adj-btn:active { transform: scale(0.95); }
+
+/* FICHA DO JOGADOR IN-GAME (FASE 8) */
+.player-sheet-header { display: flex; align-items: center; gap: 15px; margin-bottom: 25px; border-bottom: 1px solid rgba(200, 100, 50, 0.2); padding-bottom: 15px; }
+.ps-header-info h2 { font-family: var(--display-font); color: var(--cream); margin: 0 0 5px 0; font-size: 1.5rem; }
+.ps-header-info span { color: var(--cream-muted); font-size: 0.85rem; }
+.attributes-roll-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 10px; }
+.ps-roll-btn { background: rgba(30, 20, 15, 0.8); border: 1px solid rgba(200, 100, 50, 0.4); color: var(--cream); border-radius: 8px; padding: 10px; font-size: 0.85rem; font-family: var(--display-font); cursor: pointer; transition: all 0.2s ease; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 60px; }
+.ps-roll-btn span.attr-val { font-size: 1.1rem; color: var(--gold); margin-top: 5px; }
+.ps-roll-btn:hover { background: rgba(200, 100, 50, 0.2); border-color: var(--gold); transform: translateY(-2px); }
+.ps-roll-btn:active { transform: translateY(0); }
