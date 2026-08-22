@@ -7,8 +7,14 @@ document.addEventListener("DOMContentLoaded", async () => {
     let currentUser = null;
     let currentCampaign = null;
     let userRole = null;
+    
+    // Variáveis de Controle (Modal de Mestre)
     let activeStateLinkId = null;
     let activeStateCharName = "";
+
+    // Variáveis de Controle (Ficha do Jogador)
+    let playerSheetLinkId = null;
+    let playerSheetCharName = "";
 
     const campaignId = localStorage.getItem("aeriom_active_campaign");
 
@@ -33,7 +39,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     const muralList = document.getElementById("muralList");
     const logsList = document.getElementById("logsList");
 
-    // MODAL DE ESTADO
+    // MODAL RÁPIDO DO MESTRE
     const stateModal = document.getElementById("characterStateModal");
     const closeStateBtn = document.getElementById("closeCharacterStateModal");
     const stateForm = document.getElementById("characterStateForm");
@@ -43,6 +49,11 @@ document.addEventListener("DOMContentLoaded", async () => {
     const stateConditionsInput = document.getElementById("stateConditions");
     const saveStateBtn = document.getElementById("saveStateBtn");
 
+    // MODAL DA FICHA DO JOGADOR (FASE 8)
+    const playerSheetModal = document.getElementById("playerSheetModal");
+    const closePlayerSheetBtn = document.getElementById("closePlayerSheetModal");
+    const psStateForm = document.getElementById("psStateForm");
+    
     // MODAL DO MURAL
     const muralModal = document.getElementById("muralModal");
     const openMuralBtn = document.getElementById("openMuralModalBtn");
@@ -52,8 +63,8 @@ document.addEventListener("DOMContentLoaded", async () => {
     const muralContentInput = document.getElementById("muralContent");
     const saveMuralBtn = document.getElementById("saveMuralBtn");
 
-    // ROLAGEM DE DADOS
-    const diceBtns = document.querySelectorAll('.dice-btn');
+    // ROLAGEM DE DADOS MESTRE
+    const masterDiceBtns = document.querySelectorAll('.master-dice-btn');
 
     // CONFIGURAÇÕES
     const settingsForm = document.getElementById("campaignSettingsForm");
@@ -61,7 +72,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     const settingsDesc = document.getElementById("settingsDesc");
     const deleteCampaignBtn = document.getElementById("deleteCampaignBtn");
 
-    // ESCOLHER FICHA IN-GAME (QoL FASE 8)
+    // ESCOLHER FICHA IN-GAME
     const addMyCharacterBtn = document.getElementById("addMyCharacterBtn");
     const selectCharacterModal = document.getElementById("selectCharacterModal");
     const closeSelectCharacterModal = document.getElementById("closeSelectCharacterModal");
@@ -169,7 +180,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
 
     // =========================================================
-    // VINCULAR FICHA (NOVO)
+    // VINCULAR FICHA
     // =========================================================
     if (addMyCharacterBtn) {
         addMyCharacterBtn.addEventListener('click', async () => {
@@ -177,33 +188,22 @@ document.addEventListener("DOMContentLoaded", async () => {
             userCharactersList.innerHTML = '<p style="text-align: center; color: var(--cream-muted);">Carregando suas fichas...</p>';
 
             try {
-                // 1. Busca TODAS as fichas do usuário
-                const { data: allChars, error: charError } = await supabase
-                    .from('characters')
-                    .select('id, name, race, class, avatar_url')
-                    .eq('user_id', currentUser.id);
-
+                const { data: allChars, error: charError } = await supabase.from('characters').select('id, name, race, class, avatar_url').eq('user_id', currentUser.id);
                 if (charError) throw charError;
 
-                // 2. Busca quais fichas já estão na campanha
-                const { data: linkedChars, error: linkedError } = await supabase
-                    .from('campaign_characters')
-                    .select('character_id')
-                    .eq('campaign_id', campaignId);
-
+                const { data: linkedChars, error: linkedError } = await supabase.from('campaign_characters').select('character_id').eq('campaign_id', campaignId);
                 if (linkedError) throw linkedError;
                 
                 const linkedIds = linkedChars.map(lc => lc.character_id);
 
                 if (!allChars || allChars.length === 0) {
-                    userCharactersList.innerHTML = `<p style="text-align: center; color: var(--cream-muted);">Você não possui nenhuma ficha criada. Volte à página inicial para criar uma.</p>`;
+                    userCharactersList.innerHTML = `<p style="text-align: center; color: var(--cream-muted);">Você não possui nenhuma ficha criada.</p>`;
                     return;
                 }
 
                 userCharactersList.innerHTML = '';
                 allChars.forEach(char => {
                     const isLinked = linkedIds.includes(char.id);
-                    
                     const charEl = document.createElement('div');
                     charEl.style.display = 'flex';
                     charEl.style.alignItems = 'center';
@@ -215,9 +215,7 @@ document.addEventListener("DOMContentLoaded", async () => {
                     charEl.style.opacity = isLinked ? '0.5' : '1';
                     charEl.style.cursor = isLinked ? 'not-allowed' : 'pointer';
 
-                    const avatar = char.avatar_url 
-                        ? `<img src="${char.avatar_url}" style="width:40px; height:40px; border-radius:50%; object-fit:cover;">` 
-                        : `<div style="width:40px; height:40px; border-radius:50%; background:#222; display:grid; place-items:center; color:var(--gold); border:1px solid var(--gold);">${char.name.charAt(0)}</div>`;
+                    const avatar = char.avatar_url ? `<img src="${char.avatar_url}" style="width:40px; height:40px; border-radius:50%; object-fit:cover;">` : `<div style="width:40px; height:40px; border-radius:50%; background:#222; display:grid; place-items:center; color:var(--gold); border:1px solid var(--gold);">${char.name.charAt(0)}</div>`;
 
                     charEl.innerHTML = `
                         ${avatar}
@@ -231,57 +229,39 @@ document.addEventListener("DOMContentLoaded", async () => {
                     if (!isLinked) {
                         charEl.addEventListener('click', async () => {
                             try {
-                                const { error: insertError } = await supabase
-                                    .from('campaign_characters')
-                                    .insert({
-                                        campaign_id: campaignId,
-                                        user_id: currentUser.id,
-                                        character_id: char.id
-                                    });
-
+                                const { error: insertError } = await supabase.from('campaign_characters').insert({ campaign_id: campaignId, user_id: currentUser.id, character_id: char.id });
                                 if (insertError) throw insertError;
                                 
                                 await generateLog(`Um novo aventureiro entrou no mundo: ${char.name}.`, 'system');
-                                
                                 selectCharacterModal.style.display = 'none';
                                 await loadCampaignCharacters();
                                 alert(`${char.name} foi adicionado à campanha com sucesso!`);
-                                
                             } catch (err) {
-                                console.error("Erro ao vincular ficha:", err);
                                 alert("Não foi possível adicionar o personagem.");
                             }
                         });
                     }
-
                     userCharactersList.appendChild(charEl);
                 });
-
             } catch (error) {
-                console.error("Erro ao carregar fichas:", error);
                 userCharactersList.innerHTML = '<p style="color:#d46a4a;">Erro ao carregar fichas.</p>';
             }
         });
     }
 
-    if (closeSelectCharacterModal) {
-        closeSelectCharacterModal.addEventListener('click', () => { selectCharacterModal.style.display = 'none'; });
-    }
-    
-    selectCharacterModal.addEventListener('click', (e) => { 
-        if(e.target === selectCharacterModal) selectCharacterModal.style.display = 'none'; 
-    });
+    if (closeSelectCharacterModal) closeSelectCharacterModal.addEventListener('click', () => { selectCharacterModal.style.display = 'none'; });
+    selectCharacterModal.addEventListener('click', (e) => { if(e.target === selectCharacterModal) selectCharacterModal.style.display = 'none'; });
 
 
     // =========================================================
-    // ESTADO DO PERSONAGEM
+    // LISTAGEM DE PERSONAGENS DA CAMPANHA
     // =========================================================
     async function loadCampaignCharacters() {
         if (!campaignCharactersList) return;
         try {
             const { data, error } = await supabase
                 .from('campaign_characters')
-                .select(`id, user_id, current_hp, current_mana, conditions, characters(id, name, race, class, avatar_url)`)
+                .select(`id, user_id, character_id, current_hp, current_mana, conditions, characters(id, name, race, class, avatar_url)`)
                 .eq('campaign_id', campaignId);
 
             if (error) throw error;
@@ -308,15 +288,25 @@ document.addEventListener("DOMContentLoaded", async () => {
 
                 let actionHtml = '';
                 if (userRole === 'master') {
-                    actionHtml = `<button class="secondary-button" style="min-height:30px; padding:5px 12px; font-size:10px;">Gerenciar</button>`;
+                    // Mestre usa o modal rápido
+                    actionHtml = `<button class="secondary-button" style="min-height:30px; padding:5px 12px; font-size:10px;" data-action="gerenciar">Gerenciar</button>`;
                 } else if (isOwnCharacter) {
-                    actionHtml = `<button class="primary-button" style="min-height:30px; padding:5px 12px; font-size:10px;">Acessar</button>`;
+                    // Jogador abre a ficha completa
+                    actionHtml = `<button class="primary-button" style="min-height:30px; padding:5px 12px; font-size:10px;" data-action="acessar">Minha Ficha</button>`;
                 }
 
                 card.innerHTML = `${avatarHtml}<div class="char-card-info"><h4>${char.name}</h4><span>${char.race || '?'} • ${char.class || '?'}</span>${statsInfo}${conds}</div><div class="char-card-actions">${actionHtml}</div>`;
 
                 const btn = card.querySelector('button');
-                if (btn) btn.addEventListener('click', () => openStateModal(link.id, char.name, link.current_hp, link.current_mana, link.conditions));
+                if (btn) {
+                    btn.addEventListener('click', () => {
+                        if (btn.getAttribute('data-action') === 'gerenciar') {
+                            openStateModal(link.id, char.name, link.current_hp, link.current_mana, link.conditions);
+                        } else {
+                            openPlayerSheet(link.character_id, link.id, link.current_hp, link.current_mana, link.conditions);
+                        }
+                    });
+                }
 
                 campaignCharactersList.appendChild(card);
             });
@@ -325,6 +315,10 @@ document.addEventListener("DOMContentLoaded", async () => {
         }
     }
 
+
+    // =========================================================
+    // MODAL DE ESTADO RÁPIDO (MESTRE)
+    // =========================================================
     function openStateModal(linkId, charName, hp, mana, conditions) {
         activeStateLinkId = linkId;
         activeStateCharName = charName;
@@ -365,11 +359,143 @@ document.addEventListener("DOMContentLoaded", async () => {
                 closeStateModal();
                 await loadCampaignCharacters();
             } catch (error) {
-                console.error("Erro ao salvar estado:", error);
                 alert("Falha ao salvar. Verifique se você tem permissão.");
             } finally {
                 saveStateBtn.disabled = false;
                 saveStateBtn.textContent = "Salvar Estado";
+            }
+        });
+    }
+
+    // =========================================================
+    // FICHA DO JOGADOR IN-GAME (FASE 8)
+    // =========================================================
+    async function openPlayerSheet(characterId, linkId, currentHp, currentMana, conditions) {
+        playerSheetLinkId = linkId;
+        
+        try {
+            // Busca dados completos da Ficha Permanente (Read-Only)
+            const { data: char, error } = await supabase
+                .from('characters')
+                .select('*')
+                .eq('id', characterId)
+                .single();
+
+            if (error || !char) throw new Error("Ficha não encontrada.");
+
+            playerSheetCharName = char.name;
+
+            // Preenche o cabeçalho visual
+            document.getElementById("psName").textContent = char.name || "Sem Nome";
+            document.getElementById("psSubinfo").textContent = `${char.race || '?'} • ${char.class || '?'} • ${char.origin || '?'}`;
+            
+            const avatarContainer = document.getElementById("psAvatarContainer");
+            avatarContainer.innerHTML = char.avatar_url 
+                ? `<img src="${char.avatar_url}" style="width:70px; height:70px; border-radius:50%; object-fit:cover; border: 2px solid var(--gold);">` 
+                : `<div style="width:70px; height:70px; border-radius:50%; background:#222; display:grid; place-items:center; color:var(--gold); border:2px solid var(--gold); font-size:24px; font-family:var(--display-font);">${char.name.charAt(0)}</div>`;
+
+            // Preenche o formulário de Estado Temporário (Editável)
+            document.getElementById("psHp").value = currentHp || 0;
+            document.getElementById("psMana").value = currentMana || 0;
+            document.getElementById("psConditions").value = conditions || "";
+
+            // Preenche Atributos para Rolagem Segura (Se existirem JSONs ou colunas, trata de forma genérica)
+            // Aeriom usa campos padrões, tentaremos parseá-los do objeto char
+            const attrGrid = document.getElementById("psAttributesGrid");
+            attrGrid.innerHTML = '';
+            
+            // Lista de atributos comumente encontrados no Aeriom
+            const standardAttributes = [
+                { key: 'forca', label: 'Força' },
+                { key: 'agilidade', label: 'Agilidade' },
+                { key: 'vigor', label: 'Vigor' },
+                { key: 'intelecto', label: 'Intelecto' },
+                { key: 'percepcao', label: 'Percepção' },
+                { key: 'presenca', label: 'Presença' },
+                { key: 'precisao', label: 'Precisão' },
+                { key: 'controle', label: 'Controle' }
+            ];
+
+            let hasAttributes = false;
+            
+            standardAttributes.forEach(attr => {
+                // Tenta buscar o valor direto na coluna ou dentro de um JSON 'attributes' genérico
+                let val = 0;
+                if (char[attr.key] !== undefined) {
+                    val = parseInt(char[attr.key]) || 0;
+                } else if (char.attributes && char.attributes[attr.key] !== undefined) {
+                    val = parseInt(char.attributes[attr.key]) || 0;
+                }
+                
+                // Cria o botão de rolagem
+                const btn = document.createElement('button');
+                btn.className = 'ps-roll-btn';
+                btn.innerHTML = `${attr.label} <span class="attr-val">${val}</span>`;
+                
+                btn.addEventListener('click', async () => {
+                    // Sem inventar regras, usaremos 1d20 + Valor do Atributo no Log
+                    const d20 = Math.floor(Math.random() * 20) + 1;
+                    const total = d20 + val;
+                    
+                    btn.style.borderColor = "var(--fire)";
+                    setTimeout(() => btn.style.borderColor = "", 400);
+
+                    await generateLog(`${char.name} rolou ${attr.label}: 1d20 (${d20}) + ${val} = ${total}`, 'roll');
+                    alert(`Rolagem de ${attr.label} enviada ao histórico!`);
+                });
+
+                attrGrid.appendChild(btn);
+                hasAttributes = true;
+            });
+
+            if (!hasAttributes) {
+                attrGrid.innerHTML = '<p style="color: var(--cream-muted); grid-column: 1/-1;">Nenhum atributo base identificado na ficha permanente.</p>';
+            }
+
+            // Preenche Informações Permanentes Read-only (Inventário / Equipamentos / Habilidades)
+            const inventoryEl = document.getElementById("psInventory");
+            inventoryEl.textContent = char.inventory || char.equipments || "Nenhum equipamento registrado.";
+
+            const skillsEl = document.getElementById("psSkills");
+            skillsEl.textContent = char.skills || char.techniques || char.abilities || "Nenhuma habilidade registrada.";
+
+            playerSheetModal.style.display = "flex";
+
+        } catch (error) {
+            console.error(error);
+            alert("Não foi possível carregar a ficha permanente.");
+        }
+    }
+
+    if (closePlayerSheetBtn) closePlayerSheetBtn.addEventListener("click", () => { playerSheetModal.style.display = "none"; });
+    playerSheetModal.addEventListener('click', (e) => { if(e.target === playerSheetModal) playerSheetModal.style.display = 'none'; });
+
+    if (psStateForm) {
+        psStateForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            if (!playerSheetLinkId) return;
+            
+            const btn = document.getElementById("psSaveStateBtn");
+            btn.disabled = true;
+            btn.textContent = "Atualizando...";
+
+            try {
+                const hp = parseInt(document.getElementById("psHp").value) || 0;
+                const mana = parseInt(document.getElementById("psMana").value) || 0;
+                const cond = document.getElementById("psConditions").value.trim();
+
+                const { error: updateError } = await supabase.from('campaign_characters').update({ current_hp: hp, current_mana: mana, conditions: cond }).eq('id', playerSheetLinkId);
+                if (updateError) throw updateError;
+
+                await generateLog(`${playerSheetCharName} atualizou seu próprio estado (PV: ${hp}, Mana: ${mana}).`, 'system');
+
+                await loadCampaignCharacters();
+                alert("Estado temporário atualizado com sucesso!");
+            } catch (error) {
+                alert("Falha ao salvar estado temporário.");
+            } finally {
+                btn.disabled = false;
+                btn.textContent = "Atualizar Estado";
             }
         });
     }
@@ -446,23 +572,12 @@ document.addEventListener("DOMContentLoaded", async () => {
             try {
                 const title = muralTitleInput.value.trim();
                 const content = muralContentInput.value.trim();
-
-                const { error } = await supabase.from('campaign_mural').insert({
-                    campaign_id: campaignId,
-                    title: title,
-                    content: content,
-                    type: 'cartaz'
-                });
-
+                const { error } = await supabase.from('campaign_mural').insert({ campaign_id: campaignId, title: title, content: content, type: 'cartaz' });
                 if (error) throw error;
-
                 await generateLog(`O Mestre fixou um novo cartaz no Mural: "${title}"`, 'system');
-                
                 muralModal.style.display = 'none';
                 await loadMural(); 
-                
             } catch (error) {
-                console.error("Erro ao salvar mural", error);
                 alert("Falha ao criar cartaz.");
             } finally {
                 saveMuralBtn.disabled = false;
@@ -474,7 +589,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     // =========================================================
     // ROLAGEM DE DADOS DO MESTRE
     // =========================================================
-    diceBtns.forEach(btn => {
+    masterDiceBtns.forEach(btn => {
         btn.addEventListener('click', async () => {
             const sides = parseInt(btn.getAttribute('data-dice'));
             const result = Math.floor(Math.random() * sides) + 1;
@@ -505,11 +620,7 @@ document.addEventListener("DOMContentLoaded", async () => {
             btn.textContent = "Salvando...";
 
             try {
-                const { error } = await supabase.from('campaigns').update({
-                    name: settingsName.value,
-                    description: settingsDesc.value
-                }).eq('id', campaignId);
-                
+                const { error } = await supabase.from('campaigns').update({ name: settingsName.value, description: settingsDesc.value }).eq('id', campaignId);
                 if (error) throw error;
                 bannerName.textContent = settingsName.value;
                 alert("Configurações atualizadas!");
