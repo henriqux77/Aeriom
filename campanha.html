@@ -50,7 +50,6 @@
                 <h3>Ferramentas do Mestre</h3>
                 
                 <div class="master-tools-grid">
-                    <!-- Solicitação de Teste (FASE 9) -->
                     <div class="tool-section">
                         <span class="tool-label">Solicitar Teste aos Jogadores</span>
                         <div style="display: flex; gap: 10px; align-items: center; margin-top: 8px;">
@@ -69,7 +68,6 @@
                         </div>
                     </div>
 
-                    <!-- Gerar Convite -->
                     <div class="tool-section">
                         <span class="tool-label">Adicionar Jogadores</span>
                         <div style="display: flex; gap: 10px; align-items: center; margin-top: 8px;">
@@ -78,7 +76,6 @@
                         </div>
                     </div>
                     
-                    <!-- Rolagem de Dados -->
                     <div class="tool-section" style="grid-column: 1 / -1;">
                         <span class="tool-label">Rolagens Rápidas (Registra no Histórico)</span>
                         <div class="dice-buttons-container">
@@ -95,7 +92,6 @@
             </div>
 
             <div class="campaign-section">
-                <!-- CABEÇALHO AVENTUREIROS -->
                 <div class="section-header" style="display: flex; justify-content: space-between; align-items: center;">
                     <div>
                         <h3>Aventureiros</h3>
@@ -109,16 +105,49 @@
             </div>
         </div>
 
-        <!-- ABA 2: COMBATE -->
+        <!-- ABA 2: COMBATE (FASE 10) -->
         <div id="tab-combate" class="dash-tab-content" hidden>
-            <div class="section-header">
-                <h3>Campo de Batalha</h3>
-                <p>Gerenciamento de turnos, iniciativa e condições.</p>
+            <div class="section-header" style="display: flex; justify-content: space-between; align-items: center;">
+                <div>
+                    <h3>Campo de Batalha</h3>
+                    <p>Tracker de Iniciativa e Turnos.</p>
+                </div>
+                <button id="toggleCombatBtn" class="primary-button master-only" style="width: auto; min-height: 35px; font-size: 11px;" hidden>Iniciar Combate</button>
             </div>
-            <div class="dash-panel placeholder-panel">
+
+            <!-- Painel do Mestre no Combate -->
+            <div id="combatMasterPanel" class="dash-panel master-panel" hidden style="margin-bottom: 20px; padding: 15px;">
+                <h4 style="color: var(--gold); margin: 0 0 10px 0; font-family: var(--display-font); font-size: 1rem;">Adicionar ao Combate</h4>
+                <form id="addCombatantForm" style="display: flex; gap: 10px; align-items: flex-end; flex-wrap: wrap;">
+                    <label class="sheet-field" style="flex: 2; min-width: 150px;">
+                        <span style="display: block; color: var(--gold); font-size: 10px; margin-bottom: 5px;">Nome</span>
+                        <input type="text" id="combatantName" required placeholder="Ex: Kael ou Goblin" style="width: 100%; padding: 10px; background: rgba(20, 15, 13, 0.8); border: 1px solid rgba(200, 100, 50, 0.3); color: var(--cream); border-radius: 6px;">
+                    </label>
+                    <label class="sheet-field" style="flex: 1; min-width: 80px;">
+                        <span style="display: block; color: var(--gold); font-size: 10px; margin-bottom: 5px;">Iniciativa</span>
+                        <input type="number" id="combatantInit" required placeholder="0" style="width: 100%; padding: 10px; background: rgba(20, 15, 13, 0.8); border: 1px solid rgba(200, 100, 50, 0.3); color: var(--cream); border-radius: 6px;">
+                    </label>
+                    <button type="submit" class="primary-button" style="min-height: 40px; padding: 0 15px; font-size: 12px; white-space: nowrap;">Adicionar</button>
+                </form>
+            </div>
+
+            <!-- Tracker Ativo -->
+            <div id="combatTrackerContainer" style="display: none;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; background: rgba(15, 10, 8, 0.8); padding: 10px 15px; border-radius: 8px; border: 1px solid rgba(200, 100, 50, 0.2);">
+                    <span style="color: var(--gold); font-family: var(--display-font); font-size: 1.1rem;">Rodada: <span id="combatRoundDisplay">1</span></span>
+                    <button id="nextTurnBtn" class="primary-button master-only" style="width: auto; min-height: 30px; font-size: 11px; padding: 5px 15px;" hidden>Próximo Turno ➔</button>
+                </div>
+                
+                <div id="initiativeList" style="display: flex; flex-direction: column; gap: 10px;">
+                    <!-- Preenchido via JS -->
+                </div>
+            </div>
+
+            <!-- Placeholder sem Combate -->
+            <div id="noCombatPlaceholder" class="dash-panel placeholder-panel">
                 <div class="placeholder-icon">⚔️</div>
                 <h3>Combate em Repouso</h3>
-                <p>A arquitetura de combate será implementada nas próximas fases.</p>
+                <p>Nenhum conflito ativo no momento.</p>
             </div>
         </div>
 
@@ -269,29 +298,25 @@
     </div>
 </div>
 
-<!-- MODAL: CRIAR MURAL (COM IMAGEM FASE 9) -->
+<!-- MODAL: CRIAR MURAL -->
 <div id="muralModal" class="auth-modal" style="display: none; align-items: center; justify-content: center;">
     <div class="auth-box" style="max-width: 500px;">
         <button id="closeMuralModal" class="auth-close">×</button>
         <h2>Aviso no Mural</h2>
         <p>Crie cartazes, fixe mapas ou avisos para os jogadores.</p>
-
         <form id="muralForm">
             <label class="sheet-field" style="display: block; margin-bottom: 15px;">
                 <span style="display: block; color: var(--gold); font-family: var(--display-font); font-size: 10px; margin-bottom: 5px;">Título do Cartaz</span>
                 <input type="text" id="muralTitle" placeholder="Ex: PROCURADO: Rei Goblin" required maxlength="100" style="width: 100%; padding: 12px; background: rgba(20, 15, 13, 0.8); border: 1px solid rgba(200, 100, 50, 0.3); color: var(--cream); border-radius: 8px;">
             </label>
-            
             <label class="sheet-field" style="display: block; margin-bottom: 15px;">
-                <span style="display: block; color: var(--gold); font-family: var(--display-font); font-size: 10px; margin-bottom: 5px;">Imagem (Opcional - Mapas, Escudos, etc)</span>
+                <span style="display: block; color: var(--gold); font-family: var(--display-font); font-size: 10px; margin-bottom: 5px;">Imagem (Opcional)</span>
                 <input type="file" id="muralImage" accept="image/png,image/jpeg,image/webp" style="width: 100%; padding: 10px; background: rgba(20, 15, 13, 0.8); border: 1px dashed rgba(200, 100, 50, 0.3); color: var(--cream); border-radius: 8px;">
             </label>
-
             <label class="sheet-field" style="display: block; margin-bottom: 20px;">
                 <span style="display: block; color: var(--gold); font-family: var(--display-font); font-size: 10px; margin-bottom: 5px;">Conteúdo</span>
                 <textarea id="muralContent" placeholder="Detalhes do aviso, recompensas, pistas..." style="width: 100%; padding: 12px; background: rgba(20, 15, 13, 0.8); border: 1px solid rgba(200, 100, 50, 0.3); color: var(--cream); border-radius: 8px; min-height: 80px; font-family: 'Georgia', serif;"></textarea>
             </label>
-
             <button type="submit" id="saveMuralBtn" class="primary-button" style="width: 100%;">Fixar no Mural</button>
         </form>
     </div>
@@ -353,7 +378,7 @@
     </div>
 </div>
 
-<!-- TOAST DE SOLICITAÇÃO (FASE 9) -->
+<!-- TOAST DE SOLICITAÇÃO -->
 <div id="requestToast" class="request-toast" hidden>
     <div class="request-toast-content">
         <span class="request-icon">🎲</span>
@@ -367,9 +392,9 @@
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="js/supabase.js?v=15"></script>
-<script src="js/auth.js?v=15"></script>
-<script src="js/campanha.js?v=9"></script>
+<script src="js/supabase.js?v=16"></script>
+<script src="js/auth.js?v=16"></script>
+<script src="js/campanha.js?v=10"></script>
 
 </body>
 </html>
