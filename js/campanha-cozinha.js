@@ -14,25 +14,25 @@
     // IMAGENS DOS INGREDIENTES (Fácil customização)
     // ==================================================
     const INGREDIENT_IMAGES = {
-        "Erva Verde": "COLOCAR_URL_DA_IMAGEM_AQUI",
-        "Broto de Primavera": "COLOCAR_URL_DA_IMAGEM_AQUI",
-        "Raiz Branca": "COLOCAR_URL_DA_IMAGEM_AQUI",
-        "Cogumelo Cinzento": "COLOCAR_URL_DA_IMAGEM_AQUI",
-        "Fruta Silvestre": "COLOCAR_URL_DA_IMAGEM_AQUI",
-        "Bagas Vermelhas": "COLOCAR_URL_DA_IMAGEM_AQUI",
-        "Carne de Coelho Selvagem": "COLOCAR_URL_DA_IMAGEM_AQUI",
-        "Ovo de Ave Selvagem": "COLOCAR_URL_DA_IMAGEM_AQUI",
-        "Mel Silvestre": "COLOCAR_URL_DA_IMAGEM_AQUI",
-        "Sal de Rocha": "COLOCAR_URL_DA_IMAGEM_AQUI"
+        "Erva Verde": "https://i.ibb.co/FqdStCX7/b108ec9f-9538-451d-8803-f0dff6f73cca-20260822-211244-0000.png",
+        "Broto de Primavera": "https://i.ibb.co/3YFh0h0k/2c1c647e-0fc7-400e-ab8a-09d49d9e4336-20260822-211153-0000.png",
+        "Raiz Branca": "https://i.ibb.co/r2Fbbq97/19342e42-55e9-493d-a99f-0e0f28d37c58-20260822-211336-0000.png",
+        "Cogumelo Cinzento": "https://i.ibb.co/zTfPr8YT/771be43f-721d-4990-ad8b-600ac20528fb-20260822-211449-0000.png",
+        "Fruta Silvestre": "https://i.ibb.co/hFmSBWPR/4a94b6a5-f9ec-45ae-ba05-1ad0e6664a72-20260822-211358-0000.png",
+        "Bagas Vermelhas": "https://i.ibb.co/ZzDckx1d/29284bcf-869f-4303-82b5-8b3097f891b3-20260822-211616-0000.png",
+        "Carne de Coelho Selvagem": "https://i.ibb.co/B8DtKgW/ed1cd009-3a71-4f59-9477-ffd996aec1d7-20260822-211420-0000.png",
+        "Ovo de Ave Selvagem": "https://i.ibb.co/vxkWjJ0f/af9cf103-db25-48d0-9785-cb3c84f44b01-20260822-211642-0000.png",
+        "Mel Silvestre": "https://i.ibb.co/rRjsBzR7/6d76b5c3-756b-4183-b486-40d45e4154d8-20260822-211708-0000.png",
+        "Sal de Rocha": "https://i.ibb.co/391QH5Yj/96c690f1-aab8-45f6-b9b0-679f1718d16c-20260822-211731-0000.png"
     };
 
     // ==================================================
     // IMAGENS DAS RECEITAS (Fácil customização)
     // ==================================================
     const RECIPE_IMAGES = {
-        "Sopa de Ervas": "COLOCAR_URL_DA_IMAGEM_AQUI",
-        "Ensopado Silvestre": "COLOCAR_URL_DA_IMAGEM_AQUI",
-        "Frutas ao Mel": "COLOCAR_URL_DA_IMAGEM_AQUI"
+        "Sopa de Ervas": "https://i.ibb.co/s935G49f/225120ae-3307-454c-baf6-bf2209072cfc-20260822-212246-0000.png",
+        "Ensopado Silvestre": "https://i.ibb.co/LdXtZ6kc/231f69fa-777c-4fe9-bc3d-bdf9e1c86387-20260822-212303-0000.png",
+        "Frutas ao Mel": "https://i.ibb.co/Mkvb1X6B/34cf5093-8fec-4bce-aa6a-8e875d6fd588-20260822-212218-0000.png"
     };
 
     const DEFAULT_TEST_INGREDIENTS = [
