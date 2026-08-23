@@ -743,3 +743,11 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     init();
 });
+// Adicione isso no final do init ou no bloco de eventos do Modal da Ficha:
+const psToggleBtn = document.getElementById('psToggleEditStateBtn');
+const psStateForm = document.getElementById('psStateForm');
+if (psToggleBtn && psStateForm) {
+    psToggleBtn.addEventListener('click', () => {
+        psStateForm.style.display = psStateForm.style.display === 'none' ? 'grid' : 'none';
+    });
+}
