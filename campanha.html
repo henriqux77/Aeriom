@@ -53,7 +53,21 @@
             <div id="masterPanel" class="dash-panel master-panel" hidden>
                 <h3>Ferramentas do Mestre</h3>
                 <div class="master-tools-grid">
+                                        <!-- CRONÔMETRO (FASE B) -->
                     <div class="tool-section">
+                        <span class="tool-label">⏳ Cronômetro Narrativo</span>
+                        <div style="display: flex; flex-direction: column; gap: 10px; margin-top: 8px;">
+                            <div style="display: flex; gap: 10px;">
+                                <input type="text" id="timerInputLabel" placeholder="Ex: A caverna desmorona..." style="flex: 2; padding: 10px; background: rgba(20, 15, 13, 0.8); border: 1px solid rgba(200, 100, 50, 0.3); color: var(--cream); border-radius: 6px; font-size: 12px;">
+                                <input type="number" id="timerInputMinutes" placeholder="Min" value="10" style="flex: 1; padding: 10px; background: rgba(20, 15, 13, 0.8); border: 1px solid rgba(200, 100, 50, 0.3); color: var(--cream); border-radius: 6px; font-size: 12px; text-align: center;">
+                            </div>
+                            <div style="display: flex; gap: 10px;">
+                                <button id="startTimerBtn" class="primary-button" style="flex: 1; min-height: 35px; font-size: 11px;">Iniciar</button>
+                                <button id="stopTimerBtn" class="secondary-button" style="flex: 1; min-height: 35px; font-size: 11px; border-color: rgba(188,48,28,0.5); color: #d46a4a;">Parar</button>
+                            </div>
+                        </div>
+                    </div>
+
                         <span class="tool-label">Solicitar Teste aos Jogadores</span>
                         <div style="display: flex; gap: 10px; align-items: center; margin-top: 8px;">
                             <select id="requestRollSelect" style="flex: 1; padding: 10px; background: rgba(20, 15, 13, 0.8); border: 1px solid rgba(200, 100, 50, 0.3); color: var(--cream); border-radius: 6px;">
