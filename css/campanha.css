@@ -1,432 +1,337 @@
 /* =========================================================
-   AERION — PAINEL DA CAMPANHA (UNIFICADO ATÉ FASE A)
+   AERION — CAMPANHA.CSS COMPLETO (DARK FANTASY PREMIUM)
+   Dashboard, Combate, Cozinha, Histórico, Cena e Segredos
 ========================================================= */
-
-.campaign-dashboard { width: min(100%, 1000px); margin: 0 auto; padding: 0 1rem 4rem; min-height: 100vh; }
-.dash-header { position: sticky; top: 0; z-index: 100; display: flex; align-items: center; gap: 15px; padding: 15px 0; background: rgba(5, 3, 3, 0.95); backdrop-filter: blur(12px); border-bottom: 1px solid rgba(182, 72, 38, 0.16); margin-bottom: 20px; }
-.dash-title { flex: 1; }
-.dash-title span { font-family: var(--display-font); font-size: 0.65rem; color: var(--orange); letter-spacing: 0.2em; text-transform: uppercase; }
-.dash-title h1 { font-family: var(--display-font); font-size: 1.2rem; color: var(--cream); margin: 0; }
-
-.campaign-banner { position: relative; width: 100%; height: 180px; border-radius: 16px; border: 1px solid rgba(200, 100, 50, 0.3); background-color: #111; background-size: cover; background-position: center; display: flex; align-items: flex-end; padding: 20px; overflow: hidden; margin-bottom: 20px; }
-.banner-overlay { position: absolute; inset: 0; background: linear-gradient(to top, rgba(5, 3, 3, 0.9) 0%, rgba(5, 3, 3, 0.2) 100%); }
-.campaign-banner h2 { position: relative; z-index: 2; font-family: var(--display-font); font-size: 2rem; color: var(--cream); margin: 0; text-shadow: 0 4px 15px rgba(0,0,0,0.8); }
-
-/* TABS DE NAVEGAÇÃO */
-.dash-nav { display: flex; gap: 10px; margin-bottom: 30px; border-bottom: 1px solid rgba(131, 65, 43, 0.3); padding-bottom: 10px; overflow-x: auto; scrollbar-width: none; }
-.dash-nav::-webkit-scrollbar { display: none; }
-.dash-tab { background: transparent; border: 1px solid transparent; color: var(--cream-muted); font-family: var(--display-font); font-size: 0.85rem; padding: 8px 16px; border-radius: 8px; cursor: pointer; transition: all 0.2s; white-space: nowrap; }
-.dash-tab:hover { color: var(--cream); background: rgba(20, 15, 13, 0.5); }
-.dash-tab.active { color: var(--gold); border-color: rgba(200, 100, 50, 0.4); background: rgba(25, 17, 15, 0.8); }
-.dash-tab-content { display: none; animation: fadeIn 0.3s ease; }
-.dash-tab-content.active { display: block; }
-@keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
-
-/* PAINÉIS */
-.dash-panel { border-radius: 14px; border: 1px solid rgba(200, 100, 50, 0.2); padding: 24px; background: linear-gradient(145deg, rgba(25, 17, 15, 0.6), rgba(10, 8, 7, 0.8)); margin-bottom: 30px; }
-.master-panel { border-color: rgba(188, 48, 28, 0.4); box-shadow: 0 0 20px rgba(188, 48, 28, 0.05); }
-.dash-panel h3 { font-family: var(--display-font); font-size: 1.1rem; color: var(--gold); margin: 0 0 5px 0; }
-
-/* FERRAMENTAS DO MESTRE */
-.master-tools-grid { display: grid; grid-template-columns: 1fr; gap: 20px; margin-top: 15px; }
-@media(min-width: 700px) { .master-tools-grid { grid-template-columns: 1fr 1fr; } }
-.tool-section { background: rgba(15, 10, 8, 0.5); border: 1px solid rgba(200, 100, 50, 0.15); padding: 15px; border-radius: 10px; }
-.tool-label { display: block; font-size: 0.75rem; color: var(--cream-muted); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px; }
-.dice-buttons-container { display: flex; flex-wrap: wrap; gap: 8px; }
-.dice-btn { background: rgba(30, 20, 15, 0.8); border: 1px solid rgba(200, 100, 50, 0.4); color: var(--cream); border-radius: 6px; padding: 6px 12px; font-size: 0.85rem; font-family: var(--display-font); cursor: pointer; transition: all 0.2s ease; }
-.dice-btn:hover { background: rgba(200, 100, 50, 0.2); border-color: var(--gold); color: var(--gold); transform: translateY(-2px); }
-.dice-btn:active { transform: translateY(0); }
-.dice-d20 { border-color: var(--fire); color: #ff9d85; font-weight: bold; }
-
-.campaign-section { margin-bottom: 30px; }
-.section-header { margin-bottom: 15px; }
-.section-header h3 { font-family: var(--display-font); color: var(--gold); margin: 0 0 5px 0; font-size: 1.1rem; }
-.section-header p { color: var(--cream-muted); font-size: 0.85rem; margin: 0; }
-
-/* GRID DE PERSONAGENS */
-.campaign-characters-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 15px; }
-.campaign-char-card { display: flex; align-items: center; gap: 15px; padding: 15px; background: rgba(20, 15, 13, 0.6); border: 1px solid rgba(131, 65, 43, 0.3); border-radius: 12px; transition: border-color 0.2s, transform 0.2s; }
-.campaign-char-card:hover { border-color: rgba(225, 99, 45, 0.5); transform: translateY(-2px); }
-.campaign-char-card.own-character { border-color: var(--gold); background: linear-gradient(145deg, rgba(30, 22, 18, 0.8), rgba(15, 10, 8, 0.9)); }
-.char-card-avatar, .char-card-fallback { width: 50px; height: 50px; border-radius: 50%; border: 1px solid var(--line); }
-.char-card-fallback { background: #222; display: grid; place-items: center; color: var(--gold); font-family: var(--display-font); font-size: 20px; line-height: 1; }
-.char-card-info { flex: 1; min-width: 0; }
-.char-card-info h4 { margin: 0 0 4px 0; color: var(--cream); font-family: var(--display-font); font-size: 1.05rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.char-card-info span { font-size: 0.75rem; color: var(--cream-muted); }
-.char-card-actions { display: flex; gap: 8px; }
-.char-state-badge { background: rgba(5, 3, 3, 0.8); padding: 2px 6px; border-radius: 4px; border: 1px solid rgba(200, 100, 50, 0.3); font-size: 0.7rem; color: var(--gold); margin-top: 5px; display: inline-block; }
-
-/* COMBATE - TRACKER */
-.combatant-card { display: flex; align-items: center; gap: 15px; padding: 12px 15px; background: rgba(20, 15, 13, 0.8); border: 1px solid rgba(200, 100, 50, 0.3); border-radius: 8px; transition: all 0.3s ease; }
-.combatant-card.active-turn { border-color: var(--gold); background: linear-gradient(145deg, rgba(40, 30, 20, 0.9), rgba(20, 15, 10, 0.9)); box-shadow: 0 0 15px rgba(200, 100, 50, 0.2); transform: scale(1.02); }
-.combatant-init { width: 35px; height: 35px; min-width: 35px; border-radius: 50%; background: rgba(5, 3, 3, 0.8); border: 1px solid var(--gold); display: flex; align-items: center; justify-content: center; color: var(--gold); font-family: var(--display-font); font-weight: bold; }
-.combatant-name { font-family: var(--display-font); color: var(--cream); font-size: 1.1rem; }
-.remove-combatant-btn { background: transparent; border: none; color: var(--cream-muted); font-size: 1.5rem; cursor: pointer; padding: 0 5px; }
-.remove-combatant-btn:hover { color: #d46a4a; }
-
-/* MURAL */
-.mural-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 15px; margin-top: 15px; }
-.mural-card { border: 1px solid rgba(200, 100, 50, 0.3); background: rgba(20, 15, 13, 0.8); border-radius: 8px; text-align: center; box-shadow: inset 0 0 20px rgba(0,0,0,0.5); position: relative; display: flex; flex-direction: column; overflow: hidden; }
-.mural-card::before { content: '📌'; position: absolute; top: -5px; left: 50%; transform: translateX(-50%); font-size: 1.5rem; z-index: 5; }
-.mural-image { width: 100%; height: 160px; object-fit: cover; border-bottom: 1px solid rgba(200, 100, 50, 0.2); }
-.mural-content-box { padding: 20px; flex: 1; }
-.mural-card h4 { font-family: var(--display-font); color: var(--gold); margin: 0 0 10px 0; font-size: 1.1rem; border-bottom: 1px solid rgba(200, 100, 50, 0.2); padding-bottom: 8px; }
-.mural-card p { font-size: 0.9rem; color: var(--cream); font-family: 'Georgia', serif; line-height: 1.5; white-space: pre-wrap; margin: 0; }
-
-/* ESQUELETOS */
-.placeholder-panel { text-align: center; display: flex; flex-direction: column; justify-content: center; align-items: center; min-height: 250px; }
-.placeholder-icon { font-size: 3rem; margin-bottom: 15px; filter: grayscale(1) opacity(0.5); }
-
-/* MODAL DE ESTADO RÁPIDO */
-.state-adj-btn { width: 40px; height: 100%; border-radius: 8px; border: 1px solid rgba(131, 65, 43, 0.5); background: rgba(20, 15, 13, 0.8); color: var(--gold); font-size: 1.2rem; cursor: pointer; transition: all 0.2s; }
-.state-adj-btn:hover { background: rgba(40, 30, 25, 0.8); border-color: var(--gold); }
-.state-adj-btn:active { transform: scale(0.95); }
-
-/* FICHA DO JOGADOR IN-GAME */
-.player-sheet-header { display: flex; align-items: center; gap: 15px; margin-bottom: 25px; border-bottom: 1px solid rgba(200, 100, 50, 0.2); padding-bottom: 15px; }
-.ps-header-info h2 { font-family: var(--display-font); color: var(--cream); margin: 0 0 5px 0; font-size: 1.5rem; }
-.ps-header-info span { color: var(--cream-muted); font-size: 0.85rem; }
-.attributes-roll-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 10px; }
-.ps-roll-btn { background: rgba(30, 20, 15, 0.8); border: 1px solid rgba(200, 100, 50, 0.4); color: var(--cream); border-radius: 8px; padding: 10px; font-size: 0.85rem; font-family: var(--display-font); cursor: pointer; transition: all 0.2s ease; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 60px; }
-.ps-roll-btn span.attr-val { font-size: 1.1rem; color: var(--gold); margin-top: 5px; }
-.ps-roll-btn:hover { background: rgba(200, 100, 50, 0.2); border-color: var(--gold); transform: translateY(-2px); }
-.ps-roll-btn:active { transform: translateY(0); }
-
-/* TOAST DE REQUEST */
-.request-toast { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background: rgba(25, 17, 15, 0.95); border: 1px solid var(--gold); border-radius: 12px; padding: 15px 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.8), 0 0 15px rgba(200, 100, 50, 0.3); z-index: 9999; animation: slideUp 0.3s ease; max-width: 90%; width: 400px; backdrop-filter: blur(10px); }
-.request-toast-content { display: flex; align-items: center; gap: 15px; }
-.request-icon { font-size: 24px; animation: pulse 2s infinite; }
-@keyframes slideUp { from { bottom: -100px; opacity: 0; } to { bottom: 20px; opacity: 1; } }
-@keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.1); } 100% { transform: scale(1); } }
-
-/* SISTEMA DE COZINHA */
-.cooking-active-meal { border: 1px solid var(--gold); border-radius: 12px; background: linear-gradient(145deg, rgba(40, 30, 20, 0.8), rgba(20, 15, 10, 0.9)); padding: 20px; text-align: center; margin-bottom: 30px; box-shadow: 0 0 20px rgba(200, 100, 50, 0.15); }
-.cooking-active-meal h4 { font-family: var(--display-font); color: var(--gold); margin: 0 0 10px 0; font-size: 1.2rem; }
-.cooking-active-meal p { color: var(--cream); font-size: 0.9rem; margin: 0 0 15px 0; }
-.meal-bonus-box { display: inline-block; background: rgba(5, 3, 3, 0.6); padding: 8px 20px; border-radius: 20px; border: 1px solid rgba(200, 100, 50, 0.3); font-size: 0.85rem; color: var(--cream); }
-.meal-bonus-box span { color: var(--orange); font-weight: bold; }
-.cooking-layout { display: grid; grid-template-columns: 1fr; gap: 20px; }
-@media(min-width: 768px) { .cooking-layout { grid-template-columns: 1fr 1fr; } }
-.cooking-bag-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 10px; max-height: 350px; overflow-y: auto; padding-right: 5px; }
-.ingredient-card { background: rgba(20, 15, 13, 0.8); border: 1px solid rgba(200, 100, 50, 0.3); border-radius: 8px; padding: 10px; text-align: center; cursor: pointer; transition: all 0.2s; position: relative; }
-.ingredient-card:hover { border-color: var(--gold); transform: translateY(-2px); background: rgba(30, 22, 18, 0.9); }
-.ingredient-img { width: 45px; height: 45px; object-fit: cover; border-radius: 50%; border: 1px solid var(--gold); margin: 0 auto 8px; display: block; background: #111; }
-.ingredient-card h5 { font-family: var(--display-font); color: var(--cream); font-size: 0.85rem; margin: 0 0 4px 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.ingredient-card span { font-size: 0.75rem; color: var(--gold); }
-.cauldron-container { border: 2px dashed rgba(200, 100, 50, 0.4); border-radius: 12px; background: rgba(15, 10, 8, 0.9); padding: 20px; text-align: center; min-height: 250px; display: flex; flex-direction: column; justify-content: space-between; }
-.cauldron-drop-zone { flex: 1; display: flex; flex-wrap: wrap; gap: 8px; align-content: flex-start; justify-content: center; padding: 10px; min-height: 120px; }
-.cauldron-placeholder { color: var(--cream-muted); font-size: 0.85rem; margin: auto; font-style: italic; }
-.cauldron-item { background: rgba(40, 25, 20, 0.9); border: 1px solid var(--gold); border-radius: 6px; padding: 6px 10px; display: flex; align-items: center; gap: 8px; font-size: 0.8rem; color: var(--cream); animation: fadeIn 0.2s ease; }
-.cauldron-item button { background: transparent; border: none; color: #d46a4a; cursor: pointer; font-size: 1rem; padding: 0; line-height: 1; }
-.recipe-book-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 15px; }
-.recipe-card { background: rgba(20, 15, 13, 0.8); border: 1px solid rgba(131, 65, 43, 0.4); border-radius: 10px; padding: 15px; display: flex; gap: 12px; align-items: center; }
-.recipe-img { width: 55px; height: 55px; object-fit: cover; border-radius: 8px; border: 1px solid var(--gold); background: #111; }
-.recipe-info h5 { font-family: var(--display-font); color: var(--cream); font-size: 0.95rem; margin: 0 0 4px 0; }
-.recipe-info p { font-size: 0.75rem; color: var(--cream-muted); margin: 0; }
 
 /* =========================================================
-   LINHA DO TEMPO (FASE A)
+   1. LAYOUT PRINCIPAL DO DASHBOARD
 ========================================================= */
-.timeline-container { position: relative; padding: 20px 0; }
-.timeline-track { position: absolute; left: 24px; top: 0; bottom: 0; width: 2px; background: rgba(200, 100, 50, 0.2); }
-.timeline-item { position: relative; display: flex; gap: 15px; margin-bottom: 20px; align-items: flex-start; padding-left: 10px; animation: slideUp 0.3s ease forwards; }
-.tl-icon { width: 30px; height: 30px; border-radius: 50%; background: #111; border: 2px solid var(--gold); display: grid; place-items: center; font-size: 14px; z-index: 2; flex-shrink: 0; margin-top: 5px; }
-.tl-content { background: rgba(20, 15, 13, 0.6); border: 1px solid rgba(200, 100, 50, 0.15); border-radius: 8px; padding: 12px; flex: 1; position: relative; transition: all 0.2s ease; }
-.tl-content:hover { border-color: rgba(200, 100, 50, 0.4); background: rgba(25, 17, 15, 0.8); transform: translateX(2px); }
-.tl-content::before { content: ''; position: absolute; left: -6px; top: 10px; width: 10px; height: 10px; background: inherit; border-left: 1px solid rgba(200, 100, 50, 0.15); border-bottom: 1px solid rgba(200, 100, 50, 0.15); transform: rotate(45deg); transition: inherit; }
-.tl-time { display: block; font-family: monospace; font-size: 11px; color: var(--gold); margin-bottom: 5px; opacity: 0.8; }
-.tl-desc { margin: 0; font-size: 0.9rem; color: var(--cream); line-height: 1.4; }
-
-/* Cores por tipo de evento */
-.tl-roll .tl-icon { border-color: var(--gold); background: rgba(200, 100, 50, 0.2); }
-.tl-request .tl-icon { border-color: var(--gold); background: rgba(200, 100, 50, 0.5); animation: pulse 1.5s infinite; }
-.tl-combat .tl-icon { border-color: var(--fire); background: rgba(188, 48, 28, 0.2); }
-.tl-damage .tl-icon { border-color: #8b1c1c; background: rgba(80, 10, 10, 0.5); }
-.tl-heal .tl-icon { border-color: #5ab85a; background: rgba(40, 100, 40, 0.2); }
-.tl-cozinha .tl-icon { border-color: var(--orange); background: rgba(240, 106, 47, 0.2); }
-.tl-scene .tl-icon { border-color: #9d5bb5; background: rgba(100, 50, 150, 0.2); }
-.tl-system .tl-icon { border-color: #666; background: rgba(50, 50, 50, 0.2); filter: grayscale(1); }
-
-/* =========================================================
-   ROLAGEM CINEMATOGRÁFICA (FASE A)
-========================================================= */
-.cinematic-overlay { position: fixed; inset: 0; background: rgba(5, 3, 2, 0.85); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); z-index: 10000; display: flex; flex-direction: column; align-items: center; justify-content: center; opacity: 0; visibility: hidden; transition: opacity 0.3s ease, visibility 0.3s ease; }
-.cinematic-overlay.active { opacity: 1; visibility: visible; }
-.cinematic-box { text-align: center; transform: scale(0.8); transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
-.cinematic-overlay.active .cinematic-box { transform: scale(1); }
-
-.cine-title { font-family: var(--display-font); color: var(--gold); font-size: 1.5rem; letter-spacing: 3px; text-transform: uppercase; margin: 0 0 5px; text-shadow: 0 2px 10px rgba(0,0,0,0.8); }
-.cine-subtitle { color: var(--cream-muted); font-size: 1rem; margin: 0 0 30px; font-style: italic; }
-
-.cine-result-circle { width: 140px; height: 140px; border-radius: 50%; border: 3px solid var(--gold); margin: 0 auto; display: grid; place-items: center; background: radial-gradient(circle, rgba(200, 100, 50, 0.4), transparent); box-shadow: 0 0 40px rgba(200, 100, 50, 0.4), inset 0 0 30px rgba(200, 100, 50, 0.3); animation: floatDice 3s ease-in-out infinite; }
-@keyframes floatDice { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
-
-.cine-result { font-family: var(--display-font); font-size: 3.5rem; font-weight: bold; color: var(--cream); text-shadow: 0 0 20px var(--orange); }
-/* =========================================================
-   CRONÔMETRO E PAINEL DA SESSÃO (FASE B)
-========================================================= */
-.global-timer {
-    position: fixed;
-    top: 80px;
-    right: 20px;
-    background: rgba(15, 10, 8, 0.95);
-    border: 1px solid var(--fire);
-    border-radius: 12px;
-    padding: 15px 25px;
-    box-shadow: 0 5px 20px rgba(188, 48, 28, 0.3);
-    z-index: 99;
-    text-align: center;
-    backdrop-filter: blur(8px);
-    animation: fadeIn 0.3s ease;
-}
-.global-timer span.label {
-    display: block;
-    color: var(--cream-muted);
-    font-size: 0.75rem;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    margin-bottom: 5px;
-}
-.global-timer strong.time {
-    font-family: var(--display-font);
-    font-size: 2rem;
-    color: var(--gold);
-    text-shadow: 0 0 10px rgba(232, 160, 93, 0.4);
+.campaign-dashboard {
+    width: min(100%, 1200px);
+    margin: 0 auto;
+    padding: 0 1rem 4rem;
+    min-height: 100vh;
 }
 
-.session-dashboard-grid {
-    display: grid;
-    grid-template-columns: 1fr;
-    gap: 15px;
-    margin-bottom: 20px;
-}
-@media(min-width: 700px) {
-    .session-dashboard-grid { grid-template-columns: 1fr 1fr; }
-}
-/* =========================================================
-   MODO CENA (FASE C)
-========================================================= */
-.scene-overlay {
-    position: fixed;
-    inset: 0;
-    background: var(--black);
-    z-index: 9995; /* Fica abaixo dos Modais e do Toast */
+.dash-header {
+    position: sticky;
+    top: 0;
+    z-index: 100;
     display: flex;
-    flex-direction: column;
     align-items: center;
-    justify-content: center;
-    opacity: 0;
-    visibility: hidden;
-    transition: opacity 0.5s ease, visibility 0.5s ease;
-    overflow: hidden;
+    gap: 1rem;
+    padding: 1rem 0;
+    background: rgba(8, 6, 5, 0.95);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--border-subtle);
+    margin-bottom: 1.5rem;
 }
-.scene-overlay.active {
-    opacity: 1;
-    visibility: visible;
-}
-.scene-background {
-    position: absolute;
-    inset: 0;
+
+.dash-title { flex: 1; }
+.dash-title span { font-family: var(--font-head); font-size: 0.7rem; color: var(--text-muted); letter-spacing: 0.15em; text-transform: uppercase; display: block; margin-bottom: 0.2rem; }
+.dash-title h1 { font-size: 1.4rem; margin: 0; text-shadow: 0 2px 4px rgba(0,0,0,0.8); }
+
+/* Banner da Campanha */
+.campaign-banner {
+    position: relative;
+    width: 100%;
+    height: 220px;
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--border-strong);
+    background-color: var(--bg-base);
     background-size: cover;
     background-position: center;
-    opacity: 0;
-    transition: opacity 1s ease;
-    filter: blur(3px) brightness(0.8);
+    display: flex;
+    align-items: flex-end;
+    padding: 2rem;
+    overflow: hidden;
+    margin-bottom: 2rem;
+    box-shadow: var(--shadow-md);
 }
-.scene-overlay::after {
-    content: '';
+
+.banner-overlay {
     position: absolute;
     inset: 0;
-    background: radial-gradient(circle at center, rgba(5,3,3,0.4) 0%, var(--black) 100%);
-    pointer-events: none;
+    background: linear-gradient(to top, rgba(8, 6, 5, 0.95) 0%, rgba(8, 6, 5, 0.2) 100%);
 }
-.scene-content-box {
+
+.campaign-banner h2 {
     position: relative;
     z-index: 2;
-    max-width: 800px;
-    width: 90%;
-    text-align: center;
-    padding: 40px;
-    background: rgba(10, 8, 7, 0.7);
-    border: 1px solid rgba(200, 100, 50, 0.3);
-    border-radius: 16px;
-    backdrop-filter: blur(10px);
-    box-shadow: 0 20px 50px rgba(0,0,0,0.8);
-    transform: translateY(20px);
-    transition: transform 0.5s ease;
-}
-.scene-overlay.active .scene-content-box {
-    transform: translateY(0);
-}
-.scene-content-box h2 {
-    font-family: var(--display-font);
-    font-size: 2.5rem;
-    color: var(--gold);
-    margin-bottom: 20px;
-    letter-spacing: 2px;
-    text-transform: uppercase;
+    font-size: 2.2rem;
+    color: #fff;
+    margin: 0;
     text-shadow: 0 4px 15px rgba(0,0,0,0.9);
 }
-.scene-content-box p {
-    font-size: 1.1rem;
-    color: var(--cream);
-    line-height: 1.6;
-    margin-bottom: 30px;
-    white-space: pre-wrap;
-    font-family: 'Georgia', serif;
-}
-.active-scene-indicator {
-    position: fixed;
-    bottom: 20px;
-    left: 20px;
-    background: rgba(20, 15, 13, 0.9);
-    border: 1px solid #9d5bb5;
-    color: #dfb2f2;
-    padding: 8px 15px;
-    border-radius: 20px;
-    font-size: 0.8rem;
-    cursor: pointer;
-    z-index: 90;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    box-shadow: 0 0 15px rgba(157, 91, 181, 0.3);
-    transition: all 0.2s ease;
-}
-.active-scene-indicator:hover {
-    background: rgba(40, 20, 40, 0.9);
-    transform: translateY(-2px);
-}
-/* =========================================================
-   SEGREDOS E CARTÕES PRIVADOS (FASE D)
-========================================================= */
-.secret-card {
-    background: linear-gradient(145deg, rgba(20, 10, 15, 0.8), rgba(10, 5, 8, 0.9));
-    border: 1px solid #9d5bb5;
-    border-radius: 8px;
-    padding: 12px;
-    margin-bottom: 10px;
-    box-shadow: inset 0 0 15px rgba(157, 91, 181, 0.1);
-}
-.secret-header {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    margin-bottom: 5px;
-    color: #dfb2f2;
-    font-family: var(--display-font);
-    font-size: 0.95rem;
-    border-bottom: 1px solid rgba(157, 91, 181, 0.2);
-    padding-bottom: 5px;
-}
-.secret-body {
-    color: var(--cream);
-    font-size: 0.85rem;
-    font-family: 'Georgia', serif;
-    white-space: pre-wrap;
-    line-height: 1.4;
-}
-.private-card-toast {
-    position: fixed;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%) scale(0.9);
-    background: rgba(15, 8, 12, 0.95);
-    border: 2px solid #9d5bb5;
-    border-radius: 12px;
-    padding: 25px;
-    width: 90%;
-    max-width: 400px;
-    z-index: 10000;
-    box-shadow: 0 10px 40px rgba(0,0,0,0.9), 0 0 30px rgba(157, 91, 181, 0.3);
-    text-align: center;
-    backdrop-filter: blur(10px);
-    opacity: 0;
-    visibility: hidden;
-    transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-}
-.private-card-toast.active {
-    opacity: 1;
-    visibility: visible;
-    transform: translate(-50%, -50%) scale(1);
-}
 
 /* =========================================================
-   MAPAS INTERATIVOS E PINS (FASE E)
+   2. NAVEGAÇÃO DE ABAS (TABS)
 ========================================================= */
-.map-view-box {
-    width: 95%;
-    max-width: 1200px;
-    height: 90vh;
+.dash-nav {
     display: flex;
-    flex-direction: column;
-    padding: 15px;
-    overflow: hidden;
+    gap: 0.5rem;
+    margin-bottom: 2rem;
+    border-bottom: 2px solid var(--bg-surface-elevated);
+    padding-bottom: 0;
+    overflow-x: auto;
+    scrollbar-width: none;
 }
-.map-interactive-area {
-    position: relative;
-    flex: 1;
-    width: 100%;
-    background: #000;
-    border: 1px solid rgba(200, 100, 50, 0.3);
-    border-radius: 12px;
-    overflow: auto; /* Permite scroll se a imagem for maior */
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-.map-interactive-image {
-    max-width: 100%;
-    max-height: 100%;
-    object-fit: contain; /* Garante que a proporção X/Y fique correta */
-    cursor: crosshair; /* Indica ao mestre que pode clicar */
-}
-.map-pins-container {
-    position: absolute;
-    inset: 0;
-    pointer-events: none; /* Deixa o clique passar para a imagem */
-}
-.map-pin {
-    position: absolute;
-    transform: translate(-50%, -100%); /* Faz a "ponta" do pin ficar exata na % */
-    pointer-events: auto; /* Reativa o clique no pin em si */
-    z-index: 10;
-    cursor: pointer;
-}
-.pin-marker {
-    font-size: 24px;
-    filter: drop-shadow(0 4px 5px rgba(0,0,0,0.8));
-    transition: transform 0.2s ease;
-}
-.map-pin:hover .pin-marker {
-    transform: scale(1.2);
-}
-.pin-hidden .pin-marker {
-    opacity: 0.6;
-    filter: grayscale(1) drop-shadow(0 2px 3px rgba(0,0,0,0.8));
-}
-.pin-tooltip {
-    position: absolute;
-    bottom: 100%;
-    left: 50%;
-    transform: translateX(-50%) translateY(-10px);
-    background: rgba(15, 10, 8, 0.95);
-    border: 1px solid var(--gold);
-    padding: 12px;
-    border-radius: 8px;
-    width: max-content;
-    max-width: 250px;
-    box-shadow: 0 10px 20px rgba(0,0,0,0.8);
-    backdrop-filter: blur(5px);
-    z-index: 11;
-    opacity: 0;
-    visibility: hidden;
-    transition: all 0.2s ease;
-    cursor: default;
-}
-.pin-tooltip.active {
-    opacity: 1;
-    visibility: visible;
-    transform: translateX(-50%) translateY(0);
+.dash-nav::-webkit-scrollbar { display: none; }
+
+.dash-tab {
+    padding: 0.8rem 1.2rem;
+    color: var(--text-muted);
+    font-family: var(--font-head);
+    font-size: 0.9rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    border-bottom: 3px solid transparent;
+    border-radius: var(--radius-sm) var(--radius-sm) 0 0;
+    transition: var(--transition-fast);
+    white-space: nowrap;
 }
 
+.dash-tab:hover { color: var(--text-primary); background: rgba(255, 255, 255, 0.02); }
+.dash-tab.active { color: var(--accent-gold); border-bottom-color: var(--accent-gold); background: linear-gradient(0deg, rgba(212,175,55,0.08) 0%, transparent 100%); }
+
+.dash-tab-content { display: none; animation: fadeInTab 0.4s ease forwards; }
+.dash-tab-content.active { display: block; }
+@keyframes fadeInTab { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+/* =========================================================
+   3. PAINÉIS E CARDS INTERNOS
+========================================================= */
+.dash-panel {
+    background: var(--bg-surface);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-lg);
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+    box-shadow: var(--shadow-sm);
+}
+
+.master-panel {
+    border-color: rgba(194, 59, 34, 0.3); /* Tom avermelhado para o mestre */
+    background: linear-gradient(145deg, rgba(30, 20, 18, 0.6), var(--bg-surface));
+}
+
+.dash-panel h3, .section-header h3 { font-size: 1.2rem; margin-bottom: 0.5rem; }
+.section-header p { color: var(--text-muted); font-size: 0.9rem; margin-bottom: 1.5rem; }
+
+/* Grid de Ferramentas do Mestre */
+.master-tools-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1rem; margin-top: 1rem; }
+.tool-section { background: var(--bg-base); border: 1px solid var(--border-subtle); padding: 1.2rem; border-radius: var(--radius-md); }
+.tool-label { display: block; font-family: var(--font-head); font-size: 0.8rem; color: var(--accent-gold); text-transform: uppercase; margin-bottom: 0.8rem; }
+
+/* Botões de Rolagem Rápida */
+.dice-buttons-container { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+.dice-btn { background: var(--bg-surface-elevated); border: 1px solid var(--border-strong); color: var(--text-primary); border-radius: var(--radius-sm); padding: 0.5rem 0.8rem; font-family: var(--font-head); font-size: 0.9rem; font-weight: bold; transition: var(--transition-fast); }
+.dice-btn:hover { background: var(--bg-surface-interactive); border-color: var(--accent-gold); color: var(--accent-gold); transform: translateY(-2px); }
+.dice-d20 { border-color: var(--accent-fire); color: #ff8a8a; }
+
+/* =========================================================
+   4. LISTA DE PERSONAGENS IN-GAME
+========================================================= */
+.campaign-characters-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 1rem; }
+
+.campaign-char-card {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1.2rem;
+    background: var(--bg-surface-elevated);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-md);
+    transition: var(--transition-smooth);
+}
+
+.campaign-char-card:hover { border-color: var(--accent-gold); background: var(--bg-surface-interactive); }
+.campaign-char-card.own-character { border-color: var(--accent-gold); background: linear-gradient(145deg, rgba(42, 32, 28, 0.8), var(--bg-surface)); box-shadow: var(--shadow-glow); }
+
+.char-card-avatar, .char-card-fallback { width: 56px; height: 56px; border-radius: 50%; border: 2px solid var(--border-strong); }
+.char-card-fallback { background: var(--bg-base); display: grid; place-items: center; color: var(--accent-gold); font-family: var(--font-head); font-size: 1.5rem; }
+
+.char-card-info { flex: 1; min-width: 0; }
+.char-card-info h4 { margin: 0; font-size: 1.1rem; color: var(--text-primary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.char-card-info span { font-size: 0.8rem; color: var(--text-muted); }
+
+.char-stats-mini { display: flex; gap: 10px; font-size: 0.8rem; font-family: var(--font-head); margin-top: 6px; }
+.stat-pv { color: #ff8a8a; }
+.stat-mana { color: #8ab4f8; }
+
+.char-state-badge { background: rgba(194, 59, 34, 0.15); border: 1px solid var(--border-danger); color: #ff8a8a; padding: 2px 8px; border-radius: 4px; font-size: 0.7rem; font-weight: bold; margin-top: 6px; display: inline-block; text-transform: uppercase; }
+
+/* =========================================================
+   5. FICHA IN-GAME MODAL (PLAYER SHEET)
+========================================================= */
+.player-sheet-box { max-width: 850px; padding: 0; overflow: hidden; display: flex; flex-direction: column; }
+.player-sheet-header { padding: 2rem; background: linear-gradient(180deg, var(--bg-surface-elevated) 0%, var(--bg-surface) 100%); border-bottom: 1px solid var(--border-subtle); display: flex; align-items: center; gap: 1.5rem; position: relative; }
+.ps-header-info { flex: 1; }
+.ps-header-info span:first-child { color: var(--accent-gold); font-size: 0.75rem; letter-spacing: 0.1em; text-transform: uppercase; font-family: var(--font-head); }
+.ps-header-info h2 { font-size: 2rem; margin: 0.2rem 0; color: #fff; }
+.ps-header-info span:last-child { color: var(--text-secondary); font-size: 0.9rem; }
+
+.ps-body { padding: 2rem; overflow-y: auto; max-height: calc(90vh - 120px); }
+
+/* Painel de Estado Atual (PV/Mana) */
+.state-panel { border-color: rgba(194, 59, 34, 0.4); background: linear-gradient(145deg, rgba(30, 15, 12, 0.5), rgba(15, 8, 6, 0.8)); position: relative; }
+.state-panel::before { content:''; position:absolute; top:0; left:0; width:4px; height:100%; background: var(--accent-fire); border-radius: 4px 0 0 4px; }
+.state-view-grid { display: grid; grid-template-columns: 1fr 1fr 2fr; gap: 1rem; align-items: center; }
+.state-val-box { background: var(--bg-base); border: 1px solid var(--border-subtle); padding: 1rem; border-radius: var(--radius-md); text-align: center; }
+.state-val-box span { display: block; font-family: var(--font-head); font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; margin-bottom: 0.3rem; }
+.state-val-box strong { font-size: 1.8rem; font-family: var(--font-head); line-height: 1; }
+.val-pv { color: #ff8a8a !important; text-shadow: 0 0 10px rgba(194,59,34,0.4); }
+.val-mana { color: #8ab4f8 !important; text-shadow: 0 0 10px rgba(74,122,181,0.4); }
+
+.state-adj-btn { width: 40px; border-radius: var(--radius-sm); border: 1px solid var(--border-strong); background: var(--bg-surface-elevated); color: var(--text-primary); font-size: 1.2rem; cursor: pointer; transition: var(--transition-fast); }
+.state-adj-btn:hover { background: var(--accent-gold); color: var(--bg-base); border-color: var(--accent-gold); }
+
+/* Atributos para Rolar */
+.attributes-roll-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 0.8rem; }
+.ps-roll-btn { background: var(--bg-surface-elevated); border: 1px solid var(--border-strong); border-radius: var(--radius-md); padding: 1rem 0.5rem; text-align: center; cursor: pointer; transition: var(--transition-fast); display: flex; flex-direction: column; gap: 0.5rem; }
+.ps-roll-btn span:first-child { font-size: 0.8rem; color: var(--text-secondary); text-transform: uppercase; }
+.ps-roll-btn span.attr-val { font-family: var(--font-head); font-size: 1.5rem; color: var(--accent-gold); }
+.ps-roll-btn:hover { border-color: var(--accent-gold); background: var(--bg-surface-interactive); transform: translateY(-3px); box-shadow: var(--shadow-glow); }
+
+/* Leitura de Info Permanente */
+.ps-readonly-section { background: var(--bg-base); border: 1px solid var(--border-subtle); border-radius: var(--radius-md); padding: 1.2rem; margin-bottom: 1rem; }
+.ps-readonly-section h4 { font-size: 0.9rem; color: var(--accent-gold); margin-bottom: 0.8rem; text-transform: uppercase; border-bottom: 1px solid var(--border-subtle); padding-bottom: 0.5rem; }
+.ps-readonly-section p { font-size: 0.9rem; color: var(--text-secondary); white-space: pre-wrap; margin: 0; }
+
+/* =========================================================
+   6. COMBATE (TRACKER)
+========================================================= */
+.combatant-card { display: flex; align-items: center; gap: 1rem; padding: 1rem; background: var(--bg-surface-elevated); border: 1px solid var(--border-subtle); border-radius: var(--radius-md); margin-bottom: 0.5rem; transition: var(--transition-smooth); }
+.combatant-card.active-turn { 
+    border-color: var(--accent-gold); 
+    background: linear-gradient(90deg, rgba(212, 175, 55, 0.1) 0%, var(--bg-surface-interactive) 100%); 
+    box-shadow: inset 4px 0 0 var(--accent-gold), var(--shadow-md); 
+    transform: translateX(10px); 
+}
+.combatant-init { width: 40px; height: 40px; border-radius: var(--radius-sm); background: var(--bg-base); border: 1px solid var(--border-strong); display: grid; place-items: center; color: var(--accent-gold); font-family: var(--font-head); font-weight: bold; font-size: 1.1rem; }
+.combatant-name { font-family: var(--font-head); font-size: 1.2rem; color: var(--text-primary); flex: 1; }
+.remove-combatant-btn { color: var(--text-muted); font-size: 1.5rem; transition: var(--transition-fast); }
+.remove-combatant-btn:hover { color: #ff8a8a; transform: scale(1.1); }
+
+/* =========================================================
+   7. LINHA DO TEMPO (LOGS)
+========================================================= */
+.timeline-container { position: relative; padding: 1rem 0 1rem 1.5rem; }
+.timeline-track { position: absolute; left: 35px; top: 0; bottom: 0; width: 2px; background: var(--border-strong); }
+.timeline-item { position: relative; display: flex; gap: 1.5rem; margin-bottom: 1.5rem; align-items: flex-start; z-index: 2; animation: fadeIn 0.4s ease; }
+.tl-icon { width: 36px; height: 36px; border-radius: 50%; background: var(--bg-base); border: 2px solid var(--accent-gold); display: grid; place-items: center; font-size: 1rem; flex-shrink: 0; z-index: 2; box-shadow: 0 0 10px rgba(0,0,0,0.8); }
+.tl-content { background: var(--bg-surface-elevated); border: 1px solid var(--border-subtle); border-radius: var(--radius-md); padding: 1rem 1.2rem; flex: 1; position: relative; transition: var(--transition-fast); }
+.tl-content::before { content: ''; position: absolute; left: -6px; top: 12px; width: 10px; height: 10px; background: var(--bg-surface-elevated); border-left: 1px solid var(--border-subtle); border-bottom: 1px solid var(--border-subtle); transform: rotate(45deg); }
+.tl-time { font-family: monospace; font-size: 0.75rem; color: var(--text-muted); display: block; margin-bottom: 0.3rem; }
+.tl-desc { margin: 0; font-size: 0.95rem; color: var(--text-primary); }
+
+/* Cores por Categoria */
+.tl-combat .tl-icon { border-color: var(--accent-fire); color: var(--accent-fire); box-shadow: 0 0 10px rgba(194, 59, 34, 0.4); }
+.tl-roll .tl-icon { border-color: var(--accent-gold); box-shadow: var(--shadow-glow); }
+.tl-cozinha .tl-icon { border-color: var(--accent-success); }
+.tl-scene .tl-icon, .tl-secret .tl-icon { border-color: var(--accent-magic); box-shadow: var(--shadow-glow-magic); }
+.tl-system .tl-icon { border-color: var(--text-muted); filter: grayscale(1); }
+
+/* =========================================================
+   8. COZINHA
+========================================================= */
+.cooking-layout { display: grid; gap: 1.5rem; }
+@media(min-width: 800px) { .cooking-layout { grid-template-columns: 1fr 1fr; } }
+.cooking-active-meal { border: 1px solid var(--accent-success); border-radius: var(--radius-lg); background: linear-gradient(145deg, rgba(20, 40, 20, 0.4), var(--bg-surface)); padding: 1.5rem; text-align: center; margin-bottom: 2rem; box-shadow: 0 0 20px rgba(90, 184, 90, 0.1); }
+.cauldron-container { border: 2px dashed var(--border-strong); border-radius: var(--radius-lg); background: radial-gradient(circle at center, rgba(30, 20, 15, 0.8), var(--bg-base)); padding: 2rem; min-height: 280px; display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative; }
+.cauldron-drop-zone { width: 100%; min-height: 150px; display: flex; flex-wrap: wrap; gap: 0.8rem; align-items: center; justify-content: center; padding: 1rem; }
+.ingredient-card { background: var(--bg-surface-elevated); border: 1px solid var(--border-subtle); border-radius: var(--radius-md); padding: 0.8rem; text-align: center; cursor: grab; transition: var(--transition-fast); }
+.ingredient-card:hover { border-color: var(--accent-gold); transform: translateY(-3px); box-shadow: var(--shadow-sm); }
+.ingredient-img { width: 48px; height: 48px; border-radius: 50%; border: 1px solid var(--border-strong); margin: 0 auto 0.5rem; background: var(--bg-base); object-fit: cover; }
+
+/* =========================================================
+   9. MURAL E MAPA INTERATIVO (FASE E)
+========================================================= */
+.mural-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 1.5rem; }
+.mural-card { background: var(--bg-surface); border: 1px solid var(--border-subtle); border-radius: var(--radius-md); overflow: hidden; display: flex; flex-direction: column; position: relative; box-shadow: var(--shadow-sm); }
+.mural-card::before { content: '📌'; position: absolute; top: 10px; left: 50%; transform: translateX(-50%); font-size: 1.5rem; z-index: 5; text-shadow: 0 2px 5px rgba(0,0,0,0.8); }
+.mural-image { width: 100%; height: 200px; object-fit: cover; border-bottom: 1px solid var(--border-subtle); }
+.mural-content-box { padding: 1.5rem; display: flex; flex-direction: column; flex: 1; }
+.mural-content-box h4 { text-align: center; margin-bottom: 1rem; margin-top: 0.5rem; font-size: 1.2rem; }
+.mural-content-box p { font-family: 'Georgia', serif; font-size: 0.95rem; color: var(--text-secondary); white-space: pre-wrap; text-align: center; flex: 1; }
+
+.map-view-box { width: 95%; max-width: 1400px; height: 90vh; padding: 1.5rem; display: flex; flex-direction: column; }
+.map-interactive-area { flex: 1; background: #050505; border: 1px solid var(--border-strong); border-radius: var(--radius-md); position: relative; overflow: auto; display: flex; align-items: center; justify-content: center; }
+.map-interactive-image { max-width: 100%; max-height: 100%; object-fit: contain; cursor: crosshair; }
+.map-pin { position: absolute; transform: translate(-50%, -100%); z-index: 10; cursor: pointer; }
+.pin-marker { font-size: 2rem; filter: drop-shadow(0 4px 6px rgba(0,0,0,0.8)); transition: var(--transition-fast); }
+.map-pin:hover .pin-marker { transform: scale(1.2); }
+.pin-hidden .pin-marker { opacity: 0.6; filter: grayscale(1); }
+
+.pin-tooltip { position: absolute; bottom: 100%; left: 50%; transform: translateX(-50%) translateY(-10px); background: rgba(15, 10, 8, 0.98); border: 1px solid var(--accent-gold); padding: 1rem; border-radius: var(--radius-md); width: max-content; max-width: 280px; box-shadow: var(--shadow-lg); z-index: 11; opacity: 0; visibility: hidden; transition: var(--transition-fast); text-align: left; }
+.pin-tooltip.active { opacity: 1; visibility: visible; transform: translateX(-50%) translateY(0); }
+
+/* =========================================================
+   10. SEGREDOS E MENSAGENS PRIVADAS (FASE D)
+========================================================= */
+.secret-card { background: linear-gradient(145deg, rgba(30, 15, 35, 0.6), var(--bg-surface)); border: 1px solid var(--accent-magic); border-radius: var(--radius-md); padding: 1.2rem; box-shadow: inset 0 0 20px rgba(142, 75, 158, 0.05); }
+.secret-header { display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.8rem; border-bottom: 1px solid rgba(142, 75, 158, 0.3); padding-bottom: 0.5rem; }
+.secret-header strong { font-family: var(--font-head); color: #dfb2f2; font-size: 1.1rem; }
+.secret-body { font-family: 'Georgia', serif; font-size: 0.95rem; color: var(--text-primary); white-space: pre-wrap; }
+
+/* =========================================================
+   11. OVERLAYS CINEMATOGRÁFICOS E TOASTS (FASE A e C)
+========================================================= */
+.cinematic-overlay, .scene-overlay { position: fixed; inset: 0; background: rgba(5, 3, 2, 0.9); backdrop-filter: blur(10px); z-index: 9995; display: flex; flex-direction: column; align-items: center; justify-content: center; opacity: 0; visibility: hidden; transition: opacity 0.5s ease, visibility 0.5s ease; }
+.cinematic-overlay.active, .scene-overlay.active { opacity: 1; visibility: visible; }
+
+.cine-box { text-align: center; transform: scale(0.9); transition: transform 0.4s cubic-bezier(0.2, 0.8, 0.2, 1); }
+.cinematic-overlay.active .cine-box { transform: scale(1); }
+.cine-title { font-size: 2rem; letter-spacing: 0.1em; margin-bottom: 0.5rem; }
+.cine-result-circle { width: 160px; height: 160px; border-radius: 50%; border: 2px solid var(--accent-gold); margin: 2rem auto; display: grid; place-items: center; background: radial-gradient(circle, rgba(212, 175, 55, 0.2), transparent); box-shadow: var(--shadow-glow); animation: float 4s ease-in-out infinite; }
+@keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-15px); } }
+.cine-result { font-family: var(--font-head); font-size: 4rem; color: #fff; text-shadow: 0 0 20px var(--accent-gold); }
+
+.scene-background { position: absolute; inset: 0; background-size: cover; background-position: center; opacity: 0; filter: blur(5px) brightness(0.6); transition: opacity 1s ease; }
+.scene-content-box { position: relative; z-index: 2; max-width: 800px; padding: 3rem; background: rgba(10, 8, 7, 0.8); border: 1px solid var(--border-strong); border-radius: var(--radius-lg); text-align: center; box-shadow: var(--shadow-lg); }
+
+.active-scene-indicator { position: fixed; bottom: 20px; left: 20px; background: var(--bg-surface-elevated); border: 1px solid var(--accent-magic); padding: 0.6rem 1.2rem; border-radius: 30px; font-size: 0.85rem; color: #dfb2f2; cursor: pointer; z-index: 90; box-shadow: var(--shadow-glow-magic); transition: var(--transition-fast); }
+.active-scene-indicator:hover { transform: translateY(-3px); background: rgba(142, 75, 158, 0.2); }
+
+/* Toasts (Request Test, Private Message) */
+.toast-fixed { position: fixed; z-index: 9999; background: var(--bg-surface-elevated); border-radius: var(--radius-lg); box-shadow: var(--shadow-lg); backdrop-filter: blur(10px); opacity: 0; visibility: hidden; transition: var(--transition-smooth); }
+.toast-fixed.active { opacity: 1; visibility: visible; }
+
+.request-toast { bottom: 20px; left: 50%; transform: translateX(-50%) translateY(20px); border: 1px solid var(--accent-gold); padding: 1rem 1.5rem; width: max-content; max-width: 90%; }
+.request-toast.active { transform: translateX(-50%) translateY(0); }
+
+.private-card-toast { top: 50%; left: 50%; transform: translate(-50%, -40%) scale(0.95); border: 2px solid var(--accent-magic); padding: 2rem; width: 90%; max-width: 450px; text-align: center; box-shadow: var(--shadow-glow-magic); }
+.private-card-toast.active { transform: translate(-50%, -50%) scale(1); }
+
+/* =========================================================
+   12. CRONÔMETRO (FASE B)
+========================================================= */
+.global-timer { position: fixed; top: 90px; right: 20px; background: rgba(15, 10, 8, 0.95); border: 1px solid var(--accent-fire); border-radius: var(--radius-md); padding: 1rem 1.5rem; text-align: center; z-index: 90; box-shadow: 0 0 15px rgba(194, 59, 34, 0.3); animation: slideInRight 0.4s ease; }
+.global-timer .label { display: block; font-size: 0.7rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 0.2rem; }
+.global-timer .time { font-family: var(--font-head); font-size: 2.2rem; color: var(--accent-gold); line-height: 1; text-shadow: 0 0 10px rgba(212, 175, 55, 0.4); }
+@keyframes slideInRight { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+
+/* =========================================================
+   13. ESQUELETOS (EMPTY STATES) E LOADERS
+========================================================= */
+.placeholder-panel { min-height: 300px; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; border: 1px dashed var(--border-strong); background: transparent; }
+.placeholder-icon { font-size: 3.5rem; margin-bottom: 1rem; filter: grayscale(1) opacity(0.4); }
+.characters-loader { width: 40px; height: 40px; border: 3px solid var(--border-subtle); border-top-color: var(--accent-gold); border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto 1rem; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* =========================================================
+   14. RESPONSIVIDADE ESPECÍFICA DA CAMPANHA
+========================================================= */
+@media (max-width: 768px) {
+    .dash-header { padding: 1rem; margin-bottom: 1rem; }
+    .campaign-banner { height: 160px; padding: 1.5rem; border-radius: var(--radius-md); }
+    .campaign-banner h2 { font-size: 1.8rem; }
+    .dash-panel { padding: 1rem; }
+    .state-view-grid { grid-template-columns: 1fr; gap: 0.5rem; }
+    .global-timer { top: auto; bottom: 80px; right: 20px; padding: 0.8rem 1.2rem; }
+    .global-timer .time { font-size: 1.8rem; }
+    .scene-content-box { padding: 2rem 1.5rem; }
+    .cine-result-circle { width: 120px; height: 120px; }
+    .cine-result { font-size: 3rem; }
+}
