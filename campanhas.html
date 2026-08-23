@@ -4,14 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Aeriom — Campanhas</title>
-    <!-- Carrega os estilos globais do Design System -->
+    <!-- Estilos globais do Design System -->
     <link rel="stylesheet" href="css/style.css">
-    <!-- Inicia o gerenciador de temas imediatamente para evitar FOUC -->
+    <!-- Gerenciador de temas (FOUC prevention) -->
     <script src="js/theme.js"></script>
-    
-    <style>
-        @keyframes spin { 100% { transform: rotate(360deg); } }
-    </style>
 </head>
 <body>
 
@@ -20,161 +16,134 @@
     ========================================================= -->
     <header class="topbar">
         <div class="app-container topbar-content">
-            <button class="btn-icon" id="menuButton" aria-label="Abrir menu">
-                ☰
-            </button>
-            
-            <a href="index.html" class="brand-logo">
-                <img src="https://i.ibb.co/d0SnBLcV/Design-sem-nome-20260817-180846-0000.jpg" alt="Aeriom">
-            </a>
-            
+            <button class="btn-icon" id="menuButton" aria-label="Abrir menu">☰</button>
+            <a href="index.html" class="brand-logo" aria-label="Aeriom Home"></a>
             <div style="display: flex; gap: 8px;">
-                <button class="btn-icon" id="openCommandBarBtn" title="Ações Rápidas (Ctrl+K)">
-                    ⌘
-                </button>
-                <button class="btn-icon" id="profileButton" aria-label="Abrir Perfil">
-                    ♙
-                </button>
+                <button class="btn-icon" id="openCommandBarBtn" title="Ações Rápidas (Ctrl+K)">⌘</button>
+                <button class="btn-icon" id="profileButton" aria-label="Abrir Perfil">♙</button>
             </div>
         </div>
     </header>
 
     <!-- =========================================================
-         CONTEÚDO PRINCIPAL
+         MAIN CONTENT: LISTA DE CAMPANHAS
     ========================================================= -->
-    <main class="app-container" style="padding-top: 3rem; padding-bottom: 3rem; flex: 1;">
+    <main class="app-container" style="padding-top: 2rem; padding-bottom: 5rem;">
         
-        <!-- Cabeçalho da Página -->
-        <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 2rem; flex-wrap: wrap; gap: 1rem; border-bottom: 1px solid var(--theme-border); padding-bottom: 1.5rem;">
+        <!-- HEADER DA PÁGINA -->
+        <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: var(--space-lg); flex-wrap: wrap; gap: var(--space-md);">
             <div>
-                <h1 style="font-size: 2.2rem; margin-bottom: 0.5rem; color: var(--theme-primary);">Mesas e Campanhas</h1>
-                <p style="color: var(--text-secondary); font-size: 1rem;">Crie novos mundos como Mestre ou junte-se a uma aventura como Jogador.</p>
+                <h1 style="color: var(--color-primary); margin-bottom: var(--space-xs);">Salões de Aventura</h1>
+                <p class="text-muted">As suas mesas e campanhas ativas.</p>
             </div>
-            <div style="display: flex; gap: 10px;">
-                <button id="joinCampaignBtn" class="btn btn-secondary">Usar Convite</button>
-                <button id="createCampaignBtn" class="btn btn-primary">+ Nova Mesa</button>
-            </div>
+            <button id="createCampaignBtn" class="btn btn-primary">+ Nova Campanha</button>
         </div>
 
-        <!-- Mensagens de Erro/Aviso -->
         <div id="campaignsMessage" class="msg-box mb-4"></div>
 
-        <!-- Grid de Campanhas (Onde campanhas.js vai injetar os cards) -->
-        <div id="campaignsList" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 1.5rem;">
-            
-            <!-- Estado de Carregamento Inicial -->
-            <div style="grid-column: 1/-1; text-align: center; padding: 4rem 1rem; color: var(--text-muted); background: var(--theme-surface); border: 1px solid var(--theme-border); border-radius: var(--radius-md);">
-                <div style="width: 48px; height: 48px; border: 3px solid var(--theme-border); border-top-color: var(--theme-primary); border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto 1rem;"></div>
-                <p style="font-family: var(--font-heading); font-size: 1.2rem; color: var(--text-primary);">Buscando os mundos...</p>
-                <p style="font-size: 0.85rem;">Conectando às tramas do destino.</p>
-            </div>
-
+        <!-- =========================================================
+             ESTADOS DA PÁGINA (Arquitetura Consistente para o JS)
+        ========================================================= -->
+        
+        <!-- ESTADO 1: LOADING -->
+        <div id="loadingCampaigns" class="placeholder-panel">
+            <div class="placeholder-icon">⏳</div>
+            <h3 style="color: var(--color-primary); margin-bottom: 8px;">A consultar os registos...</h3>
+            <p class="text-muted">A procurar as suas campanhas nos salões de Aeriom.</p>
         </div>
+
+        <!-- ESTADO 2: VAZIO (EMPTY STATE) -->
+        <div id="emptyCampaigns" class="placeholder-panel" style="display: none;">
+            <div class="placeholder-icon">🏕️</div>
+            <h3 style="color: var(--color-primary); margin-bottom: 8px;">Nenhuma Mesa Encontrada</h3>
+            <p class="text-muted">Ainda não faz parte de nenhuma campanha.</p>
+            <button class="btn btn-secondary mt-4" onclick="document.getElementById('createCampaignBtn').click()">Criar a Primeira Campanha</button>
+        </div>
+
+        <!-- ESTADO 3: LISTA PREENCHIDA -->
+        <div id="campaignsList" style="display: none; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: var(--space-lg);">
+            <!-- Os cards das campanhas serão injetados aqui via JS -->
+        </div>
+
     </main>
 
     <!-- =========================================================
-         MODAIS GLOBAIS
+         MODAIS
     ========================================================= -->
-    
-    <!-- COMMAND BAR (PESQUISA RÁPIDA / CTRL+K) -->
-    <div id="commandBarModal" class="command-bar-modal">
-        <div class="global-overlay active" id="commandBarOverlay"></div>
-        <div class="command-bar-surface" style="z-index: 10006;">
-            <div class="command-input-wrapper">
-                <span>🔍</span>
-                <input type="text" class="command-input" id="commandBarInput" placeholder="O que você quer fazer? (ex: 'Ficha', 'Início')">
-                <div style="font-size: 0.7rem; background: var(--theme-surface-interactive); padding: 4px 8px; border-radius: var(--radius-sm); color: var(--text-muted); font-weight: 600;">ESC</div>
-            </div>
-            <div class="command-list" id="commandBarList">
-                <a href="index.html" class="command-item">
-                    <span class="command-item-icon">🏠</span> Voltar ao Início
-                </a>
-                <a href="fichas.html" class="command-item">
-                    <span class="command-item-icon">📜</span> Acessar Minhas Fichas
-                </a>
-                <a href="#" class="command-item" onclick="document.getElementById('createCampaignBtn').click();">
-                    <span class="command-item-icon">✨</span> Criar Nova Mesa
-                </a>
-            </div>
-        </div>
-    </div>
-
-    <!-- PAINEL DE PERFIL -->
-    <div id="profilePanel" class="modal-backdrop">
-        <div class="modal-surface text-center">
-            <button id="closeProfile" class="modal-close">×</button>
-            <div style="width: 80px; height: 80px; border-radius: 50%; background: var(--theme-surface-interactive); margin: 0 auto 1.5rem; border: 1px solid var(--theme-border-strong); display: grid; place-items: center; font-size: 2rem; font-family: var(--font-heading); color: var(--theme-primary);">♙</div>
-            <img id="profileAvatar" src="" alt="Avatar" style="display: none; width: 80px; height: 80px; border-radius: 50%; margin: 0 auto 1.5rem; object-fit: cover; border: 1px solid var(--theme-border-strong);">
-            
-            <h2 id="profileName" style="margin-bottom: 0.25rem;">Carregando...</h2>
-            <p id="profileEmail" class="text-secondary mb-4">Aguarde...</p>
-            
-            <div class="form-group">
-                <button id="editProfileButton" class="btn btn-secondary w-full">Editar Perfil</button>
-                <button id="logoutButton" class="btn btn-ghost w-full" style="color: var(--danger); margin-top: 8px;">Sair da Conta</button>
-            </div>
-        </div>
-    </div>
 
     <!-- MODAL: CRIAR NOVA CAMPANHA -->
     <div id="createCampaignModal" class="modal-backdrop">
         <div class="modal-surface">
-            <button id="closeCreateCampaignModal" class="modal-close">×</button>
+            <button id="closeCreateModal" class="modal-close" title="Fechar">×</button>
             <div class="modal-header">
-                <h2>Forjar Nova Mesa</h2>
-                <p>Crie o mundo e convide aventureiros.</p>
+                <h2>Fundar Nova Mesa</h2>
+                <p class="text-muted">Crie uma nova campanha e defina a atmosfera inicial.</p>
             </div>
-            
             <form id="createCampaignForm">
                 <div class="form-group">
                     <label class="form-label" for="campaignName">Nome da Campanha</label>
-                    <input type="text" id="campaignName" class="form-input" required placeholder="Ex: O Vale das Sombras">
+                    <input type="text" id="campaignName" class="form-input" placeholder="Ex: O Chamado de Eldoria" required>
                 </div>
-                <div class="form-group mb-4">
-                    <label class="form-label" for="campaignCover">URL da Capa (Opcional)</label>
-                    <input type="url" id="campaignCover" class="form-input" placeholder="https://exemplo.com/imagem.jpg">
+                <div class="form-group">
+                    <label class="form-label" for="campaignDesc">Descrição da Aventura</label>
+                    <textarea id="campaignDesc" class="form-textarea" placeholder="Um breve resumo do cenário ou tema da mesa..." required></textarea>
                 </div>
-                <button type="submit" id="saveCampaignBtn" class="btn btn-primary w-full">Criar Campanha</button>
+                <div class="form-group">
+                    <label class="form-label" for="campaignCover">URL da Imagem de Capa (Opcional)</label>
+                    <input type="url" id="campaignCover" class="form-input" placeholder="https://exemplo.com/imagem-epica.jpg">
+                    <span class="text-muted" style="font-size: 0.75rem; margin-top: 4px;">Esta imagem definirá a atmosfera visual da mesa para todos os jogadores.</span>
+                </div>
+                <div class="form-group mt-4 mb-0">
+                    <button type="submit" id="submitCampaignBtn" class="btn btn-primary w-full">Fundar Campanha</button>
+                </div>
             </form>
         </div>
     </div>
 
-    <!-- MODAL: ENTRAR COM CONVITE -->
-    <div id="joinCampaignModal" class="modal-backdrop">
-        <div class="modal-surface text-center">
-            <button id="closeJoinCampaignModal" class="modal-close">×</button>
-            <div class="modal-header">
-                <h2>Juntar-se à Mesa</h2>
-                <p>Insira o código fornecido pelo seu Mestre.</p>
+    <!-- MODAL: COMMAND BAR (Navegação Rápida) -->
+    <div id="commandBarModal" class="modal-backdrop" style="z-index: 10006; align-items: flex-start; padding-top: 15vh;">
+        <div class="modal-surface" style="padding: 0;">
+            <div style="display: flex; align-items: center; padding: 1.2rem 1.5rem; border-bottom: 1px solid var(--color-border); gap: 12px;">
+                <span>🔍</span>
+                <input type="text" class="form-input" style="border:none; background:transparent; box-shadow:none; padding:0;" id="commandBarInput" placeholder="Navegação Rápida (ex: 'Início')">
+                <div style="font-size: 0.7rem; background: var(--color-surface-hover); padding: 4px 8px; border-radius: var(--radius-sm); color: var(--color-text-muted); font-weight: 600;">ESC</div>
             </div>
-            
-            <form id="joinCampaignForm">
-                <div class="form-group mb-4">
-                    <input type="text" id="inviteCodeInput" class="form-input text-center" required placeholder="EX: AERIOM-XXXX" style="font-family: monospace; font-size: 1.25rem; letter-spacing: 2px; text-transform: uppercase;">
-                </div>
-                <button type="submit" id="submitJoinBtn" class="btn btn-primary w-full">Validar Convite</button>
-            </form>
+            <div style="padding: 0.5rem; max-height: 300px; overflow-y: auto;">
+                <a href="index.html" class="sidebar-link"><span class="sidebar-icon">🏠</span> Voltar ao Início</a>
+                <a href="fichas.html" class="sidebar-link"><span class="sidebar-icon">📜</span> Minhas Fichas</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: PERFIL DO UTILIZADOR -->
+    <div id="profilePanel" class="modal-backdrop">
+        <div class="modal-surface text-center">
+            <button id="closeProfile" class="modal-close">×</button>
+            <div style="width: 80px; height: 80px; border-radius: 50%; background: var(--color-surface-hover); margin: 0 auto 1.5rem; border: 1px solid var(--color-border-strong); display: grid; place-items: center; font-size: 2rem; font-family: var(--font-heading); color: var(--color-primary);">♙</div>
+            <h2 id="profileName" style="margin-bottom: 0.25rem;">Carregando...</h2>
+            <p id="profileEmail" class="text-muted mb-4">Aguarde...</p>
+            <div class="form-group mb-0">
+                <button id="logoutButton" class="btn btn-danger w-full mt-2">Sair da Conta</button>
+            </div>
         </div>
     </div>
 
     <!-- =========================================================
-         SCRIPTS CORE
+         SCRIPTS
     ========================================================= -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="js/supabase.js"></script>
     <script src="js/auth.js"></script>
-    <script src="js/main.js"></script> <!-- Carrega o controle de perfil e auth -->
-    <script src="js/menu.js"></script> <!-- Injeta a Sidebar dinamicamente -->
+    <script src="js/main.js"></script>
+    <script src="js/menu.js"></script>
     
-    <!-- Script Específico desta página -->
+    <!-- Lógica de Campanhas (O próximo arquivo a ser alinhado) -->
     <script src="js/campanhas.js"></script>
 
-    <!-- Script Estrutural da Command Bar e Modais Locais -->
+    <!-- Script Inline da Command Bar -->
     <script>
         document.addEventListener('DOMContentLoaded', () => {
-            // Command Bar
             const cmdModal = document.getElementById('commandBarModal');
-            const cmdOverlay = document.getElementById('commandBarOverlay');
             const cmdInput = document.getElementById('commandBarInput');
             
             function toggleCommandBar() {
@@ -186,38 +155,17 @@
                     cmdInput.focus();
                 }
             }
-
+            
             document.getElementById('openCommandBarBtn')?.addEventListener('click', toggleCommandBar);
-            cmdOverlay?.addEventListener('click', toggleCommandBar);
             
             document.addEventListener('keydown', (e) => {
-                if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
-                    e.preventDefault();
-                    toggleCommandBar();
+                if ((e.ctrlKey || e.metaKey) && e.key === 'k') { 
+                    e.preventDefault(); 
+                    toggleCommandBar(); 
                 }
-                if (e.key === 'Escape') {
-                    if (cmdModal.classList.contains('active')) toggleCommandBar();
-                    
-                    // Fechar modais locais com ESC
-                    document.getElementById('createCampaignModal')?.classList.remove('active');
-                    document.getElementById('joinCampaignModal')?.classList.remove('active');
+                if (e.key === 'Escape' && cmdModal.classList.contains('active')) { 
+                    toggleCommandBar(); 
                 }
-            });
-
-            // Lógica Básica de Modais da Página
-            const createModal = document.getElementById('createCampaignModal');
-            document.getElementById('createCampaignBtn')?.addEventListener('click', () => createModal.classList.add('active'));
-            document.getElementById('closeCreateCampaignModal')?.addEventListener('click', () => createModal.classList.remove('active'));
-
-            const joinModal = document.getElementById('joinCampaignModal');
-            document.getElementById('joinCampaignBtn')?.addEventListener('click', () => joinModal.classList.add('active'));
-            document.getElementById('closeJoinCampaignModal')?.addEventListener('click', () => joinModal.classList.remove('active'));
-
-            // Fechar ao clicar fora
-            [createModal, joinModal].forEach(modal => {
-                modal?.addEventListener('click', (e) => {
-                    if (e.target === modal) modal.classList.remove('active');
-                });
             });
         });
     </script>
