@@ -1,0 +1,486 @@
+/* =========================================================
+   AERIOM — SISTEMA DE CRIAÇÃO DE FICHAS (V4.0)
+   Fase 1: Estilos do Creator (Dark Fantasy Premium)
+   Dependência: css/style.css
+========================================================= */
+
+/* =========================================================
+   1. LAYOUT DO CRIADOR E PROGRESSÃO
+========================================================= */
+.creator-container {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    max-width: 1000px;
+    margin: 0 auto;
+    gap: var(--space-lg);
+}
+
+/* Barra de Progresso (Visualização das Etapas) */
+.progress-tracker {
+    display: flex;
+    gap: var(--space-sm);
+    overflow-x: auto;
+    padding-bottom: var(--space-sm);
+    border-bottom: 1px solid var(--color-border-strong);
+    scrollbar-width: none; /* Esconde scrollbar nativa Firefox */
+}
+
+.progress-tracker::-webkit-scrollbar {
+    display: none; /* Esconde scrollbar nativa Chrome/Safari */
+}
+
+.progress-step {
+    display: flex;
+    align-items: center;
+    gap: var(--space-xs);
+    padding: var(--space-sm) var(--space-md);
+    background: transparent;
+    border: 1px solid transparent;
+    border-radius: var(--radius-full);
+    color: var(--color-text-disabled);
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    white-space: nowrap;
+    transition: var(--transition-fast);
+    cursor: pointer;
+    user-select: none;
+}
+
+.progress-step .step-icon {
+    font-size: 1rem;
+    line-height: 1;
+}
+
+/* Estados da Etapa */
+.progress-step:hover:not(.active) {
+    color: var(--color-text-muted);
+    background: var(--color-surface-hover);
+}
+
+.progress-step.active {
+    color: var(--color-primary);
+    background: var(--color-primary-muted);
+    border-color: var(--color-primary);
+}
+
+.progress-step.completed {
+    color: var(--color-success);
+}
+
+/* =========================================================
+   2. PAINÉIS DE CONTEÚDO (ETAPAS)
+========================================================= */
+.step-content {
+    display: none;
+    flex-direction: column;
+    gap: var(--space-lg);
+    animation: fadeSlideUp 0.3s ease-out forwards;
+}
+
+.step-content.active {
+    display: flex;
+}
+
+@keyframes fadeSlideUp {
+    from { opacity: 0; transform: translateY(15px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.step-header {
+    margin-bottom: var(--space-md);
+}
+
+.step-header h2 {
+    color: var(--color-primary);
+    margin-bottom: var(--space-xs);
+}
+
+.step-header p {
+    font-size: 0.95rem;
+}
+
+/* Botões de Navegação Inferior (Voltar / Avançar) */
+.creator-nav-buttons {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-top: var(--space-lg);
+    margin-top: var(--space-lg);
+    border-top: 1px solid var(--color-border);
+}
+
+/* =========================================================
+   3. SELEÇÃO DE RAÇA, CLASSE E PODER (CARDS)
+========================================================= */
+.choice-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: var(--space-md);
+}
+
+.choice-card {
+    background: linear-gradient(145deg, var(--color-surface-raised), var(--color-surface));
+    border: 1px solid var(--color-border-strong);
+    border-radius: var(--radius-md);
+    padding: var(--space-md);
+    cursor: pointer;
+    transition: all var(--transition-fast);
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-sm);
+    position: relative;
+    overflow: hidden;
+}
+
+/* Brilho sutil no hover */
+.choice-card::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(circle at top right, var(--color-primary-muted) 0%, transparent 60%);
+    opacity: 0;
+    transition: opacity var(--transition-fast);
+    pointer-events: none;
+}
+
+.choice-card:hover {
+    border-color: var(--color-primary-muted);
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-sm);
+}
+
+.choice-card:hover::before {
+    opacity: 1;
+}
+
+.choice-card.selected {
+    border-color: var(--color-primary);
+    background: rgba(212, 175, 55, 0.05); /* Fundo levíssimo dourado */
+    box-shadow: var(--shadow-glow);
+    transform: scale(1.02);
+}
+
+.choice-title {
+    font-family: var(--font-heading);
+    font-size: 1.25rem;
+    color: var(--color-text);
+}
+
+.choice-card.selected .choice-title {
+    color: var(--color-primary);
+}
+
+.choice-desc {
+    font-size: 0.85rem;
+    color: var(--color-text-muted);
+    flex: 1;
+}
+
+.choice-effect {
+    font-size: 0.75rem;
+    color: var(--color-accent); /* Laranja Fogo para mecânicas */
+    font-weight: 600;
+    padding-top: var(--space-xs);
+    border-top: 1px solid var(--color-border);
+}
+
+/* =========================================================
+   4. SISTEMA DE ALOCAÇÃO DE DADOS (ATRIBUTOS)
+========================================================= */
+.dice-allocation-board {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--space-xl);
+    background: var(--color-bg-secondary);
+    border: 1px solid var(--color-border-strong);
+    border-radius: var(--radius-lg);
+    padding: var(--space-xl);
+    box-shadow: inset 0 4px 20px rgba(0,0,0,0.5);
+}
+
+/* Piscina de Dados Disponíveis */
+.dice-pool-container {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-md);
+    border-right: 1px solid var(--color-border);
+    padding-right: var(--space-xl);
+}
+
+.dice-pool-title {
+    font-size: 0.85rem;
+    color: var(--color-text-disabled);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    font-weight: 600;
+}
+
+.dice-pool {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-md);
+}
+
+/* O Token do Dado Físico */
+.die-token {
+    width: 60px;
+    height: 60px;
+    background: linear-gradient(135deg, #2a2a2e 0%, #18181b 100%);
+    border: 2px solid var(--color-border-strong);
+    border-radius: 12px;
+    display: grid;
+    place-items: center;
+    font-family: var(--font-heading);
+    font-size: 1.25rem;
+    color: var(--color-text);
+    font-weight: 700;
+    cursor: grab;
+    user-select: none;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.1);
+    transition: transform 0.1s, box-shadow 0.1s, opacity var(--transition-fast);
+}
+
+/* Cores específicas baseadas no tipo de dado para identificação rápida */
+.die-token[data-type="D4"] { border-color: #64748b; color: #cbd5e1; }
+.die-token[data-type="D6"] { border-color: #78716c; color: #d6d3d1; }
+.die-token[data-type="D8"] { border-color: #0284c7; color: #7dd3fc; }
+.die-token[data-type="D10"] { border-color: #16a34a; color: #86efac; }
+.die-token[data-type="D12"] { border-color: #9333ea; color: #d8b4fe; }
+.die-token[data-type="D20"] { border-color: var(--color-primary); color: var(--color-primary-hover); }
+
+.die-token:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 12px rgba(0,0,0,0.8), inset 0 1px 0 rgba(255,255,255,0.2);
+}
+
+.die-token:active, .die-token.dragging {
+    cursor: grabbing;
+    transform: scale(0.95);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.9);
+}
+
+.die-token.selected-mobile {
+    border-color: var(--color-accent);
+    box-shadow: 0 0 15px rgba(242, 107, 29, 0.5);
+    transform: scale(1.1);
+}
+
+/* Dado quando já foi utilizado (Fica na pool, mas opaco) */
+.die-token.used {
+    opacity: 0.2;
+    pointer-events: none;
+    filter: grayscale(1);
+}
+
+/* Lista de Atributos */
+.attributes-list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-sm);
+}
+
+.attr-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: var(--color-surface);
+    padding: var(--space-sm) var(--space-md);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-sm);
+    transition: var(--transition-fast);
+}
+
+/* Destaca a linha inteira se houver um dado selecionado no mobile aguardando clique */
+.attributes-list.awaiting-drop .attr-row {
+    border-color: var(--color-primary-muted);
+    cursor: pointer;
+}
+.attributes-list.awaiting-drop .attr-row:hover {
+    background: var(--color-surface-hover);
+    border-color: var(--color-primary);
+}
+
+.attr-label {
+    font-family: var(--font-heading);
+    font-size: 1.1rem;
+    color: var(--color-text);
+    width: 120px;
+}
+
+/* Slot para receber o Dado */
+.attr-slot {
+    width: 64px;
+    height: 64px;
+    background: rgba(0, 0, 0, 0.4);
+    border: 2px dashed var(--color-border-strong);
+    border-radius: 14px;
+    display: grid;
+    place-items: center;
+    transition: all 0.2s;
+}
+
+.attr-slot.drag-over {
+    background: var(--color-primary-muted);
+    border-color: var(--color-primary);
+    transform: scale(1.05);
+}
+
+.attr-slot .slot-empty-text {
+    font-size: 0.85rem;
+    color: var(--color-text-disabled);
+    font-weight: 600;
+}
+
+/* Quando um dado é colocado no slot, ele perde as margens e ajusta-se perfeitamente */
+.attr-slot .die-token {
+    margin: 0;
+    width: 100%;
+    height: 100%;
+    border-radius: 12px;
+    animation: dropIn 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+}
+
+@keyframes dropIn {
+    from { transform: scale(0.5); opacity: 0; }
+    to { transform: scale(1); opacity: 1; }
+}
+
+/* =========================================================
+   5. TÉCNICAS E EQUIPAMENTOS (LISTAS DINÂMICAS)
+========================================================= */
+.dynamic-list-container {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-md);
+}
+
+.dynamic-card {
+    background: var(--color-surface);
+    border: 1px solid var(--color-border-strong);
+    border-radius: var(--radius-md);
+    padding: var(--space-md);
+    position: relative;
+}
+
+.dynamic-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--space-md);
+    padding-bottom: var(--space-sm);
+    border-bottom: 1px solid var(--color-border);
+}
+
+.btn-remove-card {
+    background: transparent;
+    border: none;
+    color: var(--color-danger);
+    font-size: 1.25rem;
+    cursor: pointer;
+    transition: transform var(--transition-fast);
+}
+.btn-remove-card:hover { transform: scale(1.2); }
+
+/* Grid específica para Técnicas para organizar os inputs lado a lado */
+.technique-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--space-md);
+}
+.technique-grid .full-width { grid-column: 1 / -1; }
+
+/* =========================================================
+   6. REVISÃO FINAL (CHECKLIST)
+========================================================= */
+.review-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--space-md);
+}
+
+.review-item {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--space-sm);
+    padding: var(--space-sm);
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    transition: var(--transition-fast);
+}
+
+.review-item:hover {
+    background: var(--color-surface-hover);
+    border-color: var(--color-primary-muted);
+}
+
+.review-icon {
+    font-size: 1.25rem;
+    margin-top: -2px;
+}
+.review-icon.pending { color: var(--color-text-disabled); }
+.review-icon.ok { color: var(--color-success); }
+.review-icon.error { color: var(--color-danger); }
+
+.review-details h4 {
+    font-size: 0.95rem;
+    margin-bottom: 2px;
+}
+.review-details p {
+    font-size: 0.8rem;
+    color: var(--color-text-muted);
+    margin: 0;
+}
+
+/* =========================================================
+   7. RESPONSIVIDADE (MOBILE)
+========================================================= */
+@media (max-width: 900px) {
+    .dice-allocation-board {
+        grid-template-columns: 1fr;
+        padding: var(--space-md);
+        gap: var(--space-lg);
+    }
+
+    .dice-pool-container {
+        border-right: none;
+        border-bottom: 1px solid var(--color-border);
+        padding-right: 0;
+        padding-bottom: var(--space-md);
+    }
+    
+    .dice-pool {
+        justify-content: center;
+    }
+}
+
+@media (max-width: 600px) {
+    .technique-grid, .review-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .progress-tracker {
+        /* No mobile, barra rolável com feedback claro */
+        padding-bottom: var(--space-md);
+    }
+    
+    .attr-label {
+        width: 100px;
+        font-size: 1rem;
+    }
+    
+    .die-token {
+        width: 50px;
+        height: 50px;
+        font-size: 1rem;
+    }
+    
+    .attr-slot {
+        width: 54px;
+        height: 54px;
+    }
+}
