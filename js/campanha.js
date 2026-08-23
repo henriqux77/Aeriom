@@ -40,7 +40,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         setupTabs();
         setupRealtime();
 
-        // Inicializa Módulos Separados
+        // Inicializa Módulos Separados Narrativos
         if (window.initTimelineSystem) window.initTimelineSystem(supabase, campaignId);
         if (window.initCookingSystem) window.initCookingSystem(supabase, campaignId);
         if (window.initSessionSystem) window.initSessionSystem(supabase, campaignId);
@@ -95,7 +95,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         loadingEl.style.display = "none";
         contentEl.hidden = false;
         roleLabel.textContent = userRole === 'master' ? 'Mestre da Campanha' : 'Jogador';
-        roleLabel.style.color = userRole === 'master' ? 'var(--fire)' : 'var(--orange)';
+        roleLabel.style.color = userRole === 'master' ? 'var(--danger)' : 'var(--gold-primary)';
         bannerName.textContent = currentCampaign.name;
         if (currentCampaign.cover_url) banner.style.backgroundImage = `url('${currentCampaign.cover_url}')`;
 
@@ -115,7 +115,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         const { data } = await supabase.from('campaign_characters').select(`id, user_id, character_id, current_hp, current_mana, conditions, characters(id, name, race, class, avatar_url)`).eq('campaign_id', campaignId);
         
         list.innerHTML = '';
-        if (!data || data.length === 0) { list.innerHTML = '<p style="color: var(--cream-muted);">Nenhum aventureiro presente.</p>'; return; }
+        if (!data || data.length === 0) { list.innerHTML = '<p class="text-muted">Nenhum aventureiro presente.</p>'; return; }
 
         data.forEach(link => {
             const char = link.characters;
@@ -124,12 +124,24 @@ document.addEventListener("DOMContentLoaded", async () => {
             const card = document.createElement('div');
             card.className = `campaign-char-card ${isOwnCharacter ? 'own-character' : ''}`;
             
-            const avatarHtml = char.avatar_url ? `<img src="${char.avatar_url}" class="char-card-avatar" onerror="this.outerHTML='<div class=\\'char-card-fallback\\'>${char.name.charAt(0)}</div>'">` : `<div class="char-card-fallback">${char.name.charAt(0)}</div>`;
-            const conds = link.conditions ? `<div class="char-state-badge" style="border-color:var(--fire); color:#ff9d85;">⚠️ Condições</div>` : '';
-            const actionHtml = userRole === 'master' ? `<button class="secondary-button" style="min-height:30px; padding:5px 12px; font-size:10px;" data-action="gerenciar">Gerenciar</button>` : 
-                              (isOwnCharacter ? `<button class="primary-button" style="min-height:30px; padding:5px 12px; font-size:10px;" data-action="acessar">Minha Ficha</button>` : '');
+            const avatarHtml = char.avatar_url ? `<img src="${char.avatar_url}" class="char-avatar-sm" onerror="this.outerHTML='<div class=\\'char-card-fallback\\'>${char.name.charAt(0)}</div>'">` : `<div class="char-card-fallback">${char.name.charAt(0)}</div>`;
+            const conds = link.conditions ? `<div class="char-state-badge">⚠️ Condições</div>` : '';
+            const actionHtml = userRole === 'master' ? `<button class="btn btn-secondary" style="padding:4px 10px; font-size:0.75rem;" data-action="gerenciar">Gerenciar</button>` : 
+                              (isOwnCharacter ? `<button class="btn btn-primary" style="padding:4px 10px; font-size:0.75rem;" data-action="acessar">Minha Ficha</button>` : '');
 
-            card.innerHTML = `${avatarHtml}<div class="char-card-info"><h4>${char.name}</h4><span>${char.race || '?'} • ${char.class || '?'}</span><div style="font-size: 0.75rem; color: var(--gold); margin-top: 4px;">PV: ${link.current_hp || 0} | Mana: ${link.current_mana || 0}</div>${conds}</div><div class="char-card-actions">${actionHtml}</div>`;
+            card.innerHTML = `
+                ${avatarHtml}
+                <div class="char-info-mini">
+                    <h4>${char.name}</h4>
+                    <span class="subtitle">${char.race || '?'} • ${char.class || '?'}</span>
+                    <div class="char-stats-mini">
+                        <span class="status-hp">PV: ${link.current_hp || 0}</span>
+                        <span class="status-mp">MP: ${link.current_mana || 0}</span>
+                    </div>
+                    ${conds}
+                </div>
+                <div class="char-card-actions">${actionHtml}</div>
+            `;
             
             const btn = card.querySelector('button');
             if (btn) {
@@ -139,7 +151,7 @@ document.addEventListener("DOMContentLoaded", async () => {
                         document.getElementById("stateHp").value = link.current_hp;
                         document.getElementById("stateMana").value = link.current_mana;
                         document.getElementById("stateConditions").value = link.conditions;
-                        document.getElementById("characterStateModal").style.display = "flex";
+                        document.getElementById("characterStateModal").classList.add('active');
                     } else openPlayerSheet(link.character_id, link.id, link.current_hp, link.current_mana, link.conditions);
                 });
             }
@@ -170,7 +182,7 @@ document.addEventListener("DOMContentLoaded", async () => {
             let val = char[attr.key] !== undefined ? parseInt(char[attr.key]) : (char.attributes && char.attributes[attr.key] !== undefined ? parseInt(char.attributes[attr.key]) : 0);
             const btn = document.createElement('button');
             btn.className = 'ps-roll-btn';
-            btn.innerHTML = `${attr.label} <span class="attr-val">${val}</span>`;
+            btn.innerHTML = `<span class="attr-label">${attr.label}</span> <span class="attr-val">${val}</span>`;
             
             btn.addEventListener('click', () => {
                 const d20 = Math.floor(Math.random() * 20) + 1;
@@ -183,24 +195,78 @@ document.addEventListener("DOMContentLoaded", async () => {
 
         document.getElementById("psInventory").textContent = char.inventory || "Vazio";
         document.getElementById("psSkills").textContent = char.skills || "Nenhuma habilidade";
-        document.getElementById("playerSheetModal").style.display = "flex";
+        document.getElementById("playerSheetModal").classList.add('active');
     }
 
-    // Toggle Formulário da Ficha
+    // Toggle Formulário de Edição da Ficha In-Game
     document.getElementById('psToggleEditStateBtn')?.addEventListener('click', () => {
         const form = document.getElementById('psStateForm');
-        form.style.display = form.style.display === 'none' ? 'grid' : 'none';
+        form.style.display = form.style.display === 'none' ? 'block' : 'none';
     });
 
+    // Submissão do Estado da Ficha In-Game com Microinterações de Dano/Cura
     document.getElementById('psStateForm')?.addEventListener('submit', async (e) => {
         e.preventDefault();
+        
+        // Pega os valores atuais (antigos) visíveis no HTML antes de atualizar
+        const oldHp = parseInt(document.getElementById("psHpView").textContent) || 0;
+        const oldMana = parseInt(document.getElementById("psManaView").textContent) || 0;
+
+        // Pega os novos valores digitados
         const hp = parseInt(document.getElementById("psHp").value) || 0;
         const mana = parseInt(document.getElementById("psMana").value) || 0;
         const cond = document.getElementById("psConditions").value.trim();
+        
+        // Lógica de Microinteração Visual
+        const hpDiff = hp - oldHp;
+        const manaDiff = mana - oldMana;
+        
+        const rect = document.getElementById('psHpView').getBoundingClientRect();
+        
+        const spawnFloatingNumber = (diff, isHp) => {
+            if (diff === 0) return;
+            const el = document.createElement('div');
+            el.className = 'floating-number';
+            el.style.left = `${rect.left + (Math.random() * 20 - 10)}px`;
+            el.style.top = `${rect.top - 20}px`;
+            
+            if (isHp) {
+                el.classList.add(diff > 0 ? 'float-heal' : 'float-damage');
+                el.textContent = diff > 0 ? `+${diff}` : diff;
+            } else {
+                el.classList.add('float-mana-loss');
+                el.textContent = diff > 0 ? `+${diff} MP` : `${diff} MP`;
+            }
+            
+            document.body.appendChild(el);
+            setTimeout(() => el.remove(), 1200); // Limpa do DOM
+        };
+
+        spawnFloatingNumber(hpDiff, true);
+        setTimeout(() => spawnFloatingNumber(manaDiff, false), 200);
+
+        // Atualiza no Banco
         await supabase.from('campaign_characters').update({ current_hp: hp, current_mana: mana, conditions: cond }).eq('id', playerSheetLinkId);
         if(window.generateLog) window.generateLog(`${playerSheetCharName} atualizou seu estado (PV: ${hp}, Mana: ${mana}).`, 'system');
+        
+        // Atualiza a visualização local instantaneamente
+        document.getElementById("psHpView").textContent = hp;
+        document.getElementById("psManaView").textContent = mana;
+        document.getElementById("psConditionsView").textContent = cond || "Nenhuma";
+        
         await loadCampaignCharacters();
-        document.getElementById("playerSheetModal").style.display = "none";
+        document.getElementById('psStateForm').style.display = 'none';
+    });
+
+    // Submissão do Gerenciamento de Estado pelo Mestre
+    document.getElementById('characterStateForm')?.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const hp = parseInt(document.getElementById("stateHp").value) || 0;
+        const mana = parseInt(document.getElementById("stateMana").value) || 0;
+        const cond = document.getElementById("stateConditions").value.trim();
+        await supabase.from('campaign_characters').update({ current_hp: hp, current_mana: mana, conditions: cond }).eq('id', activeStateLinkId);
+        await loadCampaignCharacters();
+        document.getElementById("characterStateModal").classList.remove('active');
     });
 
     // Mural com Integração de Mapa
@@ -216,7 +282,7 @@ document.addEventListener("DOMContentLoaded", async () => {
             
             if (item.image_url) {
                 imgHtml = `<img src="${item.image_url}" class="mural-image">`;
-                mapBtnHtml = `<button class="secondary-button" style="margin: 10px auto; width: 90%; min-height: 30px; font-size: 11px;" onclick="window.openInteractiveMap('${item.id}', '${item.image_url}', '${item.title.replace(/'/g, "\\'")}')">🗺️ Abrir Mapa Interativo</button>`;
+                mapBtnHtml = `<button class="btn btn-secondary" style="margin: 10px auto; width: 90%;" onclick="window.openInteractiveMap('${item.id}', '${item.image_url}', '${item.title.replace(/'/g, "\\'")}')">🗺️ Abrir Mapa Interativo</button>`;
             }
 
             div.innerHTML = `${imgHtml}<div class="mural-content-box"><h4>${item.title}</h4><p>${item.content}</p>${mapBtnHtml}</div>`;
@@ -224,9 +290,9 @@ document.addEventListener("DOMContentLoaded", async () => {
         });
     }
 
-    // Modal Events Simples
-    document.getElementById("closePlayerSheetModal")?.addEventListener("click", () => document.getElementById("playerSheetModal").style.display = "none");
-    document.getElementById("closeCharacterStateModal")?.addEventListener("click", () => document.getElementById("characterStateModal").style.display = "none");
+    // Modal Fechamentos
+    document.getElementById("closePlayerSheetModal")?.addEventListener("click", () => document.getElementById("playerSheetModal").classList.remove('active'));
+    document.getElementById("closeCharacterStateModal")?.addEventListener("click", () => document.getElementById("characterStateModal").classList.remove('active'));
 
     // Rolagens do Mestre
     document.querySelectorAll('.master-dice-btn').forEach(btn => {
@@ -249,19 +315,19 @@ document.addEventListener("DOMContentLoaded", async () => {
         if (!combatState || !combatState.is_active) {
             combatTrackerContainer.style.display = "none";
             noCombatPlaceholder.style.display = "flex";
-            if (userRole === 'master') { toggleCombatBtn.textContent = "Iniciar Combate"; toggleCombatBtn.style.background = ""; combatMasterPanel.hidden = true; }
+            if (userRole === 'master') { toggleCombatBtn.textContent = "Iniciar Combate"; combatMasterPanel.hidden = true; }
         } else {
             noCombatPlaceholder.style.display = "none";
             combatTrackerContainer.style.display = "block";
             document.getElementById("combatRoundDisplay").textContent = combatState.round_number;
-            if (userRole === 'master') { toggleCombatBtn.textContent = "Encerrar Combate"; toggleCombatBtn.style.background = "#8b2518"; combatMasterPanel.hidden = false; }
+            if (userRole === 'master') { toggleCombatBtn.textContent = "Encerrar Combate"; combatMasterPanel.hidden = false; }
             
             initiativeList.innerHTML = '';
             combatState.combatants.forEach((c, index) => {
                 const isActive = index === combatState.turn_index;
                 const card = document.createElement('div');
                 card.className = `combatant-card ${isActive ? 'active-turn' : ''}`;
-                card.innerHTML = `<div class="combatant-init">${c.init}</div><div class="combatant-name" style="flex: 1;">${c.name}</div>${userRole === 'master' ? `<button class="remove-combatant-btn" data-index="${index}">×</button>` : ''}`;
+                card.innerHTML = `<div class="combatant-init">${c.init}</div><div class="combatant-name">${c.name}</div>${userRole === 'master' ? `<button class="remove-combatant-btn" data-index="${index}">×</button>` : ''}`;
                 initiativeList.appendChild(card);
             });
             if(userRole === 'master') {
@@ -305,7 +371,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         currentRequestAttrName = requestStr.split(': ')[1]?.trim();
         if(!currentRequestAttrName) return;
         document.getElementById("requestToastMsg").textContent = `Teste de ${currentRequestAttrName}`;
-        document.getElementById("requestToast").hidden = false;
+        document.getElementById("requestToast").classList.add('active');
         
         currentRequestAttrValue = 0;
         if (playerSheetCharName && currentRequestAttrName !== 'Puro (1d20)') {
@@ -316,7 +382,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
 
     document.getElementById("requestToastRollBtn")?.addEventListener('click', () => {
-        document.getElementById("requestToast").hidden = true;
+        document.getElementById("requestToast").classList.remove('active');
         const d20 = Math.floor(Math.random() * 20) + 1;
         const total = d20 + currentRequestAttrValue;
         const charName = playerSheetCharName || 'Um jogador';
@@ -325,7 +391,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         if(window.generateLog) window.generateLog(`${charName} respondeu ao teste de ${currentRequestAttrName}: 1d20 (${d20}) + ${currentRequestAttrValue} = ${total}`, 'roll');
     });
     
-    document.getElementById("requestToastCloseBtn")?.addEventListener('click', () => document.getElementById("requestToast").hidden = true);
+    document.getElementById("requestToastCloseBtn")?.addEventListener('click', () => document.getElementById("requestToast").classList.remove('active'));
 
-    init(); // Inicializa
+    init(); // Chama a função principal de inicialização
 });
