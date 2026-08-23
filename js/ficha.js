@@ -1,6 +1,6 @@
 /* =========================================================
-   AERIOM — MOTOR DE CRIAÇÃO DE FICHAS (js/ficha.js)
-   Fase 4: Inserção e Edição (Integração Supabase)
+   AERIOM — MOTOR DE CRIAÇÃO E EDIÇÃO (js/ficha.js)
+   Fase 4: Formulário Seguro e Sem CSS Inline
 ========================================================= */
 document.addEventListener("DOMContentLoaded", async () => {
     "use strict";
@@ -26,13 +26,12 @@ document.addEventListener("DOMContentLoaded", async () => {
         if (!fichaMessage) return;
         fichaMessage.textContent = msg;
         fichaMessage.className = `msg-box mb-4 ${isError ? 'msg-error' : 'msg-success'}`;
-        fichaMessage.style.display = 'flex';
+        fichaMessage.classList.add('active');
         
-        // Rola a tela para cima para o usuário ler a mensagem
         window.scrollTo({ top: 0, behavior: 'smooth' });
         
         if (!isError) {
-            setTimeout(() => { fichaMessage.style.display = 'none'; }, 4000);
+            setTimeout(() => { fichaMessage.classList.remove('active'); }, 4000);
         }
     }
 
@@ -80,19 +79,17 @@ document.addEventListener("DOMContentLoaded", async () => {
             if (pageTitle) pageTitle.textContent = `Editando: ${char.name}`;
             saveBtn.textContent = "Salvar Alterações";
 
-            // 1. Identidade
+            // Injeção nos inputs (Seguro, pois é .value)
             document.getElementById("charName").value = char.name || "";
             document.getElementById("charRace").value = char.race || "";
             document.getElementById("charClass").value = char.class || "";
             document.getElementById("charLevel").value = char.level || 1;
             document.getElementById("charAvatar").value = char.avatar_url || "";
 
-            // 2. Recursos Vitais
             document.getElementById("charHpMax").value = char.hp_max || 0;
             document.getElementById("charManaMax").value = char.mana_max || 0;
 
-            // 3. Atributos (Suporta colunas diretas ou JSON)
-            const attrs = char.attributes || char; // Fallback estrutural
+            const attrs = char.attributes || char;
             document.getElementById("attrForca").value = attrs.forca || 0;
             document.getElementById("attrAgilidade").value = attrs.agilidade || 0;
             document.getElementById("attrVigor").value = attrs.vigor || 0;
@@ -102,7 +99,6 @@ document.addEventListener("DOMContentLoaded", async () => {
             document.getElementById("attrPrecisao").value = attrs.precisao || 0;
             document.getElementById("attrControle").value = attrs.controle || 0;
 
-            // 4 e 5. Textos Livres
             document.getElementById("charSkills").value = char.skills || "";
             document.getElementById("charInventory").value = char.inventory || "";
             document.getElementById("charHistory").value = char.history || "";
@@ -119,9 +115,8 @@ document.addEventListener("DOMContentLoaded", async () => {
     characterForm?.addEventListener("submit", async (e) => {
         e.preventDefault();
         setLoading(true);
-        fichaMessage.style.display = 'none';
+        fichaMessage.classList.remove('active');
 
-        // Coleta dos dados do formulário
         const characterData = {
             user_id: currentUser.id,
             name: document.getElementById("charName").value.trim(),
@@ -133,7 +128,6 @@ document.addEventListener("DOMContentLoaded", async () => {
             hp_max: parseInt(document.getElementById("charHpMax").value) || 0,
             mana_max: parseInt(document.getElementById("charManaMax").value) || 0,
             
-            // Atributos
             forca: parseInt(document.getElementById("attrForca").value) || 0,
             agilidade: parseInt(document.getElementById("attrAgilidade").value) || 0,
             vigor: parseInt(document.getElementById("attrVigor").value) || 0,
@@ -150,35 +144,18 @@ document.addEventListener("DOMContentLoaded", async () => {
 
         try {
             if (currentCharacterId) {
-                // UPDATE (Atualizar Existente)
-                const { error } = await supabase
-                    .from('characters')
-                    .update(characterData)
-                    .eq('id', currentCharacterId)
-                    .eq('user_id', currentUser.id);
-
+                const { error } = await supabase.from('characters').update(characterData).eq('id', currentCharacterId).eq('user_id', currentUser.id);
                 if (error) throw error;
                 showMessage("Lenda atualizada com sucesso!");
-                
             } else {
-                // INSERT (Criar Novo)
-                const { data, error } = await supabase
-                    .from('characters')
-                    .insert([characterData])
-                    .select()
-                    .single();
-
+                const { data, error } = await supabase.from('characters').insert([characterData]).select().single();
                 if (error) throw error;
-                
                 currentCharacterId = data.id;
                 localStorage.setItem("aeriom_character_id", currentCharacterId);
                 showMessage("Novo herói materializado com sucesso!");
             }
 
-            // Redireciona para o modo de leitura após 1.5s
-            setTimeout(() => {
-                window.location.href = "ficha-view.html";
-            }, 1500);
+            setTimeout(() => { window.location.href = "ficha-view.html"; }, 1500);
 
         } catch (err) {
             console.error("Erro ao salvar ficha:", err);
@@ -187,6 +164,5 @@ document.addEventListener("DOMContentLoaded", async () => {
         }
     });
 
-    // Inicializa o módulo
     init();
 });
