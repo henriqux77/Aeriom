@@ -3,166 +3,180 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="theme-color" content="#080707">
-    <title>Aeriom — Sistema de RPG</title>
+    <meta name="theme-color" content="#09090b">
+    <title>Aeriom — Plataforma de RPG</title>
     <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
 
-    <!-- =========================
-         PAINEL DE PERFIL LATERAL
-    ========================== -->
-    <div id="profilePanel" class="profile-panel">
-        <button id="closeProfile" class="profile-close" aria-label="Fechar perfil">×</button>
-        <div class="profile-content">
-            <img id="profileAvatar" class="profile-avatar" src="" alt="Avatar">
-            <h2 id="profileName">Carregando...</h2>
-            <p id="profileEmail">Carregando...</p>
-            <button id="editProfileButton">Editar perfil</button>
-            <button id="logoutButton">Sair da conta</button>
-        </div>
-    </div>
-
-    <main class="home">
-
-        <!-- =========================
-             CABEÇALHO
-        ========================== -->
-        <header class="header">
-            <button class="header-button menu-button menu-btn" id="menuButton" aria-label="Abrir menu">
+    <!-- TOPBAR / CABEÇALHO -->
+    <header class="topbar">
+        <div class="app-container topbar-content">
+            <button class="topbar-btn" id="menuButton" aria-label="Abrir menu">
                 ☰
             </button>
-
-            <a href="./" class="header-logo">
+            <a href="./" class="brand-logo">
                 <img src="https://i.ibb.co/d0SnBLcV/Design-sem-nome-20260817-180846-0000.jpg" alt="Aeriom">
             </a>
-
-            <button class="header-button profile-button" id="profileButton" aria-label="Abrir perfil">
+            <button class="topbar-btn" id="profileButton" aria-label="Abrir perfil">
                 ♙
             </button>
-        </header>
+        </div>
+    </header>
 
-        <!-- =========================
-             HERO / IMAGEM PRINCIPAL
-        ========================== -->
-        <section class="hero">
-            <img src="https://i.ibb.co/WN2Zh92G/1786964360186.png" alt="Mundo de Aeriom" class="hero-image">
-        </section>
+    <!-- MENU LATERAL GLOBAL -->
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
+    <aside class="global-sidebar" id="globalSidebar">
+        <div class="sidebar-header">
+            <h2>Navegação</h2>
+            <button class="close-sidebar-btn" id="closeSidebarBtn">×</button>
+        </div>
+        <nav class="sidebar-nav">
+            <a href="./" class="sidebar-link active">Início</a>
+            <div class="sidebar-divider"></div>
+            <a href="fichas.html" class="sidebar-link">Minhas Fichas</a>
+            <a href="campanhas.html" class="sidebar-link">Campanhas</a>
+        </nav>
+    </aside>
 
-        <!-- =========================
-             IDENTIDADE
-        ========================== -->
-        <section class="intro">
-            <img src="https://i.ibb.co/qFVJFfQb/Design-sem-nome-20260817-180527-0000.png" alt="Aeriom" class="main-logo">
-        </section>
-
-        <!-- =========================
-             AÇÕES PRINCIPAIS
-        ========================== -->
-        <section class="auth-actions" style="width: 100%;">
-
-            <!-- VISÍVEL QUANDO NÃO ESTÁ LOGADO -->
-            <div id="loggedOutActions" style="display: flex; flex-direction: column; gap: 15px; width: 100%; align-items: center;">
-                <button class="primary-button" id="createAccountButton">
-                    <span class="button-icon">◇</span>
-                    <span>Criar Conta</span>
-                </button>
-                <button class="secondary-button" id="loginButton">
-                    <span class="button-icon">→</span>
-                    <span>Entrar</span>
-                </button>
+    <!-- PAINEL DE PERFIL (LATERAL DIREITA OU MODAL) -->
+    <div id="profilePanel" class="modal-backdrop">
+        <div class="modal-surface">
+            <button id="closeProfile" class="modal-close-btn">×</button>
+            <div class="text-center">
+                <!-- Avatar placeholder se vazio -->
+                <div style="width: 80px; height: 80px; border-radius: 50%; background: var(--bg-interactive); margin: 0 auto 1rem; border: 1px solid var(--border-strong); display: grid; place-items: center; font-size: 1.5rem;">♙</div>
+                <img id="profileAvatar" src="" alt="Avatar" style="display: none; width: 80px; height: 80px; border-radius: 50%; margin: 0 auto 1rem; object-fit: cover;">
+                <h2 id="profileName" style="margin-bottom: 0.25rem;">Carregando...</h2>
+                <p id="profileEmail" class="text-secondary mb-4">Carregando...</p>
             </div>
-
-            <!-- VISÍVEL QUANDO ESTÁ LOGADO (AQUI ESTÁ A CORREÇÃO DE ESQUELETO!) -->
-            <div id="loggedInActions" style="display: none; width: 100%;">
-                
-                <!-- Essa div vazia de proteção garante que os ícones e textos não fiquem alinhados lado a lado de modo espremido -->
-                <div style="display: flex; flex-direction: column; align-items: center; width: 100%;">
-                    
-                    <h2 style="font-family: var(--display-font); color: var(--gold); font-size: 1.8rem; margin-bottom: 5px; text-align: center;">Bem-vindo de volta</h2>
-                    <p style="color: var(--cream-muted); font-size: 0.9rem; margin-bottom: 30px; text-align: center;">O seu mundo de aventuras o aguarda.</p>
-
-                    <!-- MENU PREMIUM COM A ESTÉTICA RESTAURADA -->
-                    <div class="action-grid">
-                        <a href="fichas.html" class="action-card" id="createCharacterButton">
-                            <div class="action-icon">◈</div>
-                            <h3>Minhas Fichas</h3>
-                            <p>Crie, visualize e edite seus heróis.</p>
-                        </a>
-
-                        <a href="campanhas.html" class="action-card" id="campaignButton">
-                            <div class="action-icon">♟</div>
-                            <h3>Campanhas</h3>
-                            <p>Acesse sessões como Jogador ou Mestre.</p>
-                        </a>
-                    </div>
-
-                </div>
+            <div style="display: flex; flex-direction: column; gap: 0.75rem;">
+                <button id="editProfileButton" class="btn btn-secondary w-full">Editar perfil</button>
+                <button id="logoutButton" class="btn btn-ghost w-full" style="color: var(--accent-danger);">Sair da conta</button>
             </div>
-
-        </section>
-    </main>
-
-    <!-- =========================
-         MODAL DE AUTENTICAÇÃO
-    ========================== -->
-    <div id="authModal" class="auth-modal">
-        <div class="auth-box">
-            <button id="closeAuth" class="auth-close">×</button>
-
-            <!-- LOGIN -->
-            <div id="loginForm">
-                <h2>Entrar no Aeriom</h2>
-                <p>Escolha como deseja entrar.</p>
-
-                <button id="discordLoginButton" class="auth-discord">
-                    🎮 Entrar com Discord
-                </button>
-
-                <div class="auth-divider">
-                    <span>ou</span>
-                </div>
-
-                <input type="email" id="loginEmail" placeholder="E-mail" autocomplete="email">
-                <input type="password" id="loginPassword" placeholder="Senha" autocomplete="current-password">
-
-                <button id="emailLoginButton">Entrar</button>
-                <button id="showRegisterButton">Criar uma conta</button>
-            </div>
-
-            <!-- CADASTRO -->
-            <div id="registerForm" style="display: none;">
-                <h2>Criar conta</h2>
-                <p>Crie sua conta no Aeriom.</p>
-
-                <button id="discordRegisterButton" class="auth-discord">
-                    🎮 Criar conta com Discord
-                </button>
-
-                <div class="auth-divider">
-                    <span>ou</span>
-                </div>
-
-                <input type="email" id="registerEmail" placeholder="E-mail" autocomplete="email">
-                <input type="password" id="registerPassword" placeholder="Senha" autocomplete="new-password">
-                <input type="password" id="registerPasswordConfirm" placeholder="Confirmar senha" autocomplete="new-password">
-
-                <button id="registerButton">Criar conta</button>
-                <button id="showLoginButton">Já tenho uma conta</button>
-            </div>
-
-            <!-- MENSAGEM DE ERRO/SUCESSO -->
-            <p id="authMessage"></p>
         </div>
     </div>
 
-    <!-- =========================
-         JAVASCRIPT
-    ========================== -->
+    <!-- CONTEÚDO PRINCIPAL (HOME) -->
+    <main class="app-container home-wrapper">
+
+        <!-- ESTADO DESLOGADO: LANDING PAGE -->
+        <section id="loggedOutActions" class="landing-view">
+            <h1>A sua mesa digital de RPG.</h1>
+            <p>O Aeriom organiza as fichas, o combate e as ferramentas narrativas para que o Mestre foque na história e os jogadores na imersão.</p>
+            
+            <div class="landing-actions">
+                <button class="btn btn-primary w-full" id="createAccountButton">
+                    Criar Conta
+                </button>
+                <button class="btn btn-secondary w-full" id="loginButton">
+                    Entrar na Plataforma
+                </button>
+            </div>
+        </section>
+
+        <!-- ESTADO LOGADO: DASHBOARD PRINCIPAL -->
+        <section id="loggedInActions" class="dashboard-view" style="display: none;">
+            <div class="dash-welcome">
+                <h1>Bem-vindo(a) ao Aeriom.</h1>
+                <p>O que você deseja fazer hoje?</p>
+            </div>
+
+            <div class="dash-grid">
+                <!-- Card: Fichas -->
+                <a href="fichas.html" class="dash-card" id="createCharacterButton">
+                    <div class="dash-card-icon">◈</div>
+                    <h3>Minhas Fichas</h3>
+                    <p>Acesse o acervo, crie novos personagens, edite atributos e gerencie seu inventário.</p>
+                </a>
+
+                <!-- Card: Campanhas -->
+                <a href="campanhas.html" class="dash-card" id="campaignButton">
+                    <div class="dash-card-icon">♟</div>
+                    <h3>Mesas e Campanhas</h3>
+                    <p>Crie uma nova sessão como Mestre ou entre no mundo de aventuras como Jogador.</p>
+                </a>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- MODAL DE AUTENTICAÇÃO -->
+    <div id="authModal" class="modal-backdrop">
+        <div class="modal-surface">
+            <button id="closeAuth" class="modal-close-btn">×</button>
+
+            <!-- FORMULÁRIO DE LOGIN -->
+            <div id="loginForm">
+                <div class="modal-header">
+                    <h2>Entrar</h2>
+                    <p>Acesse sua conta para continuar.</p>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="loginEmail">E-mail</label>
+                    <input type="email" id="loginEmail" class="form-input" placeholder="seu@email.com" autocomplete="email">
+                </div>
+                <div class="form-group mb-4">
+                    <label class="form-label" for="loginPassword">Senha</label>
+                    <input type="password" id="loginPassword" class="form-input" placeholder="••••••••" autocomplete="current-password">
+                </div>
+
+                <button id="emailLoginButton" class="btn btn-primary w-full mb-4">Entrar</button>
+                <button id="showRegisterButton" class="btn btn-ghost w-full">Não possui conta? Criar agora</button>
+            </div>
+
+            <!-- FORMULÁRIO DE CADASTRO -->
+            <div id="registerForm" style="display: none;">
+                <div class="modal-header">
+                    <h2>Criar Conta</h2>
+                    <p>Junte-se à plataforma Aeriom.</p>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="registerEmail">E-mail</label>
+                    <input type="email" id="registerEmail" class="form-input" placeholder="seu@email.com" autocomplete="email">
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="registerPassword">Senha</label>
+                    <input type="password" id="registerPassword" class="form-input" placeholder="Mínimo 6 caracteres" autocomplete="new-password">
+                </div>
+                <div class="form-group mb-4">
+                    <label class="form-label" for="registerPasswordConfirm">Confirmar Senha</label>
+                    <input type="password" id="registerPasswordConfirm" class="form-input" placeholder="Digite a senha novamente" autocomplete="new-password">
+                </div>
+
+                <button id="registerButton" class="btn btn-primary w-full mb-4">Criar conta</button>
+                <button id="showLoginButton" class="btn btn-ghost w-full">Já tenho uma conta</button>
+            </div>
+
+            <!-- MENSAGENS DO SISTEMA -->
+            <div id="authMessage" class="msg-box mt-4"></div>
+        </div>
+    </div>
+
+    <!-- SCRIPTS CORE -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="js/supabase.js?v=6"></script>
-    <script src="js/auth.js?v=6"></script>
-    <script src="js/main.js?v=6"></script>
-    <script src="js/menu.js?v=1"></script>
+    <script src="js/supabase.js?v=21"></script>
+    <script src="js/auth.js?v=21"></script>
+    <script src="js/main.js?v=21"></script>
+    <script src="js/menu.js?v=3"></script>
+
+    <!-- Oculta elementos que não devem aparecer usando a nova estrutura -->
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            // Se o auth.js tentar exibir o loggedInActions como flex, forçamos display block para manter a semântica
+            const observer = new MutationObserver(() => {
+                const loggedIn = document.getElementById('loggedInActions');
+                if (loggedIn && loggedIn.style.display === 'flex') {
+                    loggedIn.style.display = 'block';
+                }
+            });
+            const loggedInEl = document.getElementById('loggedInActions');
+            if (loggedInEl) {
+                observer.observe(loggedInEl, { attributes: true, attributeFilter: ['style'] });
+            }
+        });
+    </script>
 </body>
 </html>
