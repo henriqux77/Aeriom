@@ -1,3 +1,7 @@
+/* =========================================================
+   AERIOM — NÚCLEO DA MESA DIGITAL (js/campanha.js)
+   Gerenciamento de Estado, Combate, Mural e Supabase
+========================================================= */
 document.addEventListener("DOMContentLoaded", async () => {
     "use strict";
 
@@ -71,12 +75,16 @@ document.addEventListener("DOMContentLoaded", async () => {
         const tabContents = document.querySelectorAll('.dash-tab-content');
         tabs.forEach(tab => {
             tab.addEventListener('click', () => {
+                // Desktop Tabs
                 tabs.forEach(t => t.classList.remove('active'));
                 tabContents.forEach(c => c.classList.remove('active'));
                 tab.classList.add('active');
+                
                 const targetId = tab.getAttribute('data-tab');
-                document.getElementById(targetId).classList.add('active');
+                const targetContent = document.getElementById(targetId);
+                if(targetContent) targetContent.classList.add('active');
 
+                // Atualizações contextuais
                 if (targetId === 'tab-mural') loadMural();
                 if (targetId === 'tab-logs' && window.loadTimeline) window.loadTimeline();
                 if (targetId === 'tab-overview') loadCampaignCharacters();
@@ -95,7 +103,8 @@ document.addEventListener("DOMContentLoaded", async () => {
         loadingEl.style.display = "none";
         contentEl.hidden = false;
         roleLabel.textContent = userRole === 'master' ? 'Mestre da Campanha' : 'Jogador';
-        roleLabel.style.color = userRole === 'master' ? 'var(--danger)' : 'var(--gold-primary)';
+        // Cores semânticas via inline apenas para o label rápido
+        roleLabel.style.color = userRole === 'master' ? 'var(--danger)' : 'var(--theme-primary)';
         bannerName.textContent = currentCampaign.name;
         if (currentCampaign.cover_url) banner.style.backgroundImage = `url('${currentCampaign.cover_url}')`;
 
@@ -103,7 +112,7 @@ document.addEventListener("DOMContentLoaded", async () => {
             masterPanel.hidden = false;
             document.querySelectorAll('.master-only').forEach(el => {
                 el.hidden = false;
-                el.style.display = el.tagName === 'BUTTON' && el.classList.contains('dash-tab') ? 'inline-block' : 'flex';
+                el.style.display = el.tagName === 'BUTTON' && el.classList.contains('dash-tab') ? 'flex' : '';
             });
         }
         await loadCampaignCharacters();
@@ -115,32 +124,35 @@ document.addEventListener("DOMContentLoaded", async () => {
         const { data } = await supabase.from('campaign_characters').select(`id, user_id, character_id, current_hp, current_mana, conditions, characters(id, name, race, class, avatar_url)`).eq('campaign_id', campaignId);
         
         list.innerHTML = '';
-        if (!data || data.length === 0) { list.innerHTML = '<p class="text-muted">Nenhum aventureiro presente.</p>'; return; }
+        if (!data || data.length === 0) { list.innerHTML = '<p class="text-muted text-center w-full" style="padding: 2rem;">Nenhum aventureiro presente.</p>'; return; }
 
         data.forEach(link => {
             const char = link.characters;
             if (!char) return;
             const isOwnCharacter = link.user_id === currentUser.id;
+            
             const card = document.createElement('div');
             card.className = `campaign-char-card ${isOwnCharacter ? 'own-character' : ''}`;
             
-            const avatarHtml = char.avatar_url ? `<img src="${char.avatar_url}" class="char-avatar-sm" onerror="this.outerHTML='<div class=\\'char-card-fallback\\'>${char.name.charAt(0)}</div>'">` : `<div class="char-card-fallback">${char.name.charAt(0)}</div>`;
+            const avatarHtml = char.avatar_url ? `<img src="${char.avatar_url}" class="char-card-avatar" onerror="this.outerHTML='<div class=\\'char-card-fallback\\'>${char.name.charAt(0)}</div>'">` : `<div class="char-card-fallback">${char.name.charAt(0)}</div>`;
             const conds = link.conditions ? `<div class="char-state-badge">⚠️ Condições</div>` : '';
-            const actionHtml = userRole === 'master' ? `<button class="btn btn-secondary" style="padding:4px 10px; font-size:0.75rem;" data-action="gerenciar">Gerenciar</button>` : 
-                              (isOwnCharacter ? `<button class="btn btn-primary" style="padding:4px 10px; font-size:0.75rem;" data-action="acessar">Minha Ficha</button>` : '');
+            
+            const actionHtml = userRole === 'master' 
+                ? `<button class="btn btn-secondary" style="padding: 0.5rem;" data-action="gerenciar">Gerenciar</button>` 
+                : (isOwnCharacter ? `<button class="btn btn-primary" style="padding: 0.5rem;" data-action="acessar">Abrir Ficha</button>` : '');
 
             card.innerHTML = `
                 ${avatarHtml}
-                <div class="char-info-mini">
+                <div class="char-card-info">
                     <h4>${char.name}</h4>
                     <span class="subtitle">${char.race || '?'} • ${char.class || '?'}</span>
                     <div class="char-stats-mini">
-                        <span class="status-hp">PV: ${link.current_hp || 0}</span>
-                        <span class="status-mp">MP: ${link.current_mana || 0}</span>
+                        <span class="pv">PV: ${link.current_hp || 0}</span>
+                        <span class="mp">MP: ${link.current_mana || 0}</span>
                     </div>
                     ${conds}
                 </div>
-                <div class="char-card-actions">${actionHtml}</div>
+                <div>${actionHtml}</div>
             `;
             
             const btn = card.querySelector('button');
@@ -152,7 +164,9 @@ document.addEventListener("DOMContentLoaded", async () => {
                         document.getElementById("stateMana").value = link.current_mana;
                         document.getElementById("stateConditions").value = link.conditions;
                         document.getElementById("characterStateModal").classList.add('active');
-                    } else openPlayerSheet(link.character_id, link.id, link.current_hp, link.current_mana, link.conditions);
+                    } else {
+                        openPlayerSheet(link.character_id, link.id, link.current_hp, link.current_mana, link.conditions);
+                    }
                 });
             }
             list.appendChild(card);
@@ -176,7 +190,13 @@ document.addEventListener("DOMContentLoaded", async () => {
 
         const attrGrid = document.getElementById("psAttributesGrid");
         attrGrid.innerHTML = '';
-        const standardAttributes = [{ key: 'forca', label: 'Força' }, { key: 'agilidade', label: 'Agilidade' }, { key: 'vigor', label: 'Vigor' }, { key: 'intelecto', label: 'Intelecto' }, { key: 'percepcao', label: 'Percepção' }, { key: 'presenca', label: 'Presença' }, { key: 'precisao', label: 'Precisão' }, { key: 'controle', label: 'Controle' }];
+        
+        const standardAttributes = [
+            { key: 'forca', label: 'Força' }, { key: 'agilidade', label: 'Agilidade' }, 
+            { key: 'vigor', label: 'Vigor' }, { key: 'intelecto', label: 'Intelecto' }, 
+            { key: 'percepcao', label: 'Percepção' }, { key: 'presenca', label: 'Presença' }, 
+            { key: 'precisao', label: 'Precisão' }, { key: 'controle', label: 'Controle' }
+        ];
         
         standardAttributes.forEach(attr => {
             let val = char[attr.key] !== undefined ? parseInt(char[attr.key]) : (char.attributes && char.attributes[attr.key] !== undefined ? parseInt(char.attributes[attr.key]) : 0);
@@ -195,6 +215,8 @@ document.addEventListener("DOMContentLoaded", async () => {
 
         document.getElementById("psInventory").textContent = char.inventory || "Vazio";
         document.getElementById("psSkills").textContent = char.skills || "Nenhuma habilidade";
+        
+        // Abre a gaveta
         document.getElementById("playerSheetModal").classList.add('active');
     }
 
@@ -204,20 +226,19 @@ document.addEventListener("DOMContentLoaded", async () => {
         form.style.display = form.style.display === 'none' ? 'block' : 'none';
     });
 
-    // Submissão do Estado da Ficha In-Game com Microinterações de Dano/Cura
+    // =========================================================
+    // LÓGICA DE MICROINTERAÇÕES (Dano / Cura Visual)
+    // =========================================================
     document.getElementById('psStateForm')?.addEventListener('submit', async (e) => {
         e.preventDefault();
         
-        // Pega os valores atuais (antigos) visíveis no HTML antes de atualizar
         const oldHp = parseInt(document.getElementById("psHpView").textContent) || 0;
         const oldMana = parseInt(document.getElementById("psManaView").textContent) || 0;
 
-        // Pega os novos valores digitados
         const hp = parseInt(document.getElementById("psHp").value) || 0;
         const mana = parseInt(document.getElementById("psMana").value) || 0;
         const cond = document.getElementById("psConditions").value.trim();
         
-        // Lógica de Microinteração Visual
         const hpDiff = hp - oldHp;
         const manaDiff = mana - oldMana;
         
@@ -227,7 +248,10 @@ document.addEventListener("DOMContentLoaded", async () => {
             if (diff === 0) return;
             const el = document.createElement('div');
             el.className = 'floating-number';
-            el.style.left = `${rect.left + (Math.random() * 20 - 10)}px`;
+            
+            // Randomiza levemente a posição X para não encavalar
+            const randomX = Math.random() * 30 - 15;
+            el.style.left = `${rect.left + 20 + randomX}px`;
             el.style.top = `${rect.top - 20}px`;
             
             if (isHp) {
@@ -239,23 +263,24 @@ document.addEventListener("DOMContentLoaded", async () => {
             }
             
             document.body.appendChild(el);
-            setTimeout(() => el.remove(), 1200); // Limpa do DOM
+            setTimeout(() => el.remove(), 1200); 
         };
 
         spawnFloatingNumber(hpDiff, true);
-        setTimeout(() => spawnFloatingNumber(manaDiff, false), 200);
+        setTimeout(() => spawnFloatingNumber(manaDiff, false), 150);
 
-        // Atualiza no Banco
-        await supabase.from('campaign_characters').update({ current_hp: hp, current_mana: mana, conditions: cond }).eq('id', playerSheetLinkId);
-        if(window.generateLog) window.generateLog(`${playerSheetCharName} atualizou seu estado (PV: ${hp}, Mana: ${mana}).`, 'system');
-        
-        // Atualiza a visualização local instantaneamente
+        // Atualização Otimista UI
         document.getElementById("psHpView").textContent = hp;
         document.getElementById("psManaView").textContent = mana;
         document.getElementById("psConditionsView").textContent = cond || "Nenhuma";
-        
-        await loadCampaignCharacters();
         document.getElementById('psStateForm').style.display = 'none';
+
+        // Banco e Logs
+        await supabase.from('campaign_characters').update({ current_hp: hp, current_mana: mana, conditions: cond }).eq('id', playerSheetLinkId);
+        if(window.generateLog && (hpDiff !== 0 || manaDiff !== 0)) {
+            window.generateLog(`${playerSheetCharName} atualizou seu estado (PV: ${hp}, Mana: ${mana}).`, 'system');
+        }
+        await loadCampaignCharacters();
     });
 
     // Submissão do Gerenciamento de Estado pelo Mestre
@@ -269,12 +294,20 @@ document.addEventListener("DOMContentLoaded", async () => {
         document.getElementById("characterStateModal").classList.remove('active');
     });
 
-    // Mural com Integração de Mapa
+    // =========================================================
+    // MURAL E MAPA INTERATIVO
+    // =========================================================
     async function loadMural() {
         const { data } = await supabase.from('campaign_mural').select('*').eq('campaign_id', campaignId).order('created_at', { ascending: false });
         const list = document.getElementById("muralList");
         list.innerHTML = '';
-        if(data) data.forEach(item => {
+        
+        if(!data || data.length === 0) {
+            list.innerHTML = '<div class="placeholder-panel w-full" style="grid-column: 1/-1;"><div class="placeholder-icon">📌</div><h3>Mural Vazio</h3></div>';
+            return;
+        }
+
+        data.forEach(item => {
             const div = document.createElement('div');
             div.className = 'mural-card';
             let imgHtml = '';
@@ -282,29 +315,39 @@ document.addEventListener("DOMContentLoaded", async () => {
             
             if (item.image_url) {
                 imgHtml = `<img src="${item.image_url}" class="mural-image">`;
-                mapBtnHtml = `<button class="btn btn-secondary" style="margin: 10px auto; width: 90%;" onclick="window.openInteractiveMap('${item.id}', '${item.image_url}', '${item.title.replace(/'/g, "\\'")}')">🗺️ Abrir Mapa Interativo</button>`;
+                mapBtnHtml = `<div style="padding: 0 1.5rem 1.5rem;"><button class="btn btn-secondary w-full" onclick="window.openInteractiveMap('${item.id}', '${item.image_url}', '${item.title.replace(/'/g, "\\'")}')"><span class="tab-icon">🗺️</span> Mapa Interativo</button></div>`;
             }
 
-            div.innerHTML = `${imgHtml}<div class="mural-content-box"><h4>${item.title}</h4><p>${item.content}</p>${mapBtnHtml}</div>`;
+            div.innerHTML = `
+                ${imgHtml}
+                <div class="mural-content-box">
+                    <h4>${item.title}</h4>
+                    <p>${item.content}</p>
+                </div>
+                ${mapBtnHtml}
+            `;
             list.appendChild(div);
         });
     }
 
-    // Modal Fechamentos
+    // Modal Fechamentos Manuais
     document.getElementById("closePlayerSheetModal")?.addEventListener("click", () => document.getElementById("playerSheetModal").classList.remove('active'));
     document.getElementById("closeCharacterStateModal")?.addEventListener("click", () => document.getElementById("characterStateModal").classList.remove('active'));
+    document.getElementById("closeCreateSecretModal")?.addEventListener("click", () => document.getElementById("createSecretModal").classList.remove('active'));
 
-    // Rolagens do Mestre
+    // Rolagens Rápidas do Mestre
     document.querySelectorAll('.master-dice-btn').forEach(btn => {
         btn.addEventListener('click', () => {
             const sides = parseInt(btn.getAttribute('data-dice'));
             const result = Math.floor(Math.random() * sides) + 1;
-            if(window.showCinematicRoll) window.showCinematicRoll('Rolagem do Mestre', `1d${sides}`, result);
-            if(window.generateLog) window.generateLog(`O Mestre rolou 1d${sides}. Resultado: ${result}`, 'combat');
+            if(window.showCinematicRoll) window.showCinematicRoll('Rolagem Pública', `1d${sides}`, result);
+            if(window.generateLog) window.generateLog(`O Mestre rolou 1d${sides}. Resultado: ${result}`, 'roll');
         });
     });
 
-    // Combate
+    // =========================================================
+    // COMBATE E INICIATIVA
+    // =========================================================
     async function loadCombatState() {
         const { data } = await supabase.from('campaign_combat').select('*').eq('campaign_id', campaignId).maybeSingle();
         combatState = data || { is_active: false, round_number: 1, turn_index: 0, combatants: [] };
@@ -320,16 +363,29 @@ document.addEventListener("DOMContentLoaded", async () => {
             noCombatPlaceholder.style.display = "none";
             combatTrackerContainer.style.display = "block";
             document.getElementById("combatRoundDisplay").textContent = combatState.round_number;
-            if (userRole === 'master') { toggleCombatBtn.textContent = "Encerrar Combate"; combatMasterPanel.hidden = false; }
+            
+            if (userRole === 'master') { 
+                toggleCombatBtn.textContent = "Encerrar Combate"; 
+                toggleCombatBtn.classList.replace('btn-primary', 'btn-danger');
+                combatMasterPanel.hidden = false; 
+            }
             
             initiativeList.innerHTML = '';
             combatState.combatants.forEach((c, index) => {
                 const isActive = index === combatState.turn_index;
                 const card = document.createElement('div');
                 card.className = `combatant-card ${isActive ? 'active-turn' : ''}`;
-                card.innerHTML = `<div class="combatant-init">${c.init}</div><div class="combatant-name">${c.name}</div>${userRole === 'master' ? `<button class="remove-combatant-btn" data-index="${index}">×</button>` : ''}`;
+                
+                const removeBtn = userRole === 'master' ? `<button class="remove-combatant-btn" data-index="${index}" title="Remover">×</button>` : '';
+                
+                card.innerHTML = `
+                    <div class="combatant-init">${c.init}</div>
+                    <div class="combatant-name">${c.name}</div>
+                    ${removeBtn}
+                `;
                 initiativeList.appendChild(card);
             });
+
             if(userRole === 'master') {
                 document.querySelectorAll('.remove-combatant-btn').forEach(b => b.addEventListener('click', async (e) => {
                     combatState.combatants.splice(parseInt(e.target.getAttribute('data-index')), 1);
@@ -341,9 +397,14 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     document.getElementById("toggleCombatBtn")?.addEventListener('click', async () => {
         combatState.is_active = !combatState.is_active;
-        if(!combatState.is_active) { combatState.combatants = []; combatState.turn_index = 0; combatState.round_number = 1; }
+        if(!combatState.is_active) { 
+            combatState.combatants = []; 
+            combatState.turn_index = 0; 
+            combatState.round_number = 1; 
+            toggleCombatBtn.classList.replace('btn-danger', 'btn-primary');
+        }
         await supabase.from('campaign_combat').upsert({ campaign_id: campaignId, ...combatState });
-        if(window.generateLog) window.generateLog(combatState.is_active ? "O Mestre iniciou um combate!" : "Combate encerrado.", "combat");
+        if(window.generateLog) window.generateLog(combatState.is_active ? "O Mestre iniciou um combate tático!" : "A batalha foi encerrada.", "combat");
     });
 
     document.getElementById("nextTurnBtn")?.addEventListener('click', async () => {
@@ -362,7 +423,9 @@ document.addEventListener("DOMContentLoaded", async () => {
         e.target.reset();
     });
 
-    // Request Rolls
+    // =========================================================
+    // REQUEST ROLLS E TOASTS (Ações Rápidas do Mestre)
+    // =========================================================
     document.getElementById("sendRollRequestBtn")?.addEventListener('click', async () => {
         if(window.generateLog) await window.generateLog(`Teste Solicitado: ${document.getElementById("requestRollSelect").value}`, 'request_roll');
     });
@@ -393,5 +456,6 @@ document.addEventListener("DOMContentLoaded", async () => {
     
     document.getElementById("requestToastCloseBtn")?.addEventListener('click', () => document.getElementById("requestToast").classList.remove('active'));
 
-    init(); // Chama a função principal de inicialização
+    // Inicia o motor
+    init();
 });
