@@ -445,6 +445,50 @@
     <p id="privateCardContent" style="color: var(--cream); font-size: 0.95rem; line-height: 1.5; font-family: 'Georgia', serif; margin-bottom: 25px;"></p>
     <button id="closePrivateCardBtn" class="secondary-button" style="width: 100%;">Entendido</button>
 </div>
+<!-- MODAL DO MAPA INTERATIVO (FASE E) -->
+<div id="mapViewModal" class="auth-modal" style="display: none; align-items: center; justify-content: center;">
+    <div class="auth-box map-view-box">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+            <h2 id="mapViewTitle" style="color: var(--gold); margin: 0; font-size: 1.5rem;">Mapa</h2>
+            <button id="closeMapViewBtn" class="secondary-button" style="width: auto; min-height: 30px; padding: 5px 15px;">Fechar Mapa</button>
+        </div>
+        
+        <p class="master-only" style="display:none; font-size: 0.8rem; color: var(--cream-muted); margin-bottom: 10px;">Clique em qualquer lugar da imagem para adicionar um pin.</p>
+        
+        <div class="map-interactive-area" id="mapInteractiveArea">
+            <img id="mapInteractiveImage" class="map-interactive-image" src="" alt="Mapa">
+            <!-- Os pins serão injetados nesta div invisível que cobre a imagem exata -->
+            <div id="mapPinsContainer" style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; pointer-events: none;"></div>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL DE CRIAR PIN (MESTRE) -->
+<div id="createPinModal" class="auth-modal" style="display: none; align-items: center; justify-content: center; z-index: 10001;">
+    <div class="auth-box" style="max-width: 400px;">
+        <button id="closeCreatePinBtn" class="auth-close">×</button>
+        <h2 style="color: var(--gold);">Nova Marcação</h2>
+        <form id="createPinForm">
+            <!-- Coordenadas ocultas -->
+            <input type="hidden" id="pinPosX">
+            <input type="hidden" id="pinPosY">
+            
+            <label class="sheet-field" style="display: block; margin-bottom: 15px;">
+                <span style="display: block; color: var(--gold); font-size: 10px; margin-bottom: 5px;">Título / Local</span>
+                <input type="text" id="pinTitleInput" required style="width: 100%; padding: 10px; background: rgba(20, 15, 13, 0.8); border: 1px solid rgba(200, 100, 50, 0.3); color: var(--cream); border-radius: 8px;">
+            </label>
+            <label class="sheet-field" style="display: block; margin-bottom: 15px;">
+                <span style="display: block; color: var(--gold); font-size: 10px; margin-bottom: 5px;">Descrição (Opcional)</span>
+                <textarea id="pinDescInput" style="width: 100%; padding: 10px; background: rgba(20, 15, 13, 0.8); border: 1px solid rgba(200, 100, 50, 0.3); color: var(--cream); border-radius: 8px; min-height: 60px;"></textarea>
+            </label>
+            <label style="display: flex; align-items: center; gap: 10px; color: var(--cream-muted); font-size: 0.9rem; margin-bottom: 20px; cursor: pointer;">
+                <input type="checkbox" id="pinHiddenInput" checked>
+                🔒 Iniciar Oculto dos Jogadores
+            </label>
+            <button type="submit" id="savePinBtn" class="primary-button" style="width: 100%;">Salvar Marcação</button>
+        </form>
+    </div>
+</div>
 
 <!-- Scripts -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
