@@ -3,10 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Aeriom — Forjar Personagem</title>
-    <!-- Carrega os estilos globais do Design System -->
+    <title>Aeriom — Forjar Herói (V4.0)</title>
+    <!-- Estilos globais do Design System -->
     <link rel="stylesheet" href="css/style.css">
-    <!-- Inicia o gerenciador de temas imediatamente para evitar FOUC -->
+    <!-- Estilos exclusivos do fluxo de criação -->
+    <link rel="stylesheet" href="css/ficha-creator.css">
+    <!-- Gerenciador de temas (FOUC prevention) -->
     <script src="js/theme.js"></script>
 </head>
 <body>
@@ -16,181 +18,457 @@
     ========================================================= -->
     <header class="topbar">
         <div class="app-container topbar-content">
-            <button class="btn-icon" id="menuButton" aria-label="Abrir menu">
-                ☰
-            </button>
+            <button class="btn-icon" id="menuButton" aria-label="Abrir menu">☰</button>
             
-            <a href="index.html" class="brand-logo">
-                <img src="https://i.ibb.co/d0SnBLcV/Design-sem-nome-20260817-180846-0000.jpg" alt="Aeriom">
-            </a>
+            <a href="index.html" class="brand-logo" aria-label="Aeriom Home"></a>
             
             <div style="display: flex; gap: 8px;">
-                <button class="btn-icon" id="openCommandBarBtn" title="Ações Rápidas (Ctrl+K)">
-                    ⌘
-                </button>
-                <button class="btn-icon" id="profileButton" aria-label="Abrir Perfil">
-                    ♙
-                </button>
+                <button class="btn-icon" id="openCommandBarBtn" title="Ações Rápidas (Ctrl+K)">⌘</button>
+                <button class="btn-icon" id="profileButton" aria-label="Abrir Perfil">♙</button>
             </div>
         </div>
     </header>
 
     <!-- =========================================================
-         CONTEÚDO PRINCIPAL (Main Stage)
+         MAIN CONTENT: CREATOR WIZARD
     ========================================================= -->
-    <main class="app-container" style="padding-top: 3rem; padding-bottom: 5rem; flex: 1;">
+    <main class="app-container" style="padding-top: 2rem; padding-bottom: 5rem;">
         
-        <!-- Cabeçalho da Página -->
-        <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 2rem; flex-wrap: wrap; gap: 1rem; border-bottom: 1px solid var(--theme-border); padding-bottom: 1.5rem;">
-            <div>
-                <h1 id="pageTitle" style="font-size: 2.2rem; margin-bottom: 0.5rem; color: var(--theme-primary);">Nova Ficha</h1>
-                <p style="color: var(--text-secondary); font-size: 1rem;">Preencha os registros para materializar seu herói em Aeriom.</p>
-            </div>
-            <button class="btn btn-secondary" onclick="window.location.href='fichas.html'">← Voltar para Fichas</button>
-        </div>
-
-        <!-- Feedback de Erro/Sucesso -->
-        <div id="fichaMessage" class="msg-box mb-4"></div>
-
-        <!-- =========================================================
-             FORMULÁRIO DA FICHA (Mapeado com IDs para o ficha.js)
-        ========================================================= -->
-        <form id="characterForm" style="display: flex; flex-direction: column; gap: 1.5rem; max-width: 900px; margin: 0 auto;">
+        <div class="creator-container">
             
-            <!-- 1. IDENTIDADE -->
-            <div style="background: var(--theme-surface); border: 1px solid var(--theme-border); border-radius: var(--radius-md); padding: 1.5rem; box-shadow: var(--shadow-soft);">
-                <h3 style="color: var(--theme-primary); margin-bottom: 1rem; border-bottom: 1px solid var(--theme-border-strong); padding-bottom: 0.5rem; font-size: 1.1rem;">Identidade</h3>
-                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
-                    <div class="form-group" style="margin: 0;">
+            <div id="fichaMessage" class="msg-box mb-4"></div>
+
+            <!-- BARRA DE PROGRESSO -->
+            <div class="progress-tracker" id="progressTracker">
+                <div class="progress-step active" data-step="1"><span class="step-icon">1</span> Conceito</div>
+                <div class="progress-step" data-step="2"><span class="step-icon">2</span> Raça</div>
+                <div class="progress-step" data-step="3"><span class="step-icon">3</span> Classe</div>
+                <div class="progress-step" data-step="4"><span class="step-icon">4</span> Atributos</div>
+                <div class="progress-step" data-step="5"><span class="step-icon">5</span> Poder</div>
+                <div class="progress-step" data-step="6"><span class="step-icon">6</span> Mana</div>
+                <div class="progress-step" data-step="7"><span class="step-icon">7</span> Técnicas</div>
+                <div class="progress-step" data-step="8"><span class="step-icon">8</span> Combate</div>
+                <div class="progress-step" data-step="9"><span class="step-icon">9</span> Equip.</div>
+                <div class="progress-step" data-step="10"><span class="step-icon">10</span> Perícias</div>
+                <div class="progress-step" data-step="11"><span class="step-icon">11</span> História</div>
+                <div class="progress-step" data-step="12"><span class="step-icon">12</span> Revisão</div>
+            </div>
+
+            <!-- ==========================================
+                 ETAPAS DE CONTEÚDO 
+            =========================================== -->
+            <form id="characterForm">
+
+                <!-- ETAPA 1: CONCEITO -->
+                <div class="step-content active" id="step-1">
+                    <div class="step-header">
+                        <h2>Conceito do Herói</h2>
+                        <p>A identidade básica do seu personagem nos salões de Aeriom.</p>
+                    </div>
+                    <div class="form-group">
                         <label class="form-label" for="charName">Nome do Personagem</label>
-                        <input type="text" id="charName" class="form-input" required placeholder="Ex: Kael'Thas">
+                        <input type="text" id="charName" class="form-input" placeholder="Ex: Kael'Thas" required>
                     </div>
-                    <div class="form-group" style="margin: 0;">
-                        <label class="form-label" for="charRace">Raça / Origem</label>
-                        <input type="text" id="charRace" class="form-input" required placeholder="Ex: Humano, Elfo...">
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-md);">
+                        <div class="form-group m-0">
+                            <label class="form-label" for="charAge">Idade</label>
+                            <input type="text" id="charAge" class="form-input" placeholder="Ex: 24">
+                        </div>
+                        <div class="form-group m-0">
+                            <label class="form-label" for="charLevel">Nível Inicial</label>
+                            <input type="number" id="charLevel" class="form-input" value="1" min="1" required>
+                        </div>
                     </div>
-                    <div class="form-group" style="margin: 0;">
-                        <label class="form-label" for="charClass">Classe / Caminho</label>
-                        <input type="text" id="charClass" class="form-input" required placeholder="Ex: Mago, Guerreiro...">
-                    </div>
-                    <div class="form-group" style="margin: 0;">
-                        <label class="form-label" for="charLevel">Nível</label>
-                        <input type="number" id="charLevel" class="form-input" value="1" min="1" required>
+                    <div class="form-group">
+                        <label class="form-label" for="charAvatar">URL do Retrato (Opcional)</label>
+                        <input type="url" id="charAvatar" class="form-input" placeholder="https://exemplo.com/rosto.jpg">
                     </div>
                 </div>
-                <div class="form-group mt-4" style="margin-bottom: 0;">
-                    <label class="form-label" for="charAvatar">URL do Avatar ou Retrato (Opcional)</label>
-                    <input type="url" id="charAvatar" class="form-input" placeholder="https://exemplo.com/retrato.jpg">
+
+                <!-- ETAPA 2: RAÇA -->
+                <div class="step-content" id="step-2">
+                    <div class="step-header">
+                        <h2>Linhagem & Raça</h2>
+                        <p>Escolha a sua origem. Isto define as suas características base e habilidades raciais.</p>
+                    </div>
+                    <input type="hidden" id="charRace" required>
+                    <input type="hidden" id="charRaceAbility">
+                    
+                    <div class="choice-grid" id="raceGrid">
+                        <!-- Duende (Destaque V4.0) -->
+                        <div class="choice-card" data-race="Duende" data-ability="Fortuna Mercante">
+                            <h3 class="choice-title">Duende</h3>
+                            <p class="choice-desc">Comerciantes natos, com um faro místico para o ouro e contratos.</p>
+                            <div class="choice-effect">Fortuna Mercante: 1x/cena identifica fraude/preço injusto; Vantagem em negociações financeiras.</div>
+                        </div>
+                        <div class="choice-card" data-race="Humano" data-ability="Adaptabilidade">
+                            <h3 class="choice-title">Humano</h3>
+                            <p class="choice-desc">Versáteis e ambiciosos, espalhados por todo o continente.</p>
+                            <div class="choice-effect">Adaptabilidade: +1 Ponto extra em Perícia à escolha.</div>
+                        </div>
+                        <div class="choice-card" data-race="Elfo" data-ability="Sentidos Élficos">
+                            <h3 class="choice-title">Elfo</h3>
+                            <p class="choice-desc">Ligados à magia ancestral e à graciosidade milenar.</p>
+                            <div class="choice-effect">Sentidos Élficos: Vantagem em testes de Percepção baseados na visão/audição.</div>
+                        </div>
+                        <div class="choice-card" data-race="Anão" data-ability="Resistência da Pedra">
+                            <h3 class="choice-title">Anão</h3>
+                            <p class="choice-desc">Forjadores lendários das profundezas das montanhas.</p>
+                            <div class="choice-effect">Resistência da Pedra: Vantagem contra venenos e efeitos de petrificação.</div>
+                        </div>
+                        <div class="choice-card" data-race="Orc" data-ability="Fúria Orc">
+                            <h3 class="choice-title">Orc</h3>
+                            <p class="choice-desc">Guerreiros tribais cuja força e honra são inquestionáveis.</p>
+                            <div class="choice-effect">Fúria Orc: 1x/cena ganha vantagem num teste de Força extremo.</div>
+                        </div>
+                        <div class="choice-card" data-race="Animalha" data-ability="Traço Bestial">
+                            <h3 class="choice-title">Animalha</h3>
+                            <p class="choice-desc">Humanoides com fortes traços animais.</p>
+                            <div class="choice-effect">Atenção: Irá necessitar de definir a sua Linhagem Animal (ex: Felino, Canídeo, Reptiliano) na História.</div>
+                        </div>
+                        <!-- Outras Raças base: Neraliano, Aureano, Centauro, Povo da Natureza, Fada, Vampiro, Colosso, Povo Aquático, Povo das Nuvens -->
+                        <div class="choice-card" data-race="Neraliano" data-ability="Sombras Inatas"><h3 class="choice-title">Neraliano</h3><p class="choice-desc">Nascidos nas sombras de Neralia.</p><div class="choice-effect">Sombras Inatas: Facilidade em ocultação noturna.</div></div>
+                        <div class="choice-card" data-race="Aureano" data-ability="Luz Áurea"><h3 class="choice-title">Aureano</h3><p class="choice-desc">Habitantes dos planaltos solares.</p><div class="choice-effect">Luz Áurea: Resistência natural a magias de escuridão.</div></div>
+                        <div class="choice-card" data-race="Centauro" data-ability="Investida Veloz"><h3 class="choice-title">Centauro</h3><p class="choice-desc">Nómadas das planícies.</p><div class="choice-effect">Investida Veloz: Bónus em Deslocamento base.</div></div>
+                        <div class="choice-card" data-race="Povo da Natureza" data-ability="Elo Natural"><h3 class="choice-title">Povo da Natureza</h3><p class="choice-desc">Espíritos encarnados das florestas.</p><div class="choice-effect">Elo Natural: Comunicação básica com fauna/flora.</div></div>
+                        <div class="choice-card" data-race="Fada" data-ability="Asas Místicas"><h3 class="choice-title">Fada</h3><p class="choice-desc">Pequenos seres dotados de magia pura.</p><div class="choice-effect">Voo Curto: Permite flutuar a baixas altitudes.</div></div>
+                        <div class="choice-card" data-race="Vampiro" data-ability="Fome Escarlate"><h3 class="choice-title">Vampiro</h3><p class="choice-desc">Amaldiçoados (ou abençoados) com a vida eterna.</p><div class="choice-effect">Regeneração Sombria: Recupera PV ao extrair sangue.</div></div>
+                        <div class="choice-card" data-race="Colosso" data-ability="Corpo Titânico"><h3 class="choice-title">Colosso</h3><p class="choice-desc">Descendentes de gigantes de pedra.</p><div class="choice-effect">Corpo Titânico: Ignora ataques muito leves.</div></div>
+                        <div class="choice-card" data-race="Povo Aquático" data-ability="Respiração Anfíbia"><h3 class="choice-title">Povo Aquático</h3><p class="choice-desc">Senhores das profundezas oceânicas.</p><div class="choice-effect">Anfíbio: Respira debaixo de água e tem natação veloz.</div></div>
+                        <div class="choice-card" data-race="Povo das Nuvens" data-ability="Passos de Brisa"><h3 class="choice-title">Povo das Nuvens</h3><p class="choice-desc">Habitantes das altas montanhas e céus.</p><div class="choice-effect">Queda Leve: Ignora dano de quedas médias.</div></div>
+                    </div>
                 </div>
+
+                <!-- ETAPA 3: CLASSE -->
+                <div class="step-content" id="step-3">
+                    <div class="step-header">
+                        <h2>Caminho & Classe</h2>
+                        <p>O seu treino e vocação determinam a sua abordagem em combate e o bónus no seu Controle de Mana.</p>
+                    </div>
+                    <input type="hidden" id="charClass" required>
+                    <input type="hidden" id="charManaBonus" value="0">
+
+                    <div class="choice-grid" id="classGrid">
+                        <div class="choice-card" data-class="Guerreiro / Combatente" data-manabonus="1">
+                            <h3 class="choice-title">Guerreiro / Combatente</h3>
+                            <p class="choice-desc">Focado em combate físico, força bruta e táticas de campo.</p>
+                            <div class="choice-effect">+1 Controle de Mana Base</div>
+                        </div>
+                        <div class="choice-card" data-class="Curandeiro / Suporte" data-manabonus="2">
+                            <h3 class="choice-title">Curandeiro / Suporte</h3>
+                            <p class="choice-desc">Mantém o grupo vivo e purifica condições anómalas.</p>
+                            <div class="choice-effect">+2 Controle de Mana Base</div>
+                        </div>
+                        <div class="choice-card" data-class="Mágico / Feiticeiro" data-manabonus="5">
+                            <h3 class="choice-title">Mágico / Feiticeiro</h3>
+                            <p class="choice-desc">Mestre das artes arcanas, elementais ou ocultas.</p>
+                            <div class="choice-effect">+5 Controle de Mana Base</div>
+                        </div>
+                        <div class="choice-card" data-class="Monge" data-manabonus="7">
+                            <h3 class="choice-title">Monge</h3>
+                            <p class="choice-desc">Ascensão física e espiritual através do fluxo puro de energia interior.</p>
+                            <div class="choice-effect">+7 Controle de Mana Base</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ETAPA 4: ATRIBUTOS (O CORAÇÃO DO SISTEMA) -->
+                <div class="step-content" id="step-4">
+                    <div class="step-header">
+                        <h2>Distribuição de Dados</h2>
+                        <p>Distribua os 8 dados vitais pelos seus atributos. O dado alocado será o dado rolado em testes.</p>
+                    </div>
+
+                    <!-- Campos Escondidos para o form.submit / Supabase -->
+                    <input type="hidden" id="attrPresenca" value="">
+                    <input type="hidden" id="attrPrecisao" value="">
+                    <input type="hidden" id="attrIntelecto" value="">
+                    <input type="hidden" id="attrControle" value="">
+                    <input type="hidden" id="attrPercepcao" value="">
+                    <input type="hidden" id="attrVigor" value="">
+                    <input type="hidden" id="attrAgilidade" value="">
+                    <input type="hidden" id="attrForca" value="">
+
+                    <div class="dice-allocation-board">
+                        
+                        <div class="dice-pool-container">
+                            <h3 class="dice-pool-title mb-2">Piscina de Dados (Livro I)</h3>
+                            <div class="dice-pool" id="dicePool">
+                                <!-- Os 8 dados gerados via JS (D4, D6, D6, D8, D10, D12, D20, D20) -->
+                            </div>
+                            <p id="diceAllocationHint" class="text-muted mt-4" style="font-size: 0.85rem;">
+                                Arraste um dado ou toque nele e escolha um atributo.
+                            </p>
+                        </div>
+
+                        <div class="attributes-list" id="attributesList">
+                            <!-- Presença -->
+                            <div class="attr-row" data-attr="attrPresenca">
+                                <span class="attr-label">Presença</span>
+                                <div class="attr-slot" data-slot="Presença"><span class="slot-empty-text">D?</span></div>
+                            </div>
+                            <!-- Precisão -->
+                            <div class="attr-row" data-attr="attrPrecisao">
+                                <span class="attr-label">Precisão</span>
+                                <div class="attr-slot" data-slot="Precisão"><span class="slot-empty-text">D?</span></div>
+                            </div>
+                            <!-- Intelecto -->
+                            <div class="attr-row" data-attr="attrIntelecto">
+                                <span class="attr-label">Intelecto</span>
+                                <div class="attr-slot" data-slot="Intelecto"><span class="slot-empty-text">D?</span></div>
+                            </div>
+                            <!-- Controle -->
+                            <div class="attr-row" data-attr="attrControle">
+                                <span class="attr-label">Controle</span>
+                                <div class="attr-slot" data-slot="Controle"><span class="slot-empty-text">D?</span></div>
+                            </div>
+                            <!-- Percepção -->
+                            <div class="attr-row" data-attr="attrPercepcao">
+                                <span class="attr-label">Percepção</span>
+                                <div class="attr-slot" data-slot="Percepção"><span class="slot-empty-text">D?</span></div>
+                            </div>
+                            <!-- Vigor -->
+                            <div class="attr-row" data-attr="attrVigor">
+                                <span class="attr-label">Vigor</span>
+                                <div class="attr-slot" data-slot="Vigor"><span class="slot-empty-text">D?</span></div>
+                            </div>
+                            <!-- Agilidade -->
+                            <div class="attr-row" data-attr="attrAgilidade">
+                                <span class="attr-label">Agilidade</span>
+                                <div class="attr-slot" data-slot="Agilidade"><span class="slot-empty-text">D?</span></div>
+                            </div>
+                            <!-- Força -->
+                            <div class="attr-row" data-attr="attrForca">
+                                <span class="attr-label">Força</span>
+                                <div class="attr-slot" data-slot="Força"><span class="slot-empty-text">D?</span></div>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+
+                <!-- ETAPA 5: PODER & ELEMENTOS -->
+                <div class="step-content" id="step-5">
+                    <div class="step-header">
+                        <h2>Despertar do Poder</h2>
+                        <p>Selecione a fonte do seu poder mágico ou sobrenatural. Ou deixe o destino escolher.</p>
+                    </div>
+                    <div class="form-group mb-4">
+                        <label class="form-label" for="charPower">Poder / Elemento</label>
+                        <select id="charPower" class="form-select">
+                            <option value="">(Selecione um Poder)</option>
+                            <option value="Fogo">Fogo (Primário)</option>
+                            <option value="Ar">Ar (Primário)</option>
+                            <option value="Terra">Terra (Primário)</option>
+                            <option value="Água">Água (Primário)</option>
+                            <option value="Gelo">Gelo</option>
+                            <option value="Eletricidade/Magnetismo">Eletricidade / Magnetismo</option>
+                            <option value="Vegetação/Natureza">Vegetação / Natureza</option>
+                            <option value="Gravidade">Gravidade</option>
+                            <option value="Luz/Sombras">Luz / Sombras</option>
+                            <option value="Tecnologia/Construtos">Tecnologia (Construtos)</option>
+                            <option value="Outro">Outro (Definir com o Mestre)</option>
+                        </select>
+                    </div>
+                    <div class="aeriom-card text-center">
+                        <p class="text-muted mb-2">Não consegue decidir?</p>
+                        <button type="button" class="btn btn-secondary" id="rollRandomPowerBtn">Sortear Poder (1D100)</button>
+                    </div>
+                </div>
+
+                <!-- ETAPA 6: MANA -->
+                <div class="step-content" id="step-6">
+                    <div class="step-header">
+                        <h2>Reserva Arcana (Mana)</h2>
+                        <p>O bónus da sua Classe já foi aplicado ao seu Controle. A Reserva deve seguir a fórmula do Mestre.</p>
+                    </div>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-lg);">
+                        <div class="aeriom-card text-center" style="border-color: var(--color-mana);">
+                            <span class="form-label" style="color: var(--color-mana);">Controle de Mana (CM)</span>
+                            <div style="font-size: 3rem; font-family: var(--font-heading); color: var(--color-text); margin: var(--space-md) 0;" id="displayManaControl">0</div>
+                            <p class="text-muted" style="font-size: 0.8rem;">Atributo Controle + Bónus da Classe</p>
+                            <input type="hidden" id="charManaControl">
+                        </div>
+                        <div class="aeriom-card text-center">
+                            <span class="form-label">Reserva de Mana (PM Máximo)</span>
+                            <input type="number" id="charManaMax" class="form-input text-center mt-4" style="font-size: 2rem; padding: 1rem;" placeholder="0" required>
+                            <p class="text-muted mt-2" style="font-size: 0.8rem;">Consulte o Mestre para o cálculo final.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ETAPA 7: TÉCNICAS -->
+                <div class="step-content" id="step-7">
+                    <div class="step-header">
+                        <div style="display: flex; justify-content: space-between; align-items: flex-end;">
+                            <div>
+                                <h2>Técnicas / Magias</h2>
+                                <p>Registe as suas habilidades ativas (Preferencialmente Nível 1).</p>
+                            </div>
+                            <button type="button" class="btn btn-secondary" id="addTechniqueBtn">+ Adicionar Técnica</button>
+                        </div>
+                    </div>
+                    <div class="dynamic-list-container" id="techniquesList">
+                        <!-- Cards de Técnica Injetados via JS -->
+                        <div class="placeholder-panel" id="noTechniquePlaceholder">
+                            <div class="placeholder-icon">✨</div>
+                            <p class="text-muted">Nenhuma técnica registada.</p>
+                        </div>
+                    </div>
+                    <!-- Hidden field para salvar no banco o JSON compilado no fim -->
+                    <input type="hidden" id="charSkillsJSON">
+                </div>
+
+                <!-- ETAPA 8: COMBATE E VITAIS -->
+                <div class="step-content" id="step-8">
+                    <div class="step-header">
+                        <h2>Atributos Secundários de Combate</h2>
+                        <p>Estatísticas vitais para o campo de batalha.</p>
+                    </div>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-lg);">
+                        
+                        <div class="aeriom-card">
+                            <div class="form-group m-0">
+                                <label class="form-label" style="color: var(--color-danger);" for="charHpMax">Pontos de Vida (PV Máx)</label>
+                                <input type="number" id="charHpMax" class="form-input input-stat" required placeholder="0">
+                            </div>
+                        </div>
+
+                        <div class="aeriom-card">
+                            <div class="form-group m-0">
+                                <label class="form-label" for="charDefense">Defesa (Base)</label>
+                                <input type="number" id="charDefense" class="form-input input-stat" required placeholder="0">
+                            </div>
+                        </div>
+
+                        <div class="aeriom-card">
+                            <div class="form-group m-0">
+                                <label class="form-label" for="charInitiative">Iniciativa (Bónus)</label>
+                                <input type="number" id="charInitiative" class="form-input input-stat" required placeholder="0">
+                            </div>
+                        </div>
+
+                        <div class="aeriom-card">
+                            <div class="form-group m-0">
+                                <label class="form-label" for="charSpeed">Deslocamento (m/t)</label>
+                                <input type="number" id="charSpeed" class="form-input input-stat" required placeholder="0">
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+
+                <!-- ETAPA 9: EQUIPAMENTOS -->
+                <div class="step-content" id="step-9">
+                    <div class="step-header">
+                        <h2>Mochila & Dinheiro</h2>
+                        <p>O que leva consigo para a aventura inicial.</p>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label" for="charMoney">Bolsa de Dinheiro Inicial (Moedas)</label>
+                        <input type="text" id="charMoney" class="form-input" placeholder="Ex: 50 moedas de prata">
+                    </div>
+
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin: var(--space-lg) 0 var(--space-md);">
+                        <label class="form-label">Equipamento (Armas, Roupas, Itens)</label>
+                        <button type="button" class="btn btn-secondary btn-sm" id="addEquipBtn">+ Adicionar Item</button>
+                    </div>
+
+                    <div class="dynamic-list-container" id="equipList">
+                        <!-- Itens Injetados via JS -->
+                        <div class="placeholder-panel" id="noEquipPlaceholder" style="padding: var(--space-md);">
+                            <p class="text-muted">A mochila está vazia.</p>
+                        </div>
+                    </div>
+                    <input type="hidden" id="charInventoryJSON">
+                </div>
+
+                <!-- ETAPA 10: PERÍCIAS -->
+                <div class="step-content" id="step-10">
+                    <div class="step-header">
+                        <h2>Perícias Oficiais</h2>
+                        <p>Registe os pontos investidos em cada perícia. (O bónus do atributo será somado nas rolagens da mesa).</p>
+                    </div>
+                    <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: var(--space-md);" id="skillsContainer">
+                        <!-- Gerado via JS para manter o HTML limpo e escalável -->
+                    </div>
+                    <input type="hidden" id="charProficienciesJSON">
+                </div>
+
+                <!-- ETAPA 11: HISTÓRIA -->
+                <div class="step-content" id="step-11">
+                    <div class="step-header">
+                        <h2>A Alma do Herói</h2>
+                        <p>O seu background e motivações.</p>
+                    </div>
+                    
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-md);">
+                        <div class="form-group">
+                            <label class="form-label" for="bgOrigin">Origem / Reino</label>
+                            <input type="text" id="bgOrigin" class="form-input" placeholder="De onde veio?">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label" for="bgGoal">Objetivo Principal</label>
+                            <input type="text" id="bgGoal" class="form-input" placeholder="O que busca?">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label" for="bgFear">Maior Medo</label>
+                            <input type="text" id="bgFear" class="form-input" placeholder="O que o assombra?">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label" for="bgBond">Vínculo Importante</label>
+                            <input type="text" id="bgBond" class="form-input" placeholder="Uma pessoa ou objeto vital">
+                        </div>
+                    </div>
+
+                    <div class="form-group mt-4">
+                        <label class="form-label" for="bgHistory">História / Biografia Breve</label>
+                        <textarea id="bgHistory" class="form-textarea" placeholder="Resuma a trajetória até ao momento da campanha..." required></textarea>
+                    </div>
+                </div>
+
+                <!-- ETAPA 12: REVISÃO -->
+                <div class="step-content" id="step-12">
+                    <div class="step-header text-center">
+                        <h2>O Selo do Destino</h2>
+                        <p>Reveja os detalhes do seu herói antes de o entregar ao mundo de Aeriom.</p>
+                    </div>
+
+                    <div class="review-grid" id="reviewChecklist">
+                        <!-- Checklist será injetado/atualizado pelo JS no momento em que a Etapa 12 for aberta -->
+                    </div>
+
+                    <div class="text-center mt-4 pt-4" style="border-top: 1px solid var(--color-border-strong);">
+                        <button type="submit" class="btn btn-primary btn-lg" id="saveCharacterBtn" disabled>Forjar Personagem (Incompleto)</button>
+                    </div>
+                </div>
+
+            </form>
+
+            <!-- NAVEGAÇÃO INFERIOR -->
+            <div class="creator-nav-buttons">
+                <button type="button" class="btn btn-secondary" id="btnPrevStep" disabled>← Retroceder</button>
+                <button type="button" class="btn btn-primary" id="btnNextStep">Avançar →</button>
             </div>
 
-            <!-- 2. RECURSOS VITAIS -->
-            <div style="background: var(--theme-surface); border: 1px solid var(--theme-border); border-radius: var(--radius-md); padding: 1.5rem; box-shadow: var(--shadow-soft);">
-                <h3 style="color: var(--theme-primary); margin-bottom: 1rem; border-bottom: 1px solid var(--theme-border-strong); padding-bottom: 0.5rem; font-size: 1.1rem;">Recursos Iniciais</h3>
-                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 1rem;">
-                    <div class="form-group" style="margin: 0;">
-                        <label class="form-label" style="color: var(--danger);" for="charHpMax">PV Máximo (Saúde)</label>
-                        <input type="number" id="charHpMax" class="form-input" required placeholder="0">
-                    </div>
-                    <div class="form-group" style="margin: 0;">
-                        <label class="form-label" style="color: var(--mana);" for="charManaMax">PM Máximo (Mana/Energia)</label>
-                        <input type="number" id="charManaMax" class="form-input" required placeholder="0">
-                    </div>
-                </div>
-            </div>
-
-            <!-- 3. ATRIBUTOS -->
-            <div style="background: var(--theme-surface); border: 1px solid var(--theme-border); border-radius: var(--radius-md); padding: 1.5rem; box-shadow: var(--shadow-soft);">
-                <h3 style="color: var(--theme-primary); margin-bottom: 1rem; border-bottom: 1px solid var(--theme-border-strong); padding-bottom: 0.5rem; font-size: 1.1rem;">Atributos Base</h3>
-                <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); gap: 1rem;">
-                    <div class="form-group" style="margin: 0;">
-                        <label class="form-label text-center" for="attrForca">Força</label>
-                        <input type="number" id="attrForca" class="form-input text-center" value="0" required>
-                    </div>
-                    <div class="form-group" style="margin: 0;">
-                        <label class="form-label text-center" for="attrAgilidade">Agilidade</label>
-                        <input type="number" id="attrAgilidade" class="form-input text-center" value="0" required>
-                    </div>
-                    <div class="form-group" style="margin: 0;">
-                        <label class="form-label text-center" for="attrVigor">Vigor</label>
-                        <input type="number" id="attrVigor" class="form-input text-center" value="0" required>
-                    </div>
-                    <div class="form-group" style="margin: 0;">
-                        <label class="form-label text-center" for="attrIntelecto">Intelecto</label>
-                        <input type="number" id="attrIntelecto" class="form-input text-center" value="0" required>
-                    </div>
-                    <div class="form-group" style="margin: 0;">
-                        <label class="form-label text-center" for="attrPercepcao">Percepção</label>
-                        <input type="number" id="attrPercepcao" class="form-input text-center" value="0" required>
-                    </div>
-                    <div class="form-group" style="margin: 0;">
-                        <label class="form-label text-center" for="attrPresenca">Presença</label>
-                        <input type="number" id="attrPresenca" class="form-input text-center" value="0" required>
-                    </div>
-                    <div class="form-group" style="margin: 0;">
-                        <label class="form-label text-center" for="attrPrecisao">Precisão</label>
-                        <input type="number" id="attrPrecisao" class="form-input text-center" value="0" required>
-                    </div>
-                    <div class="form-group" style="margin: 0;">
-                        <label class="form-label text-center" for="attrControle">Controle</label>
-                        <input type="number" id="attrControle" class="form-input text-center" value="0" required>
-                    </div>
-                </div>
-            </div>
-
-            <!-- 4. HABILIDADES E INVENTÁRIO -->
-            <div style="background: var(--theme-surface); border: 1px solid var(--theme-border); border-radius: var(--radius-md); padding: 1.5rem; box-shadow: var(--shadow-soft);">
-                <h3 style="color: var(--theme-primary); margin-bottom: 1rem; border-bottom: 1px solid var(--theme-border-strong); padding-bottom: 0.5rem; font-size: 1.1rem;">Grimório e Mochila</h3>
-                <div class="form-group">
-                    <label class="form-label" for="charSkills">Técnicas / Magias / Habilidades</label>
-                    <textarea id="charSkills" class="form-input" style="min-height: 120px;" placeholder="Descreva os poderes e passivas..."></textarea>
-                </div>
-                <div class="form-group" style="margin-bottom: 0;">
-                    <label class="form-label" for="charInventory">Inventário & Equipamentos</label>
-                    <textarea id="charInventory" class="form-input" style="min-height: 120px;" placeholder="Armaduras, armas, poções, ouro..."></textarea>
-                </div>
-            </div>
-
-            <!-- 5. HISTÓRICO -->
-            <div style="background: var(--theme-surface); border: 1px solid var(--theme-border); border-radius: var(--radius-md); padding: 1.5rem; box-shadow: var(--shadow-soft);">
-                <h3 style="color: var(--theme-primary); margin-bottom: 1rem; border-bottom: 1px solid var(--theme-border-strong); padding-bottom: 0.5rem; font-size: 1.1rem;">História e Background</h3>
-                <div class="form-group" style="margin: 0;">
-                    <label class="form-label" for="charHistory">Trajetória do Herói</label>
-                    <textarea id="charHistory" class="form-input" style="min-height: 150px;" placeholder="Qual a origem deste personagem? Seus medos, sonhos e motivações..."></textarea>
-                </div>
-            </div>
-
-            <!-- AÇÕES -->
-            <div style="text-align: right; margin-top: 1rem;">
-                <button type="submit" id="saveCharacterBtn" class="btn btn-primary" style="padding: 1rem 3rem; font-size: 1.1rem;">Forjar Personagem</button>
-            </div>
-
-        </form>
+        </div>
     </main>
 
     <!-- =========================================================
-         MODAIS GLOBAIS
+         MODAIS GLOBAIS (Não afetam a ficha)
     ========================================================= -->
-    
-    <!-- COMMAND BAR (PESQUISA RÁPIDA / CTRL+K) -->
-    <div id="commandBarModal" class="command-bar-modal">
-        <div class="global-overlay active" id="commandBarOverlay"></div>
-        <div class="command-bar-surface" style="z-index: 10006;">
-            <div class="command-input-wrapper">
+    <!-- COMMAND BAR -->
+    <div id="commandBarModal" class="modal-backdrop" style="z-index: 10006; align-items: flex-start; padding-top: 15vh;">
+        <div class="modal-surface" style="padding: 0;">
+            <div style="display: flex; align-items: center; padding: 1.2rem 1.5rem; border-bottom: 1px solid var(--color-border); gap: 12px;">
                 <span>🔍</span>
-                <input type="text" class="command-input" id="commandBarInput" placeholder="O que você quer fazer? (ex: 'Fichas', 'Início')">
-                <div style="font-size: 0.7rem; background: var(--theme-surface-interactive); padding: 4px 8px; border-radius: var(--radius-sm); color: var(--text-muted); font-weight: 600;">ESC</div>
+                <input type="text" class="form-input" style="border:none; background:transparent; box-shadow:none; padding:0;" id="commandBarInput" placeholder="Navegação Rápida (ex: 'Início')">
+                <div style="font-size: 0.7rem; background: var(--color-surface-hover); padding: 4px 8px; border-radius: var(--radius-sm); color: var(--color-text-muted); font-weight: 600;">ESC</div>
             </div>
-            <div class="command-list" id="commandBarList">
-                <a href="index.html" class="command-item">
-                    <span class="command-item-icon">🏠</span> Voltar ao Início
-                </a>
-                <a href="fichas.html" class="command-item">
-                    <span class="command-item-icon">📜</span> Acessar Minhas Fichas
-                </a>
-                <a href="campanhas.html" class="command-item">
-                    <span class="command-item-icon">⚔️</span> Acessar Campanhas
-                </a>
+            <div style="padding: 0.5rem; max-height: 300px; overflow-y: auto;">
+                <a href="index.html" class="sidebar-link"><span class="sidebar-icon">🏠</span> Voltar ao Início</a>
+                <a href="fichas.html" class="sidebar-link"><span class="sidebar-icon">📜</span> Minhas Fichas</a>
             </div>
         </div>
     </div>
@@ -199,36 +477,29 @@
     <div id="profilePanel" class="modal-backdrop">
         <div class="modal-surface text-center">
             <button id="closeProfile" class="modal-close">×</button>
-            <div style="width: 80px; height: 80px; border-radius: 50%; background: var(--theme-surface-interactive); margin: 0 auto 1.5rem; border: 1px solid var(--theme-border-strong); display: grid; place-items: center; font-size: 2rem; font-family: var(--font-heading); color: var(--theme-primary);">♙</div>
-            <img id="profileAvatar" src="" alt="Avatar" style="display: none; width: 80px; height: 80px; border-radius: 50%; margin: 0 auto 1.5rem; object-fit: cover; border: 1px solid var(--theme-border-strong);">
-            
+            <div style="width: 80px; height: 80px; border-radius: 50%; background: var(--color-surface-hover); margin: 0 auto 1.5rem; border: 1px solid var(--color-border-strong); display: grid; place-items: center; font-size: 2rem; font-family: var(--font-heading); color: var(--color-primary);">♙</div>
             <h2 id="profileName" style="margin-bottom: 0.25rem;">Carregando...</h2>
-            <p id="profileEmail" class="text-secondary mb-4">Aguarde...</p>
-            
+            <p id="profileEmail" class="text-muted mb-4">Aguarde...</p>
             <div class="form-group">
-                <button id="editProfileButton" class="btn btn-secondary w-full">Editar Perfil</button>
-                <button id="logoutButton" class="btn btn-ghost w-full" style="color: var(--danger); margin-top: 8px;">Sair da Conta</button>
+                <button id="logoutButton" class="btn btn-danger w-full mt-2">Sair da Conta</button>
             </div>
         </div>
     </div>
 
-    <!-- =========================================================
-         SCRIPTS CORE
-    ========================================================= -->
+    <!-- SCRIPTS CORE -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="js/supabase.js"></script>
     <script src="js/auth.js"></script>
-    <script src="js/main.js"></script> <!-- Carrega o controle de perfil e auth -->
-    <script src="js/menu.js"></script> <!-- Injeta a Sidebar dinamicamente -->
+    <script src="js/main.js"></script>
+    <script src="js/menu.js"></script>
     
-    <!-- Script de Lógica do Formulário da Ficha -->
+    <!-- LÓGICA DO MOTOR DE CRIAÇÃO (V4.0) -->
     <script src="js/ficha.js"></script>
 
-    <!-- Script Estrutural da Command Bar -->
+    <!-- Comandos Globais Estruturais -->
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             const cmdModal = document.getElementById('commandBarModal');
-            const cmdOverlay = document.getElementById('commandBarOverlay');
             const cmdInput = document.getElementById('commandBarInput');
             
             function toggleCommandBar() {
@@ -240,18 +511,11 @@
                     cmdInput.focus();
                 }
             }
-
             document.getElementById('openCommandBarBtn')?.addEventListener('click', toggleCommandBar);
-            cmdOverlay?.addEventListener('click', toggleCommandBar);
             
             document.addEventListener('keydown', (e) => {
-                if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
-                    e.preventDefault();
-                    toggleCommandBar();
-                }
-                if (e.key === 'Escape' && cmdModal.classList.contains('active')) {
-                    toggleCommandBar();
-                }
+                if ((e.ctrlKey || e.metaKey) && e.key === 'k') { e.preventDefault(); toggleCommandBar(); }
+                if (e.key === 'Escape' && cmdModal.classList.contains('active')) { toggleCommandBar(); }
             });
         });
     </script>
