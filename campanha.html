@@ -4,15 +4,17 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="theme-color" content="#080707">
-    <title>Aerion — Painel da Campanha</title>
+    <title>Aeriom — Painel da Campanha</title>
     <link rel="stylesheet" href="css/style.css">
     <link rel="stylesheet" href="css/campanha.css">
 </head>
 <body>
 
 <main class="campaign-dashboard">
-    <header class="dash-header">
-        <button id="backToCampaignsBtn" class="header-button" aria-label="Voltar">←</button>
+    <!-- NOVO CABEÇALHO COM MENU HAMBÚRGUER (FASE 12) -->
+    <header class="dash-header" style="justify-content: flex-start;">
+        <button class="menu-btn" style="margin-right: 15px;" aria-label="Menu Principal">☰</button>
+        <button id="backToCampaignsBtn" class="header-button" aria-label="Voltar" style="margin-right: 15px;">←</button>
         <div class="dash-title">
             <span id="campaignRoleLabel">Carregando...</span>
             <h1 id="campaignTitle">Painel da Campanha</h1>
@@ -174,7 +176,7 @@
             </div>
         </div>
 
-        <!-- ABA 5: COZINHA (FASE 11 - Renderizada via JS) -->
+        <!-- ABA 5: COZINHA -->
         <div id="tab-cozinha" class="dash-tab-content" hidden>
             <div class="dash-panel placeholder-panel">
                 <div class="characters-loader"></div>
@@ -302,20 +304,39 @@
     </div>
 </div>
 
-<!-- MODAL: FICHA DO JOGADOR IN-GAME -->
+<!-- ========================================================= -->
+<!-- MODAL: FICHA DO JOGADOR IN-GAME (REMODELADA - FASE 12)    -->
+<!-- ========================================================= -->
 <div id="playerSheetModal" class="auth-modal player-sheet-modal" style="display: none; align-items: flex-start; justify-content: center; padding: 20px;">
     <div class="auth-box player-sheet-box" style="width: 100%; max-width: 800px; max-height: 90vh; overflow-y: auto; position: relative;">
         <button id="closePlayerSheetModal" class="auth-close" style="position: sticky; top: 10px; right: 10px; z-index: 10;">×</button>
+        
         <div class="player-sheet-header">
             <div id="psAvatarContainer"></div>
             <div class="ps-header-info">
+                <span style="font-size: 0.7rem; color: var(--gold); text-transform: uppercase; letter-spacing: 1px;">Minha Ficha</span>
                 <h2 id="psName">Nome do Personagem</h2>
                 <span id="psSubinfo">Raça • Classe • Origem</span>
             </div>
         </div>
-        <div class="dash-panel" style="margin-bottom: 20px; padding: 15px;">
-            <h3 style="font-size: 1rem; margin-bottom: 10px;">Estado na Campanha (Temporário)</h3>
-            <form id="psStateForm" style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+
+        <!-- ESTADO DA CAMPANHA (TEMPORÁRIO) -->
+        <div class="dash-panel" style="margin-bottom: 20px; padding: 15px; border-color: var(--fire); background: rgba(40, 20, 15, 0.4);">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                <h3 style="font-size: 1rem; color: var(--fire); margin: 0;">Estado Atual (Campanha)</h3>
+                <button type="button" id="psToggleEditStateBtn" class="secondary-button" style="width: auto; min-height: 25px; font-size: 10px; padding: 5px 10px; border-color: var(--fire); color: var(--fire);">Editar Estado</button>
+            </div>
+            
+            <!-- Visão Rápida do Estado -->
+            <div id="psStateView" style="display: flex; gap: 20px;">
+                <div style="flex: 1;"><span style="color:var(--gold); font-size:0.8rem; display:block;">PV Atual</span><strong id="psHpView" style="font-size:1.2rem; color:var(--cream);">--</strong></div>
+                <div style="flex: 1;"><span style="color:var(--gold); font-size:0.8rem; display:block;">Mana Atual</span><strong id="psManaView" style="font-size:1.2rem; color:var(--cream);">--</strong></div>
+                <div style="flex: 2;"><span style="color:var(--gold); font-size:0.8rem; display:block;">Condições</span><span id="psConditionsView" style="color:var(--cream-muted); font-size:0.9rem;">--</span></div>
+            </div>
+
+            <!-- Formulário de Edição do Estado (Oculto por padrão) -->
+            <form id="psStateForm" style="display: none; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 15px; border-top: 1px solid rgba(255,100,50,0.2); padding-top: 15px;">
+                <p style="grid-column: span 2; font-size: 0.8rem; color: #ff9d85; margin: 0;">Alterações aqui refletem apenas nesta sessão e não mudam a sua ficha permanente.</p>
                 <label class="sheet-field">
                     <span style="display: block; color: var(--gold); font-size: 10px; margin-bottom: 5px;">PV Atual</span>
                     <div style="display: flex; gap: 5px;">
@@ -336,22 +357,25 @@
                     <span style="display: block; color: var(--gold); font-size: 10px; margin-bottom: 5px;">Condições / Efeitos</span>
                     <textarea id="psConditions" style="width: 100%; padding: 10px; background: rgba(20, 15, 13, 0.8); border: 1px solid rgba(200, 100, 50, 0.3); color: var(--cream); border-radius: 8px; min-height: 50px;"></textarea>
                 </label>
-                <button type="submit" id="psSaveStateBtn" class="primary-button" style="grid-column: span 2;">Atualizar Estado</button>
+                <button type="submit" id="psSaveStateBtn" class="primary-button" style="grid-column: span 2;">Salvar Alteração Temporária</button>
             </form>
         </div>
+
+        <!-- DADOS PERMANENTES (SOMENTE LEITURA) -->
         <div class="dash-panel" style="margin-bottom: 20px; padding: 15px;">
-            <h3 style="font-size: 1rem; margin-bottom: 5px;">🎲 Rolagens (Atributos Base)</h3>
-            <p style="font-size: 0.8rem; color: var(--cream-muted); margin-bottom: 15px;">Toque em um atributo para rolar os dados no Histórico.</p>
+            <h3 style="font-size: 1rem; margin-bottom: 15px;">Atributos & Ações (Ficha Permanente)</h3>
+            <p style="font-size: 0.8rem; color: var(--cream-muted); margin-bottom: 15px;">Toque em um atributo para rolar os dados no Histórico do Mestre.</p>
             <div id="psAttributesGrid" class="attributes-roll-grid"></div>
         </div>
+
         <div class="dash-panel" style="margin-bottom: 10px; padding: 15px;">
-            <h3 style="font-size: 1rem; margin-bottom: 15px;">Informações Permanentes</h3>
+            <h3 style="font-size: 1rem; margin-bottom: 15px;">Equipamentos & Habilidades</h3>
             <div class="ps-readonly-section">
-                <h4 style="color: var(--gold); font-size: 0.85rem; border-bottom: 1px solid rgba(200, 100, 50, 0.2); padding-bottom: 5px;">Inventário / Equipamentos</h4>
+                <h4 style="color: var(--gold); font-size: 0.85rem; border-bottom: 1px solid rgba(200, 100, 50, 0.2); padding-bottom: 5px;">Inventário / Armas</h4>
                 <p id="psInventory" style="white-space: pre-wrap; font-size: 0.85rem; color: var(--cream-muted); margin-top: 10px;">Vazio</p>
             </div>
             <div class="ps-readonly-section" style="margin-top: 15px;">
-                <h4 style="color: var(--gold); font-size: 0.85rem; border-bottom: 1px solid rgba(200, 100, 50, 0.2); padding-bottom: 5px;">Técnicas / Perícias / Outros</h4>
+                <h4 style="color: var(--gold); font-size: 0.85rem; border-bottom: 1px solid rgba(200, 100, 50, 0.2); padding-bottom: 5px;">Técnicas / Perícias / Magias</h4>
                 <p id="psSkills" style="white-space: pre-wrap; font-size: 0.85rem; color: var(--cream-muted); margin-top: 10px;">Sem registros</p>
             </div>
         </div>
@@ -375,9 +399,14 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="js/supabase.js?v=17"></script>
 <script src="js/auth.js?v=17"></script>
-<!-- Novo Módulo: Sistema de Cozinha (FASE 11) -->
+
+<!-- Novo Módulo: Menu Global (FASE 12) -->
+<script src="js/menu.js?v=1"></script>
+
+<!-- Módulo: Sistema de Cozinha -->
 <script src="js/campanha-cozinha.js?v=1"></script>
-<script src="js/campanha.js?v=11"></script>
+
+<script src="js/campanha.js?v=12"></script>
 
 </body>
 </html>
