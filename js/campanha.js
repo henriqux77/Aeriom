@@ -318,5 +318,6 @@ document.addEventListener("DOMContentLoaded", async () => {
     document.getElementById("requestToastCloseBtn")?.addEventListener('click', () => document.getElementById("requestToast").hidden = true);
 
     init(); // Chama a função principal de inicialização
+        if (window.initSceneSystem) window.initSceneSystem(supabase, campaignId);
 
 });
