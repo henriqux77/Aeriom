@@ -1,6 +1,6 @@
 /* =========================================================
-   AERION — MÓDULO DE LINHA DO TEMPO E LOGS (js/campanha-timeline.js)
-   Gerenciamento de Histórico e Acontecimentos da Campanha
+   AERIOM — MÓDULO DE LINHA DO TEMPO E LOGS (js/campanha-timeline.js)
+   Fase 5: Registo de Histórico Seguro e Desacoplado
 ========================================================= */
 (function() {
     "use strict";
@@ -8,98 +8,124 @@
     let supabase = null;
     let campaignId = null;
 
+    // =========================================================
+    // 1. UTILITÁRIOS SEGUROS
+    // =========================================================
+    function createSafeElement(tag, className, text = null) {
+        const el = document.createElement(tag);
+        if (className) el.className = className;
+        if (text !== null && text !== undefined) el.textContent = text;
+        return el;
+    }
+
+    // =========================================================
+    // 2. INICIALIZAÇÃO
+    // =========================================================
     window.initTimelineSystem = function(_supabase, _campaignId) {
         supabase = _supabase;
         campaignId = _campaignId;
 
         loadTimeline();
-        attachTimelineEvents();
     };
 
+    // =========================================================
+    // 3. CARREGAMENTO E RENDERIZAÇÃO
+    // =========================================================
     window.loadTimeline = async function() {
         const container = document.getElementById('logsList');
         if (!container) return;
 
-        const { data, error } = await supabase
-            .from('campaign_logs')
-            .select('*')
-            .eq('campaign_id', campaignId)
-            .order('created_at', { ascending: false });
+        try {
+            const { data, error } = await supabase
+                .from('campaign_logs')
+                .select('*')
+                .eq('campaign_id', campaignId)
+                .order('created_at', { ascending: false });
 
-        if (error) {
-            console.error("Erro ao carregar timeline:", error);
-            container.innerHTML = '<p class="text-muted text-center">Erro ao carregar histórico.</p>';
-            return;
-        }
+            if (error) throw error;
 
-        container.innerHTML = '';
-        if (!data || data.length === 0) {
-            container.innerHTML = '<div class="placeholder-panel w-full"><div class="placeholder-icon">📜</div><h3>Histórico Vazio</h3><p class="text-muted">Nenhum evento registrado nesta campanha ainda.</p></div>';
-            return;
-        }
+            container.innerHTML = '';
 
-        // Cria o trilho vertical da timeline
-        const track = document.createElement('div');
-        track.className = 'timeline-track';
-        container.appendChild(track);
-
-        data.forEach(log => {
-            const item = document.createElement('div');
-            
-            // Define a classe CSS baseada no tipo de log para coloração correta do ícone
-            let typeClass = 'tl-system';
-            let icon = '📜';
-
-            switch (log.log_type) {
-                case 'combat':
-                    typeClass = 'tl-combat';
-                    icon = '⚔️';
-                    break;
-                case 'roll':
-                case 'request_roll':
-                    typeClass = 'tl-roll';
-                    icon = '🎲';
-                    break;
-                case 'cooking':
-                    typeClass = 'tl-cozinha';
-                    icon = '🍲';
-                    break;
-                case 'scene':
-                    typeClass = 'tl-scene';
-                    icon = '🎭';
-                    break;
-                default:
-                    typeClass = 'tl-system';
-                    icon = '📜';
-                    break;
+            if (!data || data.length === 0) {
+                const emptyState = createSafeElement('div', 'placeholder-panel w-full');
+                const emptyIcon = createSafeElement('div', 'placeholder-icon', '📜');
+                const emptyTitle = createSafeElement('h3', '', 'Histórico Vazio');
+                const emptyDesc = createSafeElement('p', 'text-muted', 'Nenhum evento registado nesta campanha até ao momento.');
+                
+                emptyState.appendChild(emptyIcon);
+                emptyState.appendChild(emptyTitle);
+                emptyState.appendChild(emptyDesc);
+                container.appendChild(emptyState);
+                return;
             }
 
-            item.className = `timeline-item ${typeClass}`;
-            
-            const formattedDate = new Date(log.created_at).toLocaleString('pt-BR', {
-                day: '2-digit',
-                month: '2-digit',
-                hour: '2-digit',
-                minute: '2-digit'
+            // Cria o trilho vertical da linha do tempo
+            const track = createSafeElement('div', 'timeline-track');
+            container.appendChild(track);
+
+            // Renderiza os itens de forma segura
+            data.forEach(log => {
+                let typeClass = 'tl-system';
+                let icon = '📜';
+
+                switch (log.log_type) {
+                    case 'combat':
+                        typeClass = 'tl-combat';
+                        icon = '⚔️';
+                        break;
+                    case 'roll':
+                    case 'request_roll':
+                        typeClass = 'tl-roll';
+                        icon = '🎲';
+                        break;
+                    case 'cooking':
+                        typeClass = 'tl-cozinha';
+                        icon = '🍲';
+                        break;
+                    case 'scene':
+                        typeClass = 'tl-scene';
+                        icon = '🎭';
+                        break;
+                    default:
+                        typeClass = 'tl-system';
+                        icon = '📜';
+                        break;
+                }
+
+                const item = createSafeElement('div', `timeline-item ${typeClass}`);
+                
+                // Formata a data para visualização (PT)
+                const formattedDate = new Date(log.created_at).toLocaleString('pt-PT', {
+                    day: '2-digit',
+                    month: '2-digit',
+                    hour: '2-digit',
+                    minute: '2-digit'
+                });
+
+                // Ícone
+                const iconDiv = createSafeElement('div', 'tl-icon', icon);
+                
+                // Conteúdo (Data e Descrição)
+                const contentDiv = createSafeElement('div', 'tl-content');
+                contentDiv.appendChild(createSafeElement('span', 'tl-time', formattedDate));
+                contentDiv.appendChild(createSafeElement('p', 'tl-desc', log.description)); // Blindado contra XSS
+
+                item.appendChild(iconDiv);
+                item.appendChild(contentDiv);
+
+                container.appendChild(item);
             });
 
-            item.innerHTML = `
-                <div class="tl-icon">${icon}</div>
-                <div class="tl-content">
-                    <span class="tl-time">${formattedDate}</span>
-                    <p class="tl-desc">${log.description}</p>
-                </div>
-            `;
-
-            container.appendChild(item);
-        });
+        } catch (error) {
+            console.error("Erro ao carregar a linha do tempo:", error);
+            container.innerHTML = '';
+            container.appendChild(createSafeElement('p', 'text-muted text-center', 'Erro ao carregar o histórico da aventura.'));
+        }
     };
 
-    function attachTimelineEvents() {
-        // Eventos adicionais para a timeline se necessário no futuro
-    }
-
-    // Função global utilitária para gerar logs de forma simples a partir de outros módulos
+    // =========================================================
+    // 4. FUNÇÃO GLOBAL PARA GERAÇÃO DE LOGS
+    // =========================================================
     window.generateLog = async function(description, logType = 'system') {
         if (!supabase || !campaignId) return;
         try {
@@ -108,8 +134,10 @@
                 description: description,
                 log_type: logType
             });
-            // Se o usuário estiver na aba de logs, atualiza imediatamente
-            if (document.getElementById('tab-logs')?.classList.contains('active')) {
+            
+            // Se o utilizador estiver no separador de logs, atualiza imediatamente
+            const logsTab = document.getElementById('tab-logs');
+            if (logsTab && logsTab.classList.contains('active')) {
                 window.loadTimeline();
             }
         } catch (err) {
