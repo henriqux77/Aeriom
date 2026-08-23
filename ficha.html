@@ -3,179 +3,256 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="theme-color" content="#09090b">
-    <title>Aeriom — Plataforma de RPG</title>
+    <title>Aeriom — Forjar Personagem</title>
+    <!-- Carrega os estilos globais do Design System -->
     <link rel="stylesheet" href="css/style.css">
+    <!-- Inicia o gerenciador de temas imediatamente para evitar FOUC -->
+    <script src="js/theme.js"></script>
 </head>
 <body>
 
-    <!-- TOPBAR / CABEÇALHO -->
+    <!-- =========================================================
+         TOPBAR (Navegação Superior)
+    ========================================================= -->
     <header class="topbar">
         <div class="app-container topbar-content">
-            <button class="topbar-btn" id="menuButton" aria-label="Abrir menu">
+            <button class="btn-icon" id="menuButton" aria-label="Abrir menu">
                 ☰
             </button>
-            <a href="./" class="brand-logo">
+            
+            <a href="index.html" class="brand-logo">
                 <img src="https://i.ibb.co/d0SnBLcV/Design-sem-nome-20260817-180846-0000.jpg" alt="Aeriom">
             </a>
-            <button class="topbar-btn" id="profileButton" aria-label="Abrir perfil">
-                ♙
-            </button>
+            
+            <div style="display: flex; gap: 8px;">
+                <button class="btn-icon" id="openCommandBarBtn" title="Ações Rápidas (Ctrl+K)">
+                    ⌘
+                </button>
+                <button class="btn-icon" id="profileButton" aria-label="Abrir Perfil">
+                    ♙
+                </button>
+            </div>
         </div>
     </header>
 
-    <!-- MENU LATERAL GLOBAL -->
-    <div class="sidebar-overlay" id="sidebarOverlay"></div>
-    <aside class="global-sidebar" id="globalSidebar">
-        <div class="sidebar-header">
-            <h2>Navegação</h2>
-            <button class="close-sidebar-btn" id="closeSidebarBtn">×</button>
-        </div>
-        <nav class="sidebar-nav">
-            <a href="./" class="sidebar-link active">Início</a>
-            <div class="sidebar-divider"></div>
-            <a href="fichas.html" class="sidebar-link">Minhas Fichas</a>
-            <a href="campanhas.html" class="sidebar-link">Campanhas</a>
-        </nav>
-    </aside>
-
-    <!-- PAINEL DE PERFIL (LATERAL DIREITA OU MODAL) -->
-    <div id="profilePanel" class="modal-backdrop">
-        <div class="modal-surface">
-            <button id="closeProfile" class="modal-close-btn">×</button>
-            <div class="text-center">
-                <!-- Avatar placeholder se vazio -->
-                <div style="width: 80px; height: 80px; border-radius: 50%; background: var(--bg-interactive); margin: 0 auto 1rem; border: 1px solid var(--border-strong); display: grid; place-items: center; font-size: 1.5rem;">♙</div>
-                <img id="profileAvatar" src="" alt="Avatar" style="display: none; width: 80px; height: 80px; border-radius: 50%; margin: 0 auto 1rem; object-fit: cover;">
-                <h2 id="profileName" style="margin-bottom: 0.25rem;">Carregando...</h2>
-                <p id="profileEmail" class="text-secondary mb-4">Carregando...</p>
+    <!-- =========================================================
+         CONTEÚDO PRINCIPAL (Main Stage)
+    ========================================================= -->
+    <main class="app-container" style="padding-top: 3rem; padding-bottom: 5rem; flex: 1;">
+        
+        <!-- Cabeçalho da Página -->
+        <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 2rem; flex-wrap: wrap; gap: 1rem; border-bottom: 1px solid var(--theme-border); padding-bottom: 1.5rem;">
+            <div>
+                <h1 id="pageTitle" style="font-size: 2.2rem; margin-bottom: 0.5rem; color: var(--theme-primary);">Nova Ficha</h1>
+                <p style="color: var(--text-secondary); font-size: 1rem;">Preencha os registros para materializar seu herói em Aeriom.</p>
             </div>
-            <div style="display: flex; flex-direction: column; gap: 0.75rem;">
-                <button id="editProfileButton" class="btn btn-secondary w-full">Editar perfil</button>
-                <button id="logoutButton" class="btn btn-ghost w-full" style="color: var(--accent-danger);">Sair da conta</button>
-            </div>
+            <button class="btn btn-secondary" onclick="window.location.href='fichas.html'">← Voltar para Fichas</button>
         </div>
-    </div>
 
-    <!-- CONTEÚDO PRINCIPAL (HOME) -->
-    <main class="app-container home-wrapper">
+        <!-- Feedback de Erro/Sucesso -->
+        <div id="fichaMessage" class="msg-box mb-4"></div>
 
-        <!-- ESTADO DESLOGADO: LANDING PAGE -->
-        <section id="loggedOutActions" class="landing-view">
-            <h1>A sua mesa digital de RPG.</h1>
-            <p>O Aeriom organiza as fichas, o combate e as ferramentas narrativas para que o Mestre foque na história e os jogadores na imersão.</p>
+        <!-- =========================================================
+             FORMULÁRIO DA FICHA (Mapeado com IDs para o ficha.js)
+        ========================================================= -->
+        <form id="characterForm" style="display: flex; flex-direction: column; gap: 1.5rem; max-width: 900px; margin: 0 auto;">
             
-            <div class="landing-actions">
-                <button class="btn btn-primary w-full" id="createAccountButton">
-                    Criar Conta
-                </button>
-                <button class="btn btn-secondary w-full" id="loginButton">
-                    Entrar na Plataforma
-                </button>
+            <!-- 1. IDENTIDADE -->
+            <div style="background: var(--theme-surface); border: 1px solid var(--theme-border); border-radius: var(--radius-md); padding: 1.5rem; box-shadow: var(--shadow-soft);">
+                <h3 style="color: var(--theme-primary); margin-bottom: 1rem; border-bottom: 1px solid var(--theme-border-strong); padding-bottom: 0.5rem; font-size: 1.1rem;">Identidade</h3>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
+                    <div class="form-group" style="margin: 0;">
+                        <label class="form-label" for="charName">Nome do Personagem</label>
+                        <input type="text" id="charName" class="form-input" required placeholder="Ex: Kael'Thas">
+                    </div>
+                    <div class="form-group" style="margin: 0;">
+                        <label class="form-label" for="charRace">Raça / Origem</label>
+                        <input type="text" id="charRace" class="form-input" required placeholder="Ex: Humano, Elfo...">
+                    </div>
+                    <div class="form-group" style="margin: 0;">
+                        <label class="form-label" for="charClass">Classe / Caminho</label>
+                        <input type="text" id="charClass" class="form-input" required placeholder="Ex: Mago, Guerreiro...">
+                    </div>
+                    <div class="form-group" style="margin: 0;">
+                        <label class="form-label" for="charLevel">Nível</label>
+                        <input type="number" id="charLevel" class="form-input" value="1" min="1" required>
+                    </div>
+                </div>
+                <div class="form-group mt-4" style="margin-bottom: 0;">
+                    <label class="form-label" for="charAvatar">URL do Avatar ou Retrato (Opcional)</label>
+                    <input type="url" id="charAvatar" class="form-input" placeholder="https://exemplo.com/retrato.jpg">
+                </div>
             </div>
-        </section>
 
-        <!-- ESTADO LOGADO: DASHBOARD PRINCIPAL -->
-        <section id="loggedInActions" class="dashboard-view" style="display: none;">
-            <div class="dash-welcome">
-                <h1>Bem-vindo(a) ao Aeriom.</h1>
-                <p>O que você deseja fazer hoje?</p>
+            <!-- 2. RECURSOS VITAIS -->
+            <div style="background: var(--theme-surface); border: 1px solid var(--theme-border); border-radius: var(--radius-md); padding: 1.5rem; box-shadow: var(--shadow-soft);">
+                <h3 style="color: var(--theme-primary); margin-bottom: 1rem; border-bottom: 1px solid var(--theme-border-strong); padding-bottom: 0.5rem; font-size: 1.1rem;">Recursos Iniciais</h3>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 1rem;">
+                    <div class="form-group" style="margin: 0;">
+                        <label class="form-label" style="color: var(--danger);" for="charHpMax">PV Máximo (Saúde)</label>
+                        <input type="number" id="charHpMax" class="form-input" required placeholder="0">
+                    </div>
+                    <div class="form-group" style="margin: 0;">
+                        <label class="form-label" style="color: var(--mana);" for="charManaMax">PM Máximo (Mana/Energia)</label>
+                        <input type="number" id="charManaMax" class="form-input" required placeholder="0">
+                    </div>
+                </div>
             </div>
 
-            <div class="dash-grid">
-                <!-- Card: Fichas -->
-                <a href="fichas.html" class="dash-card" id="createCharacterButton">
-                    <div class="dash-card-icon">◈</div>
-                    <h3>Minhas Fichas</h3>
-                    <p>Acesse o acervo, crie novos personagens, edite atributos e gerencie seu inventário.</p>
-                </a>
-
-                <!-- Card: Campanhas -->
-                <a href="campanhas.html" class="dash-card" id="campaignButton">
-                    <div class="dash-card-icon">♟</div>
-                    <h3>Mesas e Campanhas</h3>
-                    <p>Crie uma nova sessão como Mestre ou entre no mundo de aventuras como Jogador.</p>
-                </a>
+            <!-- 3. ATRIBUTOS -->
+            <div style="background: var(--theme-surface); border: 1px solid var(--theme-border); border-radius: var(--radius-md); padding: 1.5rem; box-shadow: var(--shadow-soft);">
+                <h3 style="color: var(--theme-primary); margin-bottom: 1rem; border-bottom: 1px solid var(--theme-border-strong); padding-bottom: 0.5rem; font-size: 1.1rem;">Atributos Base</h3>
+                <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); gap: 1rem;">
+                    <div class="form-group" style="margin: 0;">
+                        <label class="form-label text-center" for="attrForca">Força</label>
+                        <input type="number" id="attrForca" class="form-input text-center" value="0" required>
+                    </div>
+                    <div class="form-group" style="margin: 0;">
+                        <label class="form-label text-center" for="attrAgilidade">Agilidade</label>
+                        <input type="number" id="attrAgilidade" class="form-input text-center" value="0" required>
+                    </div>
+                    <div class="form-group" style="margin: 0;">
+                        <label class="form-label text-center" for="attrVigor">Vigor</label>
+                        <input type="number" id="attrVigor" class="form-input text-center" value="0" required>
+                    </div>
+                    <div class="form-group" style="margin: 0;">
+                        <label class="form-label text-center" for="attrIntelecto">Intelecto</label>
+                        <input type="number" id="attrIntelecto" class="form-input text-center" value="0" required>
+                    </div>
+                    <div class="form-group" style="margin: 0;">
+                        <label class="form-label text-center" for="attrPercepcao">Percepção</label>
+                        <input type="number" id="attrPercepcao" class="form-input text-center" value="0" required>
+                    </div>
+                    <div class="form-group" style="margin: 0;">
+                        <label class="form-label text-center" for="attrPresenca">Presença</label>
+                        <input type="number" id="attrPresenca" class="form-input text-center" value="0" required>
+                    </div>
+                    <div class="form-group" style="margin: 0;">
+                        <label class="form-label text-center" for="attrPrecisao">Precisão</label>
+                        <input type="number" id="attrPrecisao" class="form-input text-center" value="0" required>
+                    </div>
+                    <div class="form-group" style="margin: 0;">
+                        <label class="form-label text-center" for="attrControle">Controle</label>
+                        <input type="number" id="attrControle" class="form-input text-center" value="0" required>
+                    </div>
+                </div>
             </div>
-        </section>
 
+            <!-- 4. HABILIDADES E INVENTÁRIO -->
+            <div style="background: var(--theme-surface); border: 1px solid var(--theme-border); border-radius: var(--radius-md); padding: 1.5rem; box-shadow: var(--shadow-soft);">
+                <h3 style="color: var(--theme-primary); margin-bottom: 1rem; border-bottom: 1px solid var(--theme-border-strong); padding-bottom: 0.5rem; font-size: 1.1rem;">Grimório e Mochila</h3>
+                <div class="form-group">
+                    <label class="form-label" for="charSkills">Técnicas / Magias / Habilidades</label>
+                    <textarea id="charSkills" class="form-input" style="min-height: 120px;" placeholder="Descreva os poderes e passivas..."></textarea>
+                </div>
+                <div class="form-group" style="margin-bottom: 0;">
+                    <label class="form-label" for="charInventory">Inventário & Equipamentos</label>
+                    <textarea id="charInventory" class="form-input" style="min-height: 120px;" placeholder="Armaduras, armas, poções, ouro..."></textarea>
+                </div>
+            </div>
+
+            <!-- 5. HISTÓRICO -->
+            <div style="background: var(--theme-surface); border: 1px solid var(--theme-border); border-radius: var(--radius-md); padding: 1.5rem; box-shadow: var(--shadow-soft);">
+                <h3 style="color: var(--theme-primary); margin-bottom: 1rem; border-bottom: 1px solid var(--theme-border-strong); padding-bottom: 0.5rem; font-size: 1.1rem;">História e Background</h3>
+                <div class="form-group" style="margin: 0;">
+                    <label class="form-label" for="charHistory">Trajetória do Herói</label>
+                    <textarea id="charHistory" class="form-input" style="min-height: 150px;" placeholder="Qual a origem deste personagem? Seus medos, sonhos e motivações..."></textarea>
+                </div>
+            </div>
+
+            <!-- AÇÕES -->
+            <div style="text-align: right; margin-top: 1rem;">
+                <button type="submit" id="saveCharacterBtn" class="btn btn-primary" style="padding: 1rem 3rem; font-size: 1.1rem;">Forjar Personagem</button>
+            </div>
+
+        </form>
     </main>
 
-    <!-- MODAL DE AUTENTICAÇÃO -->
-    <div id="authModal" class="modal-backdrop">
-        <div class="modal-surface">
-            <button id="closeAuth" class="modal-close-btn">×</button>
-
-            <!-- FORMULÁRIO DE LOGIN -->
-            <div id="loginForm">
-                <div class="modal-header">
-                    <h2>Entrar</h2>
-                    <p>Acesse sua conta para continuar.</p>
-                </div>
-
-                <div class="form-group">
-                    <label class="form-label" for="loginEmail">E-mail</label>
-                    <input type="email" id="loginEmail" class="form-input" placeholder="seu@email.com" autocomplete="email">
-                </div>
-                <div class="form-group mb-4">
-                    <label class="form-label" for="loginPassword">Senha</label>
-                    <input type="password" id="loginPassword" class="form-input" placeholder="••••••••" autocomplete="current-password">
-                </div>
-
-                <button id="emailLoginButton" class="btn btn-primary w-full mb-4">Entrar</button>
-                <button id="showRegisterButton" class="btn btn-ghost w-full">Não possui conta? Criar agora</button>
+    <!-- =========================================================
+         MODAIS GLOBAIS
+    ========================================================= -->
+    
+    <!-- COMMAND BAR (PESQUISA RÁPIDA / CTRL+K) -->
+    <div id="commandBarModal" class="command-bar-modal">
+        <div class="global-overlay active" id="commandBarOverlay"></div>
+        <div class="command-bar-surface" style="z-index: 10006;">
+            <div class="command-input-wrapper">
+                <span>🔍</span>
+                <input type="text" class="command-input" id="commandBarInput" placeholder="O que você quer fazer? (ex: 'Fichas', 'Início')">
+                <div style="font-size: 0.7rem; background: var(--theme-surface-interactive); padding: 4px 8px; border-radius: var(--radius-sm); color: var(--text-muted); font-weight: 600;">ESC</div>
             </div>
-
-            <!-- FORMULÁRIO DE CADASTRO -->
-            <div id="registerForm" style="display: none;">
-                <div class="modal-header">
-                    <h2>Criar Conta</h2>
-                    <p>Junte-se à plataforma Aeriom.</p>
-                </div>
-
-                <div class="form-group">
-                    <label class="form-label" for="registerEmail">E-mail</label>
-                    <input type="email" id="registerEmail" class="form-input" placeholder="seu@email.com" autocomplete="email">
-                </div>
-                <div class="form-group">
-                    <label class="form-label" for="registerPassword">Senha</label>
-                    <input type="password" id="registerPassword" class="form-input" placeholder="Mínimo 6 caracteres" autocomplete="new-password">
-                </div>
-                <div class="form-group mb-4">
-                    <label class="form-label" for="registerPasswordConfirm">Confirmar Senha</label>
-                    <input type="password" id="registerPasswordConfirm" class="form-input" placeholder="Digite a senha novamente" autocomplete="new-password">
-                </div>
-
-                <button id="registerButton" class="btn btn-primary w-full mb-4">Criar conta</button>
-                <button id="showLoginButton" class="btn btn-ghost w-full">Já tenho uma conta</button>
+            <div class="command-list" id="commandBarList">
+                <a href="index.html" class="command-item">
+                    <span class="command-item-icon">🏠</span> Voltar ao Início
+                </a>
+                <a href="fichas.html" class="command-item">
+                    <span class="command-item-icon">📜</span> Acessar Minhas Fichas
+                </a>
+                <a href="campanhas.html" class="command-item">
+                    <span class="command-item-icon">⚔️</span> Acessar Campanhas
+                </a>
             </div>
-
-            <!-- MENSAGENS DO SISTEMA -->
-            <div id="authMessage" class="msg-box mt-4"></div>
         </div>
     </div>
 
-    <!-- SCRIPTS CORE -->
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="js/supabase.js?v=21"></script>
-    <script src="js/auth.js?v=21"></script>
-    <script src="js/main.js?v=21"></script>
-    <script src="js/menu.js?v=3"></script>
+    <!-- PAINEL DE PERFIL -->
+    <div id="profilePanel" class="modal-backdrop">
+        <div class="modal-surface text-center">
+            <button id="closeProfile" class="modal-close">×</button>
+            <div style="width: 80px; height: 80px; border-radius: 50%; background: var(--theme-surface-interactive); margin: 0 auto 1.5rem; border: 1px solid var(--theme-border-strong); display: grid; place-items: center; font-size: 2rem; font-family: var(--font-heading); color: var(--theme-primary);">♙</div>
+            <img id="profileAvatar" src="" alt="Avatar" style="display: none; width: 80px; height: 80px; border-radius: 50%; margin: 0 auto 1.5rem; object-fit: cover; border: 1px solid var(--theme-border-strong);">
+            
+            <h2 id="profileName" style="margin-bottom: 0.25rem;">Carregando...</h2>
+            <p id="profileEmail" class="text-secondary mb-4">Aguarde...</p>
+            
+            <div class="form-group">
+                <button id="editProfileButton" class="btn btn-secondary w-full">Editar Perfil</button>
+                <button id="logoutButton" class="btn btn-ghost w-full" style="color: var(--danger); margin-top: 8px;">Sair da Conta</button>
+            </div>
+        </div>
+    </div>
 
-    <!-- Oculta elementos que não devem aparecer usando a nova estrutura -->
+    <!-- =========================================================
+         SCRIPTS CORE
+    ========================================================= -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="js/supabase.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/main.js"></script> <!-- Carrega o controle de perfil e auth -->
+    <script src="js/menu.js"></script> <!-- Injeta a Sidebar dinamicamente -->
+    
+    <!-- Script de Lógica do Formulário da Ficha -->
+    <script src="js/ficha.js"></script>
+
+    <!-- Script Estrutural da Command Bar -->
     <script>
-        document.addEventListener("DOMContentLoaded", () => {
-            // Se o auth.js tentar exibir o loggedInActions como flex, forçamos display block para manter a semântica
-            const observer = new MutationObserver(() => {
-                const loggedIn = document.getElementById('loggedInActions');
-                if (loggedIn && loggedIn.style.display === 'flex') {
-                    loggedIn.style.display = 'block';
+        document.addEventListener('DOMContentLoaded', () => {
+            const cmdModal = document.getElementById('commandBarModal');
+            const cmdOverlay = document.getElementById('commandBarOverlay');
+            const cmdInput = document.getElementById('commandBarInput');
+            
+            function toggleCommandBar() {
+                if(cmdModal.classList.contains('active')) {
+                    cmdModal.classList.remove('active');
+                    cmdInput.value = '';
+                } else {
+                    cmdModal.classList.add('active');
+                    cmdInput.focus();
+                }
+            }
+
+            document.getElementById('openCommandBarBtn')?.addEventListener('click', toggleCommandBar);
+            cmdOverlay?.addEventListener('click', toggleCommandBar);
+            
+            document.addEventListener('keydown', (e) => {
+                if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+                    e.preventDefault();
+                    toggleCommandBar();
+                }
+                if (e.key === 'Escape' && cmdModal.classList.contains('active')) {
+                    toggleCommandBar();
                 }
             });
-            const loggedInEl = document.getElementById('loggedInActions');
-            if (loggedInEl) {
-                observer.observe(loggedInEl, { attributes: true, attributeFilter: ['style'] });
-            }
         });
     </script>
 </body>
