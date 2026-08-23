@@ -1,6 +1,6 @@
 /* =========================================================
    AERIOM — MAIN.JS (Controle da Home, Auth UI e Dashboard)
-   Correção de Integração: Design System, Anti-XSS e Fallbacks
+   Correção de Integração: Remoção do sort por created_at inexistente na tabela campaign_members
 ========================================================= */
 document.addEventListener("DOMContentLoaded", async () => {
     "use strict";
@@ -76,7 +76,6 @@ document.addEventListener("DOMContentLoaded", async () => {
     createAccountButton?.addEventListener("click", () => { showRegisterForm(); openAuth(); });
     closeAuth?.addEventListener("click", closeAuthModal);
     
-    // Fechar ao clicar fora, respeitando o padding do modal-surface
     authModal?.addEventListener("click", (event) => {
         if (event.target === authModal) closeAuthModal();
     });
@@ -87,8 +86,6 @@ document.addEventListener("DOMContentLoaded", async () => {
     // =========================================================
     // 3. AUTENTICAÇÃO
     // =========================================================
-    
-    // Discord OAuth
     const discordLoginAction = async () => {
         showAuthMessage("Conectando ao Discord...");
         const { error } = await supabaseClient.auth.signInWithOAuth({ provider: "discord", options: { redirectTo: AERION_URL } });
@@ -98,7 +95,6 @@ document.addEventListener("DOMContentLoaded", async () => {
     document.getElementById("discordLoginButton")?.addEventListener("click", discordLoginAction);
     document.getElementById("discordRegisterButton")?.addEventListener("click", discordLoginAction);
 
-    // Email/Senha (Login)
     document.getElementById("emailLoginButton")?.addEventListener("click", async () => {
         const email = document.getElementById("loginEmail")?.value.trim();
         const password = document.getElementById("loginPassword")?.value;
@@ -112,7 +108,6 @@ document.addEventListener("DOMContentLoaded", async () => {
         closeAuthModal();
     });
 
-    // Email/Senha (Registro)
     document.getElementById("registerButton")?.addEventListener("click", async () => {
         const email = document.getElementById("registerEmail")?.value.trim();
         const password = document.getElementById("registerPassword")?.value;
@@ -204,12 +199,11 @@ document.addEventListener("DOMContentLoaded", async () => {
         if (!recentCampaignContainer) return;
 
         try {
-            // Busca a última mesa do usuário
+            // Busca a última mesa do usuário (Removido o .order('created_at') para evitar o erro 42703)
             const { data: memberships, error } = await supabaseClient
                 .from('campaign_members')
                 .select('role, campaigns(id, name, cover_url)')
                 .eq('user_id', user.id)
-                .order('created_at', { ascending: false })
                 .limit(1);
 
             recentCampaignContainer.innerHTML = '';
@@ -225,7 +219,6 @@ document.addEventListener("DOMContentLoaded", async () => {
                 card.style.gap = "var(--space-md)";
                 card.style.padding = "var(--space-md)";
                 
-                // Avatar da Campanha (ou Inicial)
                 const avatar = document.createElement("div");
                 avatar.style.width = "64px";
                 avatar.style.height = "64px";
@@ -249,7 +242,6 @@ document.addEventListener("DOMContentLoaded", async () => {
                     avatar.appendChild(initial);
                 }
 
-                // Informação em Texto
                 const infoContainer = document.createElement("div");
                 infoContainer.style.flex = "1";
                 infoContainer.style.minWidth = "0";
@@ -279,7 +271,6 @@ document.addEventListener("DOMContentLoaded", async () => {
                 infoContainer.appendChild(title);
                 infoContainer.appendChild(badge);
 
-                // Botão de Entrar
                 const btn = createSafeElement("button", "btn btn-primary", "Continuar");
                 
                 card.appendChild(avatar);
@@ -293,7 +284,6 @@ document.addEventListener("DOMContentLoaded", async () => {
 
                 recentCampaignContainer.appendChild(card);
             } else {
-                // Estado Vazio: Nenhuma campanha recente
                 const emptyCard = document.createElement('div');
                 emptyCard.className = "placeholder-panel";
                 emptyCard.style.padding = "var(--space-lg)";
