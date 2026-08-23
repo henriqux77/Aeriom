@@ -1,129 +1,177 @@
 /* =========================================================
-   AERION — MODO CENA (FASE C)
+   AERIOM — MÓDULO DE CENAS E IMERSÃO (js/campanha-cena.js)
+   Fase 5: Modo Cinematográfico Seguro e Sincronizado
 ========================================================= */
 (function() {
     "use strict";
 
     let supabase = null;
     let campaignId = null;
-    let currentSceneData = null;
 
+    // Elementos UI da Cena
+    const overlay = document.getElementById('globalSceneOverlay');
+    const bgEl = document.getElementById('sceneBackground');
+    const titleEl = document.getElementById('sceneDisplayTitle');
+    const descEl = document.getElementById('sceneDisplayDesc');
+    const closeBtn = document.getElementById('closeSceneViewBtn');
+    const indicator = document.getElementById('activeSceneIndicator');
+
+    // =========================================================
+    // 1. INICIALIZAÇÃO
+    // =========================================================
     window.initSceneSystem = async function(_supabase, _campaignId) {
         supabase = _supabase;
         campaignId = _campaignId;
 
-        await loadScene();
+        attachSceneEvents();
         setupSceneRealtime();
-        attachMasterSceneEvents();
-        attachPlayerSceneEvents();
+        await loadCurrentScene();
     };
 
-    async function loadScene() {
-        const { data } = await supabase.from('campaign_scenes').select('*').eq('campaign_id', campaignId).maybeSingle();
-        currentSceneData = data;
-        updateSceneUI();
+    // =========================================================
+    // 2. CARREGAMENTO E SINCROMIZAÇÃO DO ESTADO
+    // =========================================================
+    async function loadCurrentScene() {
+        try {
+            const { data, error } = await supabase
+                .from('campaign_session')
+                .select('*')
+                .eq('campaign_id', campaignId)
+                .maybeSingle();
+
+            if (error && error.code !== 'PGRST116') throw error; // Ignora erro se não existir sessão registada ainda
+
+            if (data && data.is_scene_active) {
+                presentScene(data.scene_title, data.scene_desc, data.scene_image);
+            } else {
+                hideScene();
+            }
+        } catch (err) {
+            console.error("Erro ao carregar o estado da cena:", err);
+        }
     }
 
     function setupSceneRealtime() {
-        supabase.channel('scene-events')
-            .on('postgres_changes', { event: '*', schema: 'public', table: 'campaign_scenes', filter: `campaign_id=eq.${campaignId}` }, (payload) => {
-                const wasActive = currentSceneData?.is_active;
-                currentSceneData = payload.new;
-                
-                // Se a cena acabou de ser ativada, força a abertura do overlay
-                if (currentSceneData.is_active && !wasActive) {
-                    const overlay = document.getElementById('globalSceneOverlay');
-                    if(overlay) overlay.classList.add('active');
+        supabase.channel('scene-updates')
+            .on('postgres_changes', { event: '*', schema: 'public', table: 'campaign_session', filter: `campaign_id=eq.${campaignId}` }, (payload) => {
+                const data = payload.new;
+                if (data && data.is_scene_active) {
+                    presentScene(data.scene_title, data.scene_desc, data.scene_image);
+                } else {
+                    hideScene();
                 }
-                updateSceneUI();
             })
             .subscribe();
     }
 
-    function updateSceneUI() {
-        const overlay = document.getElementById('globalSceneOverlay');
-        const activeIndicator = document.getElementById('activeSceneIndicator');
-        
-        if (!overlay || !activeIndicator) return;
+    // =========================================================
+    // 3. RENDERIZAÇÃO SEGURA (Anti-XSS)
+    // =========================================================
+    function presentScene(title, desc, imageUrl) {
+        if (!overlay) return;
 
-        if (!currentSceneData || !currentSceneData.is_active) {
-            overlay.classList.remove('active');
-            activeIndicator.hidden = true;
-            return;
+        // Injeção cega e segura como texto puro
+        if (titleEl) titleEl.textContent = title || "Cena Sem Título";
+        if (descEl) descEl.textContent = desc || "";
+
+        // O único estilo inline permitido é a imagem de fundo dinâmica
+        if (bgEl) {
+            if (imageUrl && imageUrl.trim() !== '') {
+                bgEl.style.backgroundImage = `url('${imageUrl}')`;
+            } else {
+                bgEl.style.backgroundImage = 'none';
+            }
         }
 
-        // Preenche os dados
-        document.getElementById('sceneDisplayTitle').textContent = currentSceneData.title;
-        document.getElementById('sceneDisplayDesc').textContent = currentSceneData.description || '';
-        
-        const bg = document.getElementById('sceneBackground');
-        if (currentSceneData.image_url) {
-            bg.style.backgroundImage = `url('${currentSceneData.image_url}')`;
-            bg.style.opacity = '0.4';
-        } else {
-            bg.style.backgroundImage = 'none';
-            bg.style.opacity = '0';
-        }
-
-        // Mostra o indicador minimizado
-        activeIndicator.hidden = false;
-        activeIndicator.querySelector('span').textContent = `Cena: ${currentSceneData.title}`;
+        overlay.classList.add('active');
+        if (indicator) indicator.hidden = false;
     }
 
-    function attachMasterSceneEvents() {
-        const startBtn = document.getElementById('startSceneBtn');
-        const stopBtn = document.getElementById('stopSceneBtn');
+    function hideScene() {
+        if (overlay) overlay.classList.remove('active');
+        if (indicator) indicator.hidden = true;
+        
+        // Limpa o conteúdo após a transição de CSS terminar para não piscar
+        setTimeout(() => {
+            if (bgEl) bgEl.style.backgroundImage = 'none';
+            if (titleEl) titleEl.textContent = '';
+            if (descEl) descEl.textContent = '';
+        }, 500); 
+    }
 
-        if (startBtn) {
-            startBtn.addEventListener('click', async () => {
-                const title = document.getElementById('sceneTitleInput').value.trim() || 'Nova Cena';
-                const desc = document.getElementById('sceneDescInput').value.trim();
-                const image = document.getElementById('sceneImageInput').value.trim();
+    // =========================================================
+    // 4. EVENTOS (Mestre e Jogador)
+    // =========================================================
+    function attachSceneEvents() {
+        // --- Controlos do Mestre ---
+        document.getElementById('startSceneBtn')?.addEventListener('click', async () => {
+            const titleInput = document.getElementById('sceneTitleInput');
+            const descInput = document.getElementById('sceneDescInput');
+            const imageInput = document.getElementById('sceneImageInput');
 
-                const btnText = startBtn.textContent;
-                startBtn.textContent = 'Enviando...';
-                startBtn.disabled = true;
+            const title = titleInput ? titleInput.value.trim() : "";
+            const desc = descInput ? descInput.value.trim() : "";
+            const image = imageInput ? imageInput.value.trim() : "";
 
-                await supabase.from('campaign_scenes').upsert({
+            if (!title) {
+                alert("A cena precisa de um título narrativo.");
+                return;
+            }
+
+            const btn = document.getElementById('startSceneBtn');
+            btn.disabled = true;
+            btn.textContent = "A Iniciar...";
+
+            try {
+                await supabase.from('campaign_session').upsert({
                     campaign_id: campaignId,
-                    title: title,
-                    description: desc,
-                    image_url: image,
-                    is_active: true,
-                    updated_at: new Date().toISOString()
+                    is_scene_active: true,
+                    scene_title: title,
+                    scene_desc: desc,
+                    scene_image: image
                 });
 
-                if(window.generateLog) window.generateLog(`O Mestre iniciou a cena: "${title}"`, 'scene');
+                if (window.generateLog) window.generateLog(`O Mestre alterou o cenário: "${title}".`, 'scene');
+            } catch (err) {
+                console.error("Erro ao iniciar a cena:", err);
+                alert("Falha ao comunicar com os jogadores.");
+            } finally {
+                btn.disabled = false;
+                btn.textContent = "Apresentar Cena";
+            }
+        });
 
-                startBtn.textContent = btnText;
-                startBtn.disabled = false;
+        document.getElementById('stopSceneBtn')?.addEventListener('click', async () => {
+            try {
+                await supabase.from('campaign_session').upsert({
+                    campaign_id: campaignId,
+                    is_scene_active: false
+                });
                 
-                // Abre o overlay para o próprio mestre também
-                document.getElementById('globalSceneOverlay')?.classList.add('active');
-            });
-        }
+                // Limpa os inputs do Mestre para a próxima cena
+                const titleInput = document.getElementById('sceneTitleInput');
+                const descInput = document.getElementById('sceneDescInput');
+                const imageInput = document.getElementById('sceneImageInput');
+                if (titleInput) titleInput.value = '';
+                if (descInput) descInput.value = '';
+                if (imageInput) imageInput.value = '';
 
-        if (stopBtn) {
-            stopBtn.addEventListener('click', async () => {
-                await supabase.from('campaign_scenes').upsert({
-                    campaign_id: campaignId,
-                    is_active: false,
-                    updated_at: new Date().toISOString()
-                });
-                if(window.generateLog) window.generateLog(`Cena encerrada.`, 'scene');
-            });
-        }
-    }
-
-    function attachPlayerSceneEvents() {
-        // Botão de minimizar a cena (voltar a ver a ficha)
-        document.getElementById('closeSceneViewBtn')?.addEventListener('click', () => {
-            document.getElementById('globalSceneOverlay').classList.remove('active');
+                if (window.generateLog) window.generateLog(`A cena visual foi encerrada pelo Mestre.`, 'system');
+            } catch (err) {
+                console.error("Erro ao encerrar a cena:", err);
+            }
         });
 
-        // Botão indicador para reabrir a cena
-        document.getElementById('activeSceneIndicator')?.addEventListener('click', () => {
-            document.getElementById('globalSceneOverlay').classList.add('active');
+        // --- Controlos do Jogador ---
+        // O jogador pode "minimizar" a cena localmente para consultar a ficha
+        closeBtn?.addEventListener('click', () => {
+            if (overlay) overlay.classList.remove('active');
+        });
+
+        // Se o indicador for clicado, volta a exibir a cena
+        indicator?.addEventListener('click', () => {
+            if (overlay) overlay.classList.add('active');
         });
     }
+
 })();
