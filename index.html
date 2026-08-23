@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="theme-color" content="#080707">
     <title>Aeriom — Sistema de RPG</title>
-
     <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
@@ -27,10 +26,9 @@
     <main class="home">
 
         <!-- =========================
-             CABEÇALHO (RESTAURADO PARA ORIGINAL)
+             CABEÇALHO
         ========================== -->
         <header class="header">
-            <!-- Adicionado 'menu-btn' para o JS do menu global funcionar sem quebrar a classe original -->
             <button class="header-button menu-button menu-btn" id="menuButton" aria-label="Abrir menu">
                 ☰
             </button>
@@ -75,52 +73,34 @@
                 </button>
             </div>
 
-            <!-- VISÍVEL QUANDO ESTÁ LOGADO (ATUALIZADO PARA FASE 12) -->
+            <!-- VISÍVEL QUANDO ESTÁ LOGADO (AQUI ESTÁ A CORREÇÃO DE ESQUELETO!) -->
             <div id="loggedInActions" style="display: none; width: 100%;">
                 
-                <!-- Wrapper interno: Impede que o auth.js esmague os elementos ao aplicar 'display: flex' -->
+                <!-- Essa div vazia de proteção garante que os ícones e textos não fiquem alinhados lado a lado de modo espremido -->
                 <div style="display: flex; flex-direction: column; align-items: center; width: 100%;">
                     
                     <h2 style="font-family: var(--display-font); color: var(--gold); font-size: 1.8rem; margin-bottom: 5px; text-align: center;">Bem-vindo de volta</h2>
                     <p style="color: var(--cream-muted); font-size: 0.9rem; margin-bottom: 30px; text-align: center;">O seu mundo de aventuras o aguarda.</p>
 
-                    <!-- Novo Menu Grid Integrado -->
-                    <div class="home-menu-grid" style="width: 100%;">
-                        <a href="fichas.html" class="home-menu-card" id="createCharacterButton">
-                            <span class="icon">📜</span>
+                    <!-- MENU PREMIUM COM A ESTÉTICA RESTAURADA -->
+                    <div class="action-grid">
+                        <a href="fichas.html" class="action-card" id="createCharacterButton">
+                            <div class="action-icon">◈</div>
                             <h3>Minhas Fichas</h3>
-                            <p>Visualize, edite e crie personagens.</p>
+                            <p>Crie, visualize e edite seus heróis.</p>
                         </a>
 
-                        <a href="campanhas.html" class="home-menu-card" id="campaignButton">
-                            <span class="icon">⚔️</span>
+                        <a href="campanhas.html" class="action-card" id="campaignButton">
+                            <div class="action-icon">♟</div>
                             <h3>Campanhas</h3>
                             <p>Acesse sessões como Jogador ou Mestre.</p>
                         </a>
                     </div>
-                </div>
 
+                </div>
             </div>
 
         </section>
-
-        <!-- =========================
-             FUNCIONALIDADES (Abaixo dos botões)
-        ========================== -->
-        <section class="features" id="homeFeatures">
-            <article class="feature-card">
-                <div class="feature-icon">♟</div>
-                <h2>Mesas</h2>
-                <p>Crie e gerencie suas mesas</p>
-            </article>
-
-            <article class="feature-card">
-                <div class="feature-icon">◈</div>
-                <h2>Fichas</h2>
-                <p>Crie personagens únicos</p>
-            </article>
-        </section>
-
     </main>
 
     <!-- =========================
@@ -183,27 +163,6 @@
     <script src="js/supabase.js?v=6"></script>
     <script src="js/auth.js?v=6"></script>
     <script src="js/main.js?v=6"></script>
-    
-    <!-- MÓDULO DO MENU GLOBAL (FASE 12) -->
     <script src="js/menu.js?v=1"></script>
-
-    <script>
-        // Pequeno ajuste para esconder as "Features" quando o usuário estiver logado 
-        // e exibir o Grid de Fichas/Campanhas mais limpo.
-        document.addEventListener("DOMContentLoaded", () => {
-            const observer = new MutationObserver(() => {
-                const loggedIn = document.getElementById('loggedInActions');
-                const features = document.getElementById('homeFeatures');
-                if (loggedIn && features) {
-                    if (loggedIn.style.display !== 'none') {
-                        features.style.display = 'none';
-                    } else {
-                        features.style.display = 'grid';
-                    }
-                }
-            });
-            observer.observe(document.getElementById('loggedInActions'), { attributes: true, attributeFilter: ['style'] });
-        });
-    </script>
 </body>
 </html>
