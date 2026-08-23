@@ -203,4 +203,99 @@
 @media(min-width: 700px) {
     .session-dashboard-grid { grid-template-columns: 1fr 1fr; }
 }
+/* =========================================================
+   MODO CENA (FASE C)
+========================================================= */
+.scene-overlay {
+    position: fixed;
+    inset: 0;
+    background: var(--black);
+    z-index: 9995; /* Fica abaixo dos Modais e do Toast */
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.5s ease, visibility 0.5s ease;
+    overflow: hidden;
+}
+.scene-overlay.active {
+    opacity: 1;
+    visibility: visible;
+}
+.scene-background {
+    position: absolute;
+    inset: 0;
+    background-size: cover;
+    background-position: center;
+    opacity: 0;
+    transition: opacity 1s ease;
+    filter: blur(3px) brightness(0.8);
+}
+.scene-overlay::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(circle at center, rgba(5,3,3,0.4) 0%, var(--black) 100%);
+    pointer-events: none;
+}
+.scene-content-box {
+    position: relative;
+    z-index: 2;
+    max-width: 800px;
+    width: 90%;
+    text-align: center;
+    padding: 40px;
+    background: rgba(10, 8, 7, 0.7);
+    border: 1px solid rgba(200, 100, 50, 0.3);
+    border-radius: 16px;
+    backdrop-filter: blur(10px);
+    box-shadow: 0 20px 50px rgba(0,0,0,0.8);
+    transform: translateY(20px);
+    transition: transform 0.5s ease;
+}
+.scene-overlay.active .scene-content-box {
+    transform: translateY(0);
+}
+.scene-content-box h2 {
+    font-family: var(--display-font);
+    font-size: 2.5rem;
+    color: var(--gold);
+    margin-bottom: 20px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    text-shadow: 0 4px 15px rgba(0,0,0,0.9);
+}
+.scene-content-box p {
+    font-size: 1.1rem;
+    color: var(--cream);
+    line-height: 1.6;
+    margin-bottom: 30px;
+    white-space: pre-wrap;
+    font-family: 'Georgia', serif;
+}
+.active-scene-indicator {
+    position: fixed;
+    bottom: 20px;
+    left: 20px;
+    background: rgba(20, 15, 13, 0.9);
+    border: 1px solid #9d5bb5;
+    color: #dfb2f2;
+    padding: 8px 15px;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    cursor: pointer;
+    z-index: 90;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    box-shadow: 0 0 15px rgba(157, 91, 181, 0.3);
+    transition: all 0.2s ease;
+}
+.active-scene-indicator:hover {
+    background: rgba(40, 20, 40, 0.9);
+    transform: translateY(-2px);
+}
+
 
