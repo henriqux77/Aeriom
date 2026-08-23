@@ -316,5 +316,12 @@ document.addEventListener("DOMContentLoaded", async () => {
     
     document.getElementById("requestToastCloseBtn")?.addEventListener('click', () => document.getElementById("requestToast").hidden = true);
 
-    init();
+    init()
+        // Inicializa Módulos Separados
+        if (window.initTimelineSystem) window.initTimelineSystem(supabase, campaignId);
+        if (window.initCookingSystem) window.initCookingSystem(supabase, campaignId);
+        // ADICIONE ESTA LINHA:
+        if (window.initSessionSystem) window.initSessionSystem(supabase, campaignId);
+;
+
 });
