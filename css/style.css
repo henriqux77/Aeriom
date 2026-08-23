@@ -1,18 +1,14 @@
 /* =========================================================
    AERION — style.css COMPLETO
    Página Principal + Criação de Ficha + Fichas + Menu Global
-   Reconstrução total preservando identidade e funcionalidades
 ========================================================= */
 
 /* =========================================================
    1. RESET E VARIÁVEIS
 ========================================================= */
-
 @import url("https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700&family=Libre+Baskerville:wght@400;700&display=swap");
 
-*,
-*::before,
-*::after {
+*, *::before, *::after {
     box-sizing: border-box;
     margin: 0;
     padding: 0;
@@ -20,7 +16,6 @@
 
 :root {
     color-scheme: dark;
-
     --black: #050505;
     --black-soft: #0b0909;
     --surface: #100d0d;
@@ -34,7 +29,6 @@
     --orange: #f06a2f;
     --fire: #bc301c;
     --red-deep: #5b120d;
-
     --display-font: "Cinzel", Georgia, serif;
     --body-font: "Libre Baskerville", Georgia, serif;
 }
@@ -62,10 +56,7 @@ body {
     text-rendering: optimizeLegibility;
 }
 
-button,
-input,
-select,
-textarea {
+button, input, select, textarea {
     font: inherit;
     color: inherit;
     -webkit-tap-highlight-color: transparent;
@@ -77,11 +68,7 @@ button {
     background: none;
 }
 
-button:focus-visible,
-input:focus-visible,
-select:focus-visible,
-textarea:focus-visible,
-a:focus-visible {
+button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible, a:focus-visible {
     outline: 2px solid var(--gold);
     outline-offset: 2px;
 }
@@ -94,7 +81,6 @@ img {
 /* =========================================================
    2. PÁGINA PRINCIPAL — HOME
 ========================================================= */
-
 .home {
     position: relative;
     width: min(100%, 45rem);
@@ -103,8 +89,7 @@ img {
     padding: 0 1rem 2.5rem;
 }
 
-.home::before,
-.home::after {
+.home::before, .home::after {
     position: fixed;
     z-index: -1;
     width: 15rem;
@@ -115,20 +100,12 @@ img {
     transform: rotate(45deg);
 }
 
-.home::before {
-    top: 8rem;
-    left: -13rem;
-}
-
-.home::after {
-    right: -13rem;
-    bottom: 5rem;
-}
+.home::before { top: 8rem; left: -13rem; }
+.home::after { right: -13rem; bottom: 5rem; }
 
 /* =========================================================
    3. CABEÇALHO PRINCIPAL
 ========================================================= */
-
 .header {
     position: relative;
     display: grid;
@@ -147,14 +124,7 @@ img {
     bottom: -1px;
     left: 1rem;
     height: 1px;
-    background: linear-gradient(
-        90deg,
-        transparent,
-        rgba(213, 92, 43, 0.42) 24%,
-        rgba(237, 142, 71, 0.62) 50%,
-        rgba(213, 92, 43, 0.42) 76%,
-        transparent
-    );
+    background: linear-gradient(90deg, transparent, rgba(213, 92, 43, 0.42) 24%, rgba(237, 142, 71, 0.62) 50%, rgba(213, 92, 43, 0.42) 76%, transparent);
     content: "";
 }
 
@@ -165,8 +135,7 @@ img {
     padding: 0.25rem 0.45rem;
 }
 
-.header-logo::before,
-.header-logo::after {
+.header-logo::before, .header-logo::after {
     position: absolute;
     top: 50%;
     width: 0.3rem;
@@ -177,22 +146,15 @@ img {
     transform: rotate(45deg) translateY(-50%);
 }
 
-.header-logo::before {
-    left: -0.1rem;
-}
-
-.header-logo::after {
-    right: -0.1rem;
-}
+.header-logo::before { left: -0.1rem; }
+.header-logo::after { right: -0.1rem; }
 
 .header-logo img {
     width: 100%;
     height: auto;
     max-height: 3.35rem;
     object-fit: contain;
-    filter:
-        drop-shadow(0 0 0.55rem rgba(183, 43, 22, 0.26))
-        drop-shadow(0 0 0.12rem rgba(255, 154, 77, 0.22));
+    filter: drop-shadow(0 0 0.55rem rgba(183, 43, 22, 0.26)) drop-shadow(0 0 0.12rem rgba(255, 154, 77, 0.22));
 }
 
 .header-button {
@@ -203,19 +165,13 @@ img {
     padding: 0;
     border: 1px solid rgba(165, 88, 50, 0.2);
     border-radius: 0.25rem;
-    background:
-        linear-gradient(145deg, rgba(47, 29, 23, 0.48), rgba(9, 8, 8, 0.9)),
-        var(--black-soft);
+    background: linear-gradient(145deg, rgba(47, 29, 23, 0.48), rgba(9, 8, 8, 0.9)), var(--black-soft);
     color: var(--cream-muted);
     cursor: pointer;
     font-family: Arial, sans-serif;
     font-size: 1.35rem;
     line-height: 1;
-    transition:
-        border-color 180ms ease,
-        color 180ms ease,
-        box-shadow 180ms ease,
-        transform 180ms ease;
+    transition: border-color 180ms ease, color 180ms ease, box-shadow 180ms ease, transform 180ms ease;
 }
 
 .header-button:hover {
@@ -224,26 +180,14 @@ img {
     box-shadow: 0 0 1rem rgba(163, 43, 23, 0.22);
 }
 
-.header-button:active {
-    transform: translateY(1px) scale(0.97);
-}
+.header-button:active { transform: translateY(1px) scale(0.97); }
 
-.menu-button {
-    justify-self: start;
-    color: #c8b99c;
-    font-size: 1.45rem;
-}
-
-.profile-button {
-    justify-self: end;
-    color: #d1b68c;
-    font-size: 1.5rem;
-}
+.menu-button { justify-self: start; color: #c8b99c; font-size: 1.45rem; }
+.profile-button { justify-self: end; color: #d1b68c; font-size: 1.5rem; }
 
 /* =========================================================
    4. HERO
 ========================================================= */
-
 .hero {
     position: relative;
     margin: 2.05rem -1rem 0;
@@ -251,10 +195,7 @@ img {
     border: 1px solid rgba(215, 113, 56, 0.32);
     border-radius: 1.35rem;
     background: #17100d;
-    box-shadow:
-        0 0 0 1px rgba(56, 19, 13, 0.8),
-        0 0.9rem 2.5rem rgba(0, 0, 0, 0.54),
-        0 0 2.4rem rgba(120, 28, 15, 0.12);
+    box-shadow: 0 0 0 1px rgba(56, 19, 13, 0.8), 0 0.9rem 2.5rem rgba(0, 0, 0, 0.54), 0 0 2.4rem rgba(120, 28, 15, 0.12);
 }
 
 .hero::before {
@@ -291,7 +232,6 @@ img {
 /* =========================================================
    5. IDENTIDADE / LOGO PRINCIPAL
 ========================================================= */
-
 .intro {
     display: flex;
     justify-content: center;
@@ -301,15 +241,12 @@ img {
 .main-logo {
     width: min(14.5rem, 75vw);
     height: auto;
-    filter:
-        drop-shadow(0 0 0.7rem rgba(165, 51, 24, 0.25))
-        drop-shadow(0 0 0.14rem rgba(255, 177, 94, 0.2));
+    filter: drop-shadow(0 0 0.7rem rgba(165, 51, 24, 0.25)) drop-shadow(0 0 0.14rem rgba(255, 177, 94, 0.2));
 }
 
 /* =========================================================
    6. AÇÕES DE AUTENTICAÇÃO
 ========================================================= */
-
 .auth-actions {
     display: grid;
     justify-items: center;
@@ -317,8 +254,7 @@ img {
     margin-top: 1.5rem;
 }
 
-.primary-button,
-.secondary-button {
+.primary-button, .secondary-button {
     position: relative;
     display: inline-flex;
     align-items: center;
@@ -335,15 +271,10 @@ img {
     font-weight: 600;
     letter-spacing: 0.075em;
     text-transform: uppercase;
-    transition:
-        border-color 180ms ease,
-        box-shadow 180ms ease,
-        filter 180ms ease,
-        transform 180ms ease;
+    transition: border-color 180ms ease, box-shadow 180ms ease, filter 180ms ease, transform 180ms ease;
 }
 
-.primary-button::before,
-.secondary-button::before {
+.primary-button::before, .secondary-button::before {
     position: absolute;
     inset: 0.22rem;
     border: 1px solid rgba(255, 193, 113, 0.16);
@@ -354,60 +285,33 @@ img {
 
 .primary-button {
     border: 1px solid #ad321c;
-    background:
-        linear-gradient(
-            180deg,
-            rgba(224, 75, 34, 0.9) 0%,
-            rgba(134, 27, 16, 0.98) 52%,
-            rgba(73, 13, 11, 0.98) 100%
-        );
-    box-shadow:
-        inset 0 1px 0 rgba(255, 174, 94, 0.4),
-        inset 0 -0.35rem 0 rgba(41, 6, 5, 0.34),
-        0 0.35rem 1.3rem rgba(139, 31, 15, 0.3);
+    background: linear-gradient(180deg, rgba(224, 75, 34, 0.9) 0%, rgba(134, 27, 16, 0.98) 52%, rgba(73, 13, 11, 0.98) 100%);
+    box-shadow: inset 0 1px 0 rgba(255, 174, 94, 0.4), inset 0 -0.35rem 0 rgba(41, 6, 5, 0.34), 0 0.35rem 1.3rem rgba(139, 31, 15, 0.3);
 }
 
 .primary-button:hover {
     border-color: #f08042;
-    box-shadow:
-        inset 0 1px 0 rgba(255, 212, 142, 0.48),
-        inset 0 -0.35rem 0 rgba(41, 6, 5, 0.27),
-        0 0.35rem 1.6rem rgba(193, 48, 20, 0.45);
+    box-shadow: inset 0 1px 0 rgba(255, 212, 142, 0.48), inset 0 -0.35rem 0 rgba(41, 6, 5, 0.27), 0 0.35rem 1.6rem rgba(193, 48, 20, 0.45);
     filter: saturate(1.16) brightness(1.08);
 }
 
-.primary-button:active {
-    transform: translateY(2px);
-}
+.primary-button:active { transform: translateY(2px); }
 
 .secondary-button {
     border: 1px solid rgba(132, 57, 36, 0.55);
-    background:
-        linear-gradient(180deg, rgba(31, 20, 17, 0.92), rgba(9, 8, 8, 0.98)),
-        var(--surface);
-    box-shadow:
-        inset 0 1px 0 rgba(244, 156, 88, 0.11),
-        inset 0 -0.35rem 0 rgba(0, 0, 0, 0.3);
+    background: linear-gradient(180deg, rgba(31, 20, 17, 0.92), rgba(9, 8, 8, 0.98)), var(--surface);
+    box-shadow: inset 0 1px 0 rgba(244, 156, 88, 0.11), inset 0 -0.35rem 0 rgba(0, 0, 0, 0.3);
     color: #cbb99d;
 }
 
 .secondary-button:hover {
     border-color: var(--line-bright);
     color: var(--cream);
-    box-shadow:
-        inset 0 1px 0 rgba(244, 156, 88, 0.17),
-        0 0.35rem 1.2rem rgba(129, 36, 19, 0.22);
+    box-shadow: inset 0 1px 0 rgba(244, 156, 88, 0.17), 0 0.35rem 1.2rem rgba(129, 36, 19, 0.22);
 }
 
-.secondary-button:active {
-    transform: translateY(2px);
-}
-
-.secondary-button:disabled {
-    opacity: 0.4;
-    cursor: not-allowed;
-    pointer-events: none;
-}
+.secondary-button:active { transform: translateY(2px); }
+.secondary-button:disabled { opacity: 0.4; cursor: not-allowed; pointer-events: none; }
 
 .button-icon {
     display: inline-grid;
@@ -419,31 +323,30 @@ img {
     line-height: 1;
     text-shadow: 0 0 0.55rem rgba(241, 70, 30, 0.55);
 }
-
-.primary-button .button-icon {
-    color: #f48a48;
-}
+.primary-button .button-icon { color: #f48a48; }
 
 /* =========================================================
-   7. FUNCIONALIDADES (CARDS)
+   7. NAVEGAÇÃO PREMIUM DA HOME (FASE 12)
 ========================================================= */
-
-.features {
+.action-grid {
     display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 0.85rem;
-    width: min(100%, 23rem);
-    margin: 4.55rem auto 0;
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+    width: min(100%, 35rem);
+    margin: 0 auto;
 }
 
-.feature-card {
+@media (min-width: 600px) {
+    .action-grid { grid-template-columns: 1fr 1fr; }
+}
+
+.action-card {
     position: relative;
     display: flex;
-    min-height: 8.25rem;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    padding: 1rem 0.65rem 0.85rem;
+    padding: 2rem 1.5rem;
     overflow: hidden;
     border: 1px solid rgba(131, 65, 43, 0.5);
     border-radius: 0.82rem;
@@ -455,83 +358,93 @@ img {
         inset 0 0 1.2rem rgba(85, 21, 14, 0.12),
         0 0.55rem 1.4rem rgba(0, 0, 0, 0.28);
     text-align: center;
-    transition:
-        border-color 180ms ease,
-        box-shadow 180ms ease,
-        transform 180ms ease;
+    text-decoration: none;
+    transition: border-color 180ms ease, box-shadow 180ms ease, transform 180ms ease;
 }
 
-.feature-card::before,
-.feature-card::after {
+.action-card::before, .action-card::after {
     position: absolute;
     width: 0.55rem;
     height: 0.55rem;
     border-color: rgba(223, 113, 56, 0.64);
     content: "";
+    transition: all 0.3s ease;
 }
 
-.feature-card::before {
+.action-card::before {
     top: 0.45rem;
     left: 0.45rem;
     border-top: 1px solid;
     border-left: 1px solid;
 }
 
-.feature-card::after {
+.action-card::after {
     right: 0.45rem;
     bottom: 0.45rem;
     border-right: 1px solid;
     border-bottom: 1px solid;
 }
 
-.feature-card:hover {
+.action-card:hover {
     border-color: rgba(225, 99, 45, 0.72);
     box-shadow:
         inset 0 1px 0 rgba(255, 173, 95, 0.17),
         0 0.65rem 1.6rem rgba(93, 25, 15, 0.28),
         0 0 1rem rgba(151, 40, 20, 0.12);
-    transform: translateY(-2px);
+    transform: translateY(-3px);
 }
 
-.feature-icon {
+.action-card:hover::before, .action-card:hover::after {
+    width: 0.85rem;
+    height: 0.85rem;
+    border-color: var(--gold);
+}
+
+.action-icon {
     display: grid;
     width: 2.2rem;
     height: 2.2rem;
-    margin-bottom: 0.45rem;
+    margin-bottom: 0.75rem;
     place-items: center;
     color: var(--orange);
     font-family: Georgia, serif;
-    font-size: 1.72rem;
+    font-size: 2.2rem;
     line-height: 1;
     text-shadow:
         0 0 0.45rem rgba(245, 57, 25, 0.72),
         0 0 1rem rgba(149, 27, 14, 0.52);
+    transition: all 0.3s ease;
 }
 
-.feature-card h2 {
+.action-card:hover .action-icon {
+    color: var(--gold);
+    transform: scale(1.1);
+    text-shadow: 0 0 1rem rgba(232, 160, 93, 0.6);
+}
+
+.action-card h3 {
     margin: 0;
     color: var(--cream);
     font-family: var(--display-font);
-    font-size: 0.79rem;
+    font-size: 1.1rem;
     font-weight: 600;
     letter-spacing: 0.12em;
     line-height: 1.25;
     text-transform: uppercase;
+    margin-bottom: 0.4rem;
 }
 
-.feature-card p {
-    max-width: 8.5rem;
-    margin: 0.32rem 0 0;
+.action-card p {
+    margin: 0;
     color: var(--cream-muted);
     font-family: var(--body-font);
-    font-size: 0.58rem;
+    font-size: 0.75rem;
     line-height: 1.45;
 }
 
 /* =========================================================
    8. MODAL DE AUTENTICAÇÃO
 ========================================================= */
-
 .auth-modal {
     position: fixed;
     inset: 0;
@@ -546,19 +459,11 @@ img {
     animation: authFadeIn 0.3s ease;
 }
 
-.auth-modal.active {
-    display: flex;
-}
+.auth-modal.active { display: flex; }
 
 @keyframes authFadeIn {
-    from {
-        opacity: 0;
-        transform: scale(0.96);
-    }
-    to {
-        opacity: 1;
-        transform: scale(1);
-    }
+    from { opacity: 0; transform: scale(0.96); }
+    to { opacity: 1; transform: scale(1); }
 }
 
 .auth-box {
@@ -569,10 +474,7 @@ img {
     max-width: 420px;
     width: 100%;
     position: relative;
-    box-shadow:
-        0 20px 80px rgba(0, 0, 0, 0.8),
-        0 0 60px rgba(120, 40, 10, 0.06),
-        inset 0 1px 0 rgba(200, 150, 120, 0.04);
+    box-shadow: 0 20px 80px rgba(0, 0, 0, 0.8), 0 0 60px rgba(120, 40, 10, 0.06), inset 0 1px 0 rgba(200, 150, 120, 0.04);
     max-height: 90vh;
     overflow-y: auto;
 }
@@ -656,9 +558,7 @@ img {
     transition: all 0.3s ease;
     background: linear-gradient(145deg, #2d1a10, #1a0e08);
     color: #d4b8a0;
-    box-shadow:
-        0 4px 20px rgba(0, 0, 0, 0.3),
-        inset 0 1px 0 rgba(200, 150, 120, 0.06);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(200, 150, 120, 0.06);
     border: 1px solid rgba(180, 100, 60, 0.12);
     min-height: 56px;
 }
@@ -676,8 +576,7 @@ img {
     margin: 18px 0 16px;
 }
 
-.auth-divider::before,
-.auth-divider::after {
+.auth-divider::before, .auth-divider::after {
     content: '';
     flex: 1;
     height: 1px;
@@ -707,19 +606,13 @@ img {
     box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.2);
 }
 
-.auth-box input::placeholder {
-    color: #5a4a3a;
-    font-style: italic;
-    letter-spacing: 0.3px;
-}
+.auth-box input::placeholder { color: #5a4a3a; font-style: italic; letter-spacing: 0.3px; }
 
 .auth-box input:focus {
     outline: none;
     border-color: rgba(180, 70, 30, 0.25);
     background: rgba(25, 15, 10, 0.7);
-    box-shadow:
-        inset 0 2px 8px rgba(0, 0, 0, 0.3),
-        0 0 30px rgba(180, 70, 30, 0.04);
+    box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.3), 0 0 30px rgba(180, 70, 30, 0.04);
 }
 
 .auth-box input:-webkit-autofill {
@@ -728,8 +621,7 @@ img {
     border-color: rgba(180, 70, 30, 0.15);
 }
 
-.auth-box #emailLoginButton,
-.auth-box #registerButton {
+.auth-box #emailLoginButton, .auth-box #registerButton {
     width: 100%;
     padding: 18px;
     border-radius: 14px;
@@ -745,23 +637,18 @@ img {
     min-height: 60px;
     background: linear-gradient(145deg, #8a2a0e, #5c1a08);
     color: #f5e6d3;
-    box-shadow:
-        0 4px 20px rgba(180, 50, 10, 0.25),
-        inset 0 1px 0 rgba(255, 200, 150, 0.10),
-        inset 0 -2px 0 rgba(0, 0, 0, 0.4);
+    box-shadow: 0 4px 20px rgba(180, 50, 10, 0.25), inset 0 1px 0 rgba(255, 200, 150, 0.10), inset 0 -2px 0 rgba(0, 0, 0, 0.4);
     border: 1px solid rgba(200, 80, 30, 0.20);
     text-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
 }
 
-.auth-box #emailLoginButton:active,
-.auth-box #registerButton:active {
+.auth-box #emailLoginButton:active, .auth-box #registerButton:active {
     transform: scale(0.97);
     background: linear-gradient(145deg, #6e220e, #451408);
     box-shadow: 0 2px 10px rgba(180, 50, 10, 0.15);
 }
 
-.auth-box #showRegisterButton,
-.auth-box #showLoginButton {
+.auth-box #showRegisterButton, .auth-box #showLoginButton {
     width: 100%;
     padding: 16px;
     border-radius: 12px;
@@ -777,8 +664,7 @@ img {
     border: 1px solid transparent;
 }
 
-.auth-box #showRegisterButton:active,
-.auth-box #showLoginButton:active {
+.auth-box #showRegisterButton:active, .auth-box #showLoginButton:active {
     color: #d4946a;
     background: rgba(180, 70, 30, 0.06);
     border-color: rgba(180, 70, 30, 0.08);
@@ -798,35 +684,14 @@ img {
     border: 1px solid rgba(180, 70, 30, 0.04);
 }
 
-#authMessage.error {
-    color: #d46a4a;
-    background: rgba(180, 40, 10, 0.06);
-    border-color: rgba(180, 40, 10, 0.08);
-}
+#authMessage.error { color: #d46a4a; background: rgba(180, 40, 10, 0.06); border-color: rgba(180, 40, 10, 0.08); }
+#authMessage.success { color: #8aba7a; background: rgba(60, 180, 40, 0.04); border-color: rgba(60, 180, 40, 0.06); }
 
-#authMessage.success {
-    color: #8aba7a;
-    background: rgba(60, 180, 40, 0.04);
-    border-color: rgba(60, 180, 40, 0.06);
-}
+.auth-box::-webkit-scrollbar { width: 4px; }
+.auth-box::-webkit-scrollbar-track { background: transparent; }
+.auth-box::-webkit-scrollbar-thumb { background: #3a2820; border-radius: 4px; }
 
-.auth-box::-webkit-scrollbar {
-    width: 4px;
-}
-
-.auth-box::-webkit-scrollbar-track {
-    background: transparent;
-}
-
-.auth-box::-webkit-scrollbar-thumb {
-    background: #3a2820;
-    border-radius: 4px;
-}
-
-.auth-discord,
-.auth-box input,
-.auth-box #emailLoginButton,
-.auth-box #registerButton {
+.auth-discord, .auth-box input, .auth-box #emailLoginButton, .auth-box #registerButton {
     animation: authSlideUp 0.4s ease backwards;
 }
 
@@ -840,20 +705,13 @@ img {
 .auth-box #showLoginButton { animation-delay: 0.30s; }
 
 @keyframes authSlideUp {
-    from {
-        opacity: 0;
-        transform: translateY(12px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
+    from { opacity: 0; transform: translateY(12px); }
+    to { opacity: 1; transform: translateY(0); }
 }
 
 /* =========================================================
    9. PERFIL AERION
 ========================================================= */
-
 .profile-panel {
     position: fixed;
     inset: 0;
@@ -872,21 +730,13 @@ img {
     content: '';
     position: fixed;
     inset: 0;
-    background:
-        radial-gradient(circle at center, rgba(120, 30, 15, 0.08), transparent 70%),
-        radial-gradient(circle at 30% 40%, rgba(80, 20, 10, 0.05), transparent 50%);
+    background: radial-gradient(circle at center, rgba(120, 30, 15, 0.08), transparent 70%), radial-gradient(circle at 30% 40%, rgba(80, 20, 10, 0.05), transparent 50%);
     pointer-events: none;
 }
 
 @keyframes profileFadeIn {
-    from {
-        opacity: 0;
-        transform: scale(0.92);
-    }
-    to {
-        opacity: 1;
-        transform: scale(1);
-    }
+    from { opacity: 0; transform: scale(0.92); }
+    to { opacity: 1; transform: scale(1); }
 }
 
 .profile-close {
@@ -935,11 +785,7 @@ img {
     max-width: 420px;
     width: 100%;
     position: relative;
-    box-shadow:
-        0 25px 90px rgba(0, 0, 0, 0.85),
-        0 0 70px rgba(120, 40, 10, 0.08),
-        inset 0 1px 0 rgba(200, 150, 120, 0.05),
-        inset 0 -1px 0 rgba(0, 0, 0, 0.3);
+    box-shadow: 0 25px 90px rgba(0, 0, 0, 0.85), 0 0 70px rgba(120, 40, 10, 0.08), inset 0 1px 0 rgba(200, 150, 120, 0.05), inset 0 -1px 0 rgba(0, 0, 0, 0.3);
     text-align: center;
     max-height: 90vh;
     overflow-y: auto;
@@ -947,14 +793,8 @@ img {
 }
 
 @keyframes profileContentIn {
-    from {
-        opacity: 0;
-        transform: translateY(20px) scale(0.95);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0) scale(1);
-    }
+    from { opacity: 0; transform: translateY(20px) scale(0.95); }
+    to { opacity: 1; transform: translateY(0) scale(1); }
 }
 
 .profile-content::before {
@@ -979,10 +819,7 @@ img {
         linear-gradient(315deg, rgba(200, 100, 50, 0.2) 0%, transparent 20%) bottom right / 40px 40px no-repeat;
 }
 
-.profile-content > * {
-    position: relative;
-    z-index: 1;
-}
+.profile-content > * { position: relative; z-index: 1; }
 
 .profile-avatar {
     width: 100px;
@@ -992,11 +829,7 @@ img {
     border-radius: 50%;
     background: linear-gradient(145deg, #2a1a10, #1a0e08);
     border: 2px solid rgba(200, 100, 50, 0.35);
-    box-shadow:
-        0 0 0 6px rgba(20, 12, 8, 0.6),
-        0 0 40px rgba(180, 50, 10, 0.25),
-        0 0 20px rgba(180, 50, 10, 0.1),
-        inset 0 0 20px rgba(0, 0, 0, 0.3);
+    box-shadow: 0 0 0 6px rgba(20, 12, 8, 0.6), 0 0 40px rgba(180, 50, 10, 0.25), 0 0 20px rgba(180, 50, 10, 0.1), inset 0 0 20px rgba(0, 0, 0, 0.3);
     object-fit: cover;
     display: block;
     transition: all 0.3s ease;
@@ -1004,20 +837,13 @@ img {
 
 .profile-avatar:hover {
     border-color: rgba(200, 100, 50, 0.55);
-    box-shadow:
-        0 0 0 6px rgba(20, 12, 8, 0.7),
-        0 0 50px rgba(180, 50, 10, 0.35),
-        0 0 25px rgba(180, 50, 10, 0.2),
-        inset 0 0 20px rgba(0, 0, 0, 0.3);
+    box-shadow: 0 0 0 6px rgba(20, 12, 8, 0.7), 0 0 50px rgba(180, 50, 10, 0.35), 0 0 25px rgba(180, 50, 10, 0.2), inset 0 0 20px rgba(0, 0, 0, 0.3);
 }
 
 .profile-avatar[src=""] {
     background: linear-gradient(145deg, #2a1a10, #1a0e08);
     border: 2px solid rgba(200, 100, 50, 0.35);
-    box-shadow:
-        0 0 0 6px rgba(20, 12, 8, 0.6),
-        0 0 40px rgba(180, 50, 10, 0.25),
-        inset 0 0 20px rgba(0, 0, 0, 0.3);
+    box-shadow: 0 0 0 6px rgba(20, 12, 8, 0.6), 0 0 40px rgba(180, 50, 10, 0.25), inset 0 0 20px rgba(0, 0, 0, 0.3);
 }
 
 .profile-avatar[src=""]::after {
@@ -1065,10 +891,9 @@ img {
     animation: profileElementIn 0.45s ease 0.25s backwards;
 }
 
-#editProfileButton {
+#editProfileButton, #logoutButton {
     width: 100%;
     padding: 16px 20px;
-    margin-bottom: 12px;
     border-radius: 14px;
     font-family: 'Cinzel', Georgia, serif;
     font-size: 15px;
@@ -1077,14 +902,15 @@ img {
     text-transform: uppercase;
     cursor: pointer;
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    min-height: 52px;
+}
+
+#editProfileButton {
+    margin-bottom: 12px;
     border: 1px solid rgba(200, 100, 50, 0.3);
     background: linear-gradient(145deg, #2a1a10, #1a0e08);
     color: #d4b8a0;
-    box-shadow:
-        0 4px 20px rgba(0, 0, 0, 0.3),
-        inset 0 1px 0 rgba(200, 150, 120, 0.1),
-        inset 0 -2px 0 rgba(0, 0, 0, 0.2);
-    min-height: 52px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(200, 150, 120, 0.1), inset 0 -2px 0 rgba(0, 0, 0, 0.2);
     animation: profileElementIn 0.45s ease 0.35s backwards;
 }
 
@@ -1092,40 +918,21 @@ img {
     background: linear-gradient(145deg, #3a2410, #2a1a08);
     border-color: rgba(200, 100, 50, 0.5);
     color: #e8d4c0;
-    box-shadow:
-        0 6px 30px rgba(180, 50, 10, 0.25),
-        inset 0 1px 0 rgba(255, 200, 150, 0.15),
-        inset 0 -2px 0 rgba(0, 0, 0, 0.25);
+    box-shadow: 0 6px 30px rgba(180, 50, 10, 0.25), inset 0 1px 0 rgba(255, 200, 150, 0.15), inset 0 -2px 0 rgba(0, 0, 0, 0.25);
     transform: translateY(-1px);
 }
 
 #editProfileButton:active {
     transform: translateY(1px) scale(0.98);
     background: linear-gradient(145deg, #1a0e08, #0a0705);
-    box-shadow:
-        0 2px 10px rgba(0, 0, 0, 0.4),
-        inset 0 1px 0 rgba(0, 0, 0, 0.3);
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(0, 0, 0, 0.3);
 }
 
 #logoutButton {
-    width: 100%;
-    padding: 16px 20px;
-    border-radius: 14px;
-    font-family: 'Cinzel', Georgia, serif;
-    font-size: 15px;
-    font-weight: 600;
-    letter-spacing: 1.5px;
-    text-transform: uppercase;
-    cursor: pointer;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     border: 1px solid rgba(180, 40, 10, 0.35);
     background: linear-gradient(145deg, #3a1408, #2a0e06);
     color: #c08060;
-    box-shadow:
-        0 4px 20px rgba(0, 0, 0, 0.3),
-        inset 0 1px 0 rgba(200, 80, 30, 0.15),
-        inset 0 -2px 0 rgba(0, 0, 0, 0.3);
-    min-height: 52px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(200, 80, 30, 0.15), inset 0 -2px 0 rgba(0, 0, 0, 0.3);
     animation: profileElementIn 0.45s ease 0.45s backwards;
 }
 
@@ -1133,53 +940,29 @@ img {
     background: linear-gradient(145deg, #4a1a08, #3a1206);
     border-color: rgba(200, 60, 20, 0.55);
     color: #e0a080;
-    box-shadow:
-        0 6px 30px rgba(180, 30, 5, 0.35),
-        inset 0 1px 0 rgba(255, 150, 100, 0.2),
-        inset 0 -2px 0 rgba(0, 0, 0, 0.35);
+    box-shadow: 0 6px 30px rgba(180, 30, 5, 0.35), inset 0 1px 0 rgba(255, 150, 100, 0.2), inset 0 -2px 0 rgba(0, 0, 0, 0.35);
     transform: translateY(-1px);
 }
 
 #logoutButton:active {
     transform: translateY(1px) scale(0.98);
     background: linear-gradient(145deg, #2a0e06, #1a0804);
-    box-shadow:
-        0 2px 10px rgba(0, 0, 0, 0.5),
-        inset 0 1px 0 rgba(0, 0, 0, 0.4);
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(0, 0, 0, 0.4);
 }
 
 @keyframes profileElementIn {
-    from {
-        opacity: 0;
-        transform: translateY(15px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
+    from { opacity: 0; transform: translateY(15px); }
+    to { opacity: 1; transform: translateY(0); }
 }
 
-.profile-content::-webkit-scrollbar {
-    width: 4px;
-}
-
-.profile-content::-webkit-scrollbar-track {
-    background: transparent;
-}
-
-.profile-content::-webkit-scrollbar-thumb {
-    background: #3a2820;
-    border-radius: 4px;
-}
-
-.profile-content::-webkit-scrollbar-thumb:hover {
-    background: #4a3020;
-}
+.profile-content::-webkit-scrollbar { width: 4px; }
+.profile-content::-webkit-scrollbar-track { background: transparent; }
+.profile-content::-webkit-scrollbar-thumb { background: #3a2820; border-radius: 4px; }
+.profile-content::-webkit-scrollbar-thumb:hover { background: #4a3020; }
 
 /* =========================================================
    10. CRIAÇÃO DE PERSONAGEM
 ========================================================= */
-
 .character-creation {
     position: relative;
     width: min(100%, 42rem);
@@ -1213,18 +996,12 @@ img {
     flex-shrink: 0;
     border: 1px solid rgba(165, 88, 50, 0.2);
     border-radius: 0.25rem;
-    background:
-        linear-gradient(145deg, rgba(47, 29, 23, 0.48), rgba(9, 8, 8, 0.9)),
-        var(--black-soft);
+    background: linear-gradient(145deg, rgba(47, 29, 23, 0.48), rgba(9, 8, 8, 0.9)), var(--black-soft);
     color: var(--cream-muted);
     font-family: Arial, sans-serif;
     font-size: 1.35rem;
     line-height: 1;
-    transition:
-        border-color 180ms ease,
-        color 180ms ease,
-        box-shadow 180ms ease,
-        transform 180ms ease;
+    transition: border-color 180ms ease, color 180ms ease, box-shadow 180ms ease, transform 180ms ease;
 }
 
 .creation-header .header-button:hover {
@@ -1233,9 +1010,7 @@ img {
     box-shadow: 0 0 1rem rgba(163, 43, 23, 0.22);
 }
 
-.creation-header .header-button:active {
-    transform: translateY(1px) scale(0.97);
-}
+.creation-header .header-button:active { transform: translateY(1px) scale(0.97); }
 
 .creation-title {
     display: flex;
@@ -1281,10 +1056,7 @@ img {
 /* =========================================================
    11. PROGRESSO DA CRIAÇÃO
 ========================================================= */
-
-.creation-progress {
-    margin: 1.5rem 0 2rem;
-}
+.creation-progress { margin: 1.5rem 0 2rem; }
 
 .progress-info {
     display: flex;
@@ -1302,10 +1074,7 @@ img {
     text-transform: uppercase;
 }
 
-.progress-info span:last-child {
-    font-size: 0.75rem;
-    color: var(--cream-muted);
-}
+.progress-info span:last-child { font-size: 0.75rem; color: var(--cream-muted); }
 
 .progress-bar {
     position: relative;
@@ -1320,11 +1089,7 @@ img {
 .progress-fill {
     height: 100%;
     width: 12.5%;
-    background: linear-gradient(
-        90deg,
-        rgba(188, 48, 28, 0.9),
-        rgba(240, 106, 47, 0.95)
-    );
+    background: linear-gradient(90deg, rgba(188, 48, 28, 0.9), rgba(240, 106, 47, 0.95));
     border-radius: 999px;
     transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
     box-shadow: 0 0 12px rgba(240, 106, 47, 0.4);
@@ -1333,29 +1098,18 @@ img {
 /* =========================================================
    12. ETAPAS DA FICHA
 ========================================================= */
-
-.creation-content {
-    position: relative;
-}
+.creation-content { position: relative; }
 
 .creation-step {
     display: none;
     animation: stepFadeIn 0.35s ease;
 }
 
-.creation-step.active {
-    display: block;
-}
+.creation-step.active { display: block; }
 
 @keyframes stepFadeIn {
-    from {
-        opacity: 0;
-        transform: translateY(12px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
+    from { opacity: 0; transform: translateY(12px); }
+    to { opacity: 1; transform: translateY(0); }
 }
 
 .step-heading {
@@ -1399,10 +1153,7 @@ img {
 /* =========================================================
    13. CAMPOS DE FORMULÁRIO DA FICHA
 ========================================================= */
-
-.form-group {
-    margin-bottom: 1.25rem;
-}
+.form-group { margin-bottom: 1.25rem; }
 
 .form-group label {
     display: block;
@@ -1415,58 +1166,35 @@ img {
     text-transform: uppercase;
 }
 
-.form-group input,
-.form-group textarea,
-.form-group select {
+.form-group input, .form-group textarea, .form-group select {
     width: 100%;
     padding: 0.85rem 1rem;
     border: 1px solid rgba(165, 88, 50, 0.2);
     border-radius: 0.6rem;
-    background:
-        linear-gradient(145deg, rgba(30, 20, 17, 0.7), rgba(15, 10, 9, 0.9));
+    background: linear-gradient(145deg, rgba(30, 20, 17, 0.7), rgba(15, 10, 9, 0.9));
     color: var(--cream);
     font-family: var(--body-font);
     font-size: 0.9rem;
     line-height: 1.5;
-    transition:
-        border-color 180ms ease,
-        box-shadow 180ms ease,
-        background 180ms ease;
+    transition: border-color 180ms ease, box-shadow 180ms ease, background 180ms ease;
 }
 
-.form-group input::placeholder,
-.form-group textarea::placeholder {
+.form-group input::placeholder, .form-group textarea::placeholder {
     color: rgba(173, 149, 117, 0.5);
     font-style: italic;
 }
 
-.form-group input:focus,
-.form-group textarea:focus,
-.form-group select:focus {
+.form-group input:focus, .form-group textarea:focus, .form-group select:focus {
     outline: none;
     border-color: var(--line-bright);
-    background:
-        linear-gradient(145deg, rgba(40, 27, 22, 0.8), rgba(20, 13, 11, 0.95));
+    background: linear-gradient(145deg, rgba(40, 27, 22, 0.8), rgba(20, 13, 11, 0.95));
     box-shadow: 0 0 20px rgba(188, 48, 28, 0.15);
 }
 
-.form-group textarea {
-    min-height: 5rem;
-    resize: vertical;
-}
-
-.form-group textarea#characterHistory {
-    min-height: 8rem;
-}
-
-.form-group textarea#characterAppearance,
-.form-group textarea#characterPersonality {
-    min-height: 6rem;
-}
-
-.form-group textarea#characterObjective {
-    min-height: 4.5rem;
-}
+.form-group textarea { min-height: 5rem; resize: vertical; }
+.form-group textarea#characterHistory { min-height: 8rem; }
+.form-group textarea#characterAppearance, .form-group textarea#characterPersonality { min-height: 6rem; }
+.form-group textarea#characterObjective { min-height: 4.5rem; }
 
 .form-group select {
     appearance: none;
@@ -1479,14 +1207,9 @@ img {
 }
 
 /* =========================================================
-   14. GRID DE SELEÇÃO (RAÇAS, CLASSES, PODERES)
+   14. GRID DE SELEÇÃO E DADOS
 ========================================================= */
-
-.selection-grid {
-    display: grid;
-    grid-template-columns: 1fr;
-    gap: 0.85rem;
-}
+.selection-grid { display: grid; grid-template-columns: 1fr; gap: 0.85rem; }
 
 .selection-card {
     position: relative;
@@ -1497,71 +1220,49 @@ img {
     padding: 1.2rem 1.1rem;
     border: 1px solid rgba(131, 65, 43, 0.4);
     border-radius: 0.8rem;
-    background:
-        radial-gradient(circle at 50% 28%, rgba(129, 31, 18, 0.15), transparent 45%),
-        linear-gradient(145deg, rgba(27, 19, 17, 0.95), rgba(8, 7, 7, 0.98));
+    background: radial-gradient(circle at 50% 28%, rgba(129, 31, 18, 0.15), transparent 45%), linear-gradient(145deg, rgba(27, 19, 17, 0.95), rgba(8, 7, 7, 0.98));
     color: var(--cream);
     text-align: left;
-    transition:
-        border-color 180ms ease,
-        box-shadow 180ms ease,
-        transform 180ms ease,
-        background 180ms ease;
+    transition: border-color 180ms ease, box-shadow 180ms ease, transform 180ms ease, background 180ms ease;
+}
+
+.selection-card::before, .selection-card::after {
+    content: '';
+    position: absolute;
+    width: 0.55rem;
+    height: 0.55rem;
+    opacity: 0.7;
+    transition: opacity 180ms ease;
+    pointer-events: none;
 }
 
 .selection-card::before {
-    content: '';
-    position: absolute;
-    top: 0.5rem;
-    left: 0.5rem;
-    width: 0.55rem;
-    height: 0.55rem;
+    top: 0.5rem; left: 0.5rem;
     border-top: 1px solid rgba(223, 113, 56, 0.5);
     border-left: 1px solid rgba(223, 113, 56, 0.5);
-    opacity: 0.7;
-    transition: opacity 180ms ease;
-    pointer-events: none;
 }
 
 .selection-card::after {
-    content: '';
-    position: absolute;
-    right: 0.5rem;
-    bottom: 0.5rem;
-    width: 0.55rem;
-    height: 0.55rem;
+    right: 0.5rem; bottom: 0.5rem;
     border-right: 1px solid rgba(223, 113, 56, 0.5);
     border-bottom: 1px solid rgba(223, 113, 56, 0.5);
-    opacity: 0.7;
-    transition: opacity 180ms ease;
-    pointer-events: none;
 }
 
 .selection-card:hover {
     border-color: rgba(225, 99, 45, 0.6);
-    box-shadow:
-        0 0.65rem 1.6rem rgba(93, 25, 15, 0.25),
-        0 0 1rem rgba(151, 40, 20, 0.1);
+    box-shadow: 0 0.65rem 1.6rem rgba(93, 25, 15, 0.25), 0 0 1rem rgba(151, 40, 20, 0.1);
     transform: translateY(-2px);
 }
 
-.selection-card:active {
-    transform: translateY(1px) scale(0.98);
-}
+.selection-card:active { transform: translateY(1px) scale(0.98); }
 
 .selection-card.selected {
     border-color: var(--line-bright);
-    background:
-        radial-gradient(circle at 50% 28%, rgba(188, 48, 28, 0.25), transparent 55%),
-        linear-gradient(145deg, rgba(60, 30, 20, 0.95), rgba(25, 15, 12, 0.98));
-    box-shadow:
-        inset 0 0 20px rgba(188, 48, 28, 0.15),
-        0 0 25px rgba(188, 48, 28, 0.2),
-        0 0.65rem 1.6rem rgba(0, 0, 0, 0.3);
+    background: radial-gradient(circle at 50% 28%, rgba(188, 48, 28, 0.25), transparent 55%), linear-gradient(145deg, rgba(60, 30, 20, 0.95), rgba(25, 15, 12, 0.98));
+    box-shadow: inset 0 0 20px rgba(188, 48, 28, 0.15), 0 0 25px rgba(188, 48, 28, 0.2), 0 0.65rem 1.6rem rgba(0, 0, 0, 0.3);
 }
 
-.selection-card.selected::before,
-.selection-card.selected::after {
+.selection-card.selected::before, .selection-card.selected::after {
     opacity: 1;
     border-color: var(--orange);
 }
@@ -1590,32 +1291,15 @@ img {
     pointer-events: none;
 }
 
-.selection-card small {
-    font-size: 0.75rem;
-    font-style: italic;
-    color: var(--gold);
-    letter-spacing: 0.03em;
-    pointer-events: none;
-}
-
-.selection-card p {
-    font-size: 0.8rem;
-    color: var(--cream-muted);
-    line-height: 1.5;
-    pointer-events: none;
-}
-
-/* =========================================================
-   15. DADOS DISPONÍVEIS (DICE POOL)
-========================================================= */
+.selection-card small { font-size: 0.75rem; font-style: italic; color: var(--gold); letter-spacing: 0.03em; pointer-events: none; }
+.selection-card p { font-size: 0.8rem; color: var(--cream-muted); line-height: 1.5; pointer-events: none; }
 
 .dice-pool {
     margin-bottom: 1.5rem;
     padding: 1rem 1.1rem;
     border: 1px solid rgba(131, 65, 43, 0.3);
     border-radius: 0.8rem;
-    background:
-        linear-gradient(145deg, rgba(25, 17, 15, 0.9), rgba(10, 8, 7, 0.95));
+    background: linear-gradient(145deg, rgba(25, 17, 15, 0.9), rgba(10, 8, 7, 0.95));
 }
 
 .dice-pool h3 {
@@ -1628,12 +1312,7 @@ img {
     text-transform: uppercase;
 }
 
-.dice-pool #availableDice {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.5rem;
-}
-
+.dice-pool #availableDice { display: flex; flex-wrap: wrap; gap: 0.5rem; }
 .dice-pool #availableDice span {
     display: inline-grid;
     min-width: 2.8rem;
@@ -1648,21 +1327,10 @@ img {
     font-size: 0.85rem;
     font-weight: 600;
     letter-spacing: 0.05em;
-    box-shadow:
-        0 2px 8px rgba(0, 0, 0, 0.3),
-        inset 0 1px 0 rgba(255, 200, 150, 0.1);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 200, 150, 0.1);
 }
 
-/* =========================================================
-   16. LISTA DE ATRIBUTOS
-========================================================= */
-
-.attribute-list {
-    display: flex;
-    flex-direction: column;
-    gap: 0.6rem;
-}
-
+.attribute-list { display: flex; flex-direction: column; gap: 0.6rem; }
 .attribute-row {
     display: flex;
     align-items: center;
@@ -1671,8 +1339,7 @@ img {
     padding: 0.75rem 1rem;
     border: 1px solid rgba(131, 65, 43, 0.25);
     border-radius: 0.6rem;
-    background:
-        linear-gradient(145deg, rgba(25, 17, 15, 0.85), rgba(10, 8, 7, 0.95));
+    background: linear-gradient(145deg, rgba(25, 17, 15, 0.85), rgba(10, 8, 7, 0.95));
 }
 
 .attribute-name {
@@ -1689,8 +1356,7 @@ img {
     padding: 0.5rem 2rem 0.5rem 0.75rem;
     border: 1px solid rgba(165, 88, 50, 0.25);
     border-radius: 0.45rem;
-    background:
-        linear-gradient(145deg, #2a1a10, #1a0e08);
+    background: linear-gradient(145deg, #2a1a10, #1a0e08);
     color: var(--cream);
     font-family: var(--body-font);
     font-size: 0.85rem;
@@ -1703,10 +1369,7 @@ img {
     transition: border-color 180ms ease;
 }
 
-.attribute-select:focus {
-    border-color: var(--line-bright);
-    outline: none;
-}
+.attribute-select:focus { border-color: var(--line-bright); outline: none; }
 
 .step-hint {
     margin-top: 1.5rem;
@@ -1719,76 +1382,21 @@ img {
     line-height: 1.6;
 }
 
-/* =========================================================
-   17. MANA
-========================================================= */
-
-.mana-card {
-    display: grid;
-    grid-template-columns: 1fr;
-    gap: 0.85rem;
-    margin-bottom: 1.25rem;
-}
-
+.mana-card { display: grid; grid-template-columns: 1fr; gap: 0.85rem; margin-bottom: 1.25rem; }
 .mana-card > div {
     padding: 1rem 1.1rem;
     border: 1px solid rgba(131, 65, 43, 0.3);
     border-radius: 0.7rem;
-    background:
-        linear-gradient(145deg, rgba(25, 17, 15, 0.9), rgba(10, 8, 7, 0.95));
+    background: linear-gradient(145deg, rgba(25, 17, 15, 0.9), rgba(10, 8, 7, 0.95));
 }
+.mana-card span { display: block; margin-bottom: 0.35rem; font-size: 0.75rem; font-style: italic; color: var(--cream-muted); }
+.mana-card strong { font-family: var(--display-font); font-size: 1.2rem; font-weight: 600; letter-spacing: 0.04em; color: var(--gold); }
 
-.mana-card span {
-    display: block;
-    margin-bottom: 0.35rem;
-    font-size: 0.75rem;
-    font-style: italic;
-    color: var(--cream-muted);
-}
+.rule-notice { margin-top: 1.25rem; padding: 1rem 1.1rem; border: 1px solid rgba(200, 150, 50, 0.25); border-radius: 0.6rem; background: rgba(30, 20, 10, 0.5); }
+.rule-notice strong { display: block; margin-bottom: 0.3rem; font-family: var(--display-font); font-size: 0.85rem; font-weight: 600; letter-spacing: 0.05em; color: var(--gold); }
+.rule-notice p { font-size: 0.8rem; color: var(--cream-muted); line-height: 1.5; }
 
-.mana-card strong {
-    font-family: var(--display-font);
-    font-size: 1.2rem;
-    font-weight: 600;
-    letter-spacing: 0.04em;
-    color: var(--gold);
-}
-
-.rule-notice {
-    margin-top: 1.25rem;
-    padding: 1rem 1.1rem;
-    border: 1px solid rgba(200, 150, 50, 0.25);
-    border-radius: 0.6rem;
-    background: rgba(30, 20, 10, 0.5);
-}
-
-.rule-notice strong {
-    display: block;
-    margin-bottom: 0.3rem;
-    font-family: var(--display-font);
-    font-size: 0.85rem;
-    font-weight: 600;
-    letter-spacing: 0.05em;
-    color: var(--gold);
-}
-
-.rule-notice p {
-    font-size: 0.8rem;
-    color: var(--cream-muted);
-    line-height: 1.5;
-}
-
-/* =========================================================
-   18. TÉCNICAS
-========================================================= */
-
-.technique-list {
-    display: flex;
-    flex-direction: column;
-    gap: 0.75rem;
-    margin-bottom: 1.25rem;
-}
-
+.technique-list { display: flex; flex-direction: column; gap: 0.75rem; margin-bottom: 1.25rem; }
 .technique-card {
     display: flex;
     align-items: center;
@@ -1797,66 +1405,16 @@ img {
     padding: 1rem 1.1rem;
     border: 1px solid rgba(131, 65, 43, 0.3);
     border-radius: 0.7rem;
-    background:
-        linear-gradient(145deg, rgba(25, 17, 15, 0.9), rgba(10, 8, 7, 0.95));
+    background: linear-gradient(145deg, rgba(25, 17, 15, 0.9), rgba(10, 8, 7, 0.95));
 }
+.technique-card > div { display: flex; flex-direction: column; gap: 0.2rem; flex: 1; min-width: 0; }
+.technique-card strong { font-family: var(--display-font); font-size: 0.95rem; font-weight: 600; letter-spacing: 0.03em; color: var(--cream); }
+.technique-card small { font-size: 0.75rem; color: var(--cream-muted); font-style: italic; }
+.technique-card button { padding: 0.45rem 0.8rem; border: 1px solid rgba(180, 40, 10, 0.4); border-radius: 0.4rem; background: rgba(60, 20, 8, 0.7); color: #c08060; font-size: 0.75rem; font-family: var(--body-font); cursor: pointer; transition: all 180ms ease; flex-shrink: 0; }
+.technique-card button:hover { background: rgba(80, 30, 12, 0.9); border-color: rgba(200, 60, 20, 0.6); color: #e0a080; }
+.technique-card button:active { transform: scale(0.95); }
 
-.technique-card > div {
-    display: flex;
-    flex-direction: column;
-    gap: 0.2rem;
-    flex: 1;
-    min-width: 0;
-}
-
-.technique-card strong {
-    font-family: var(--display-font);
-    font-size: 0.95rem;
-    font-weight: 600;
-    letter-spacing: 0.03em;
-    color: var(--cream);
-}
-
-.technique-card small {
-    font-size: 0.75rem;
-    color: var(--cream-muted);
-    font-style: italic;
-}
-
-.technique-card button {
-    padding: 0.45rem 0.8rem;
-    border: 1px solid rgba(180, 40, 10, 0.4);
-    border-radius: 0.4rem;
-    background: rgba(60, 20, 8, 0.7);
-    color: #c08060;
-    font-size: 0.75rem;
-    font-family: var(--body-font);
-    cursor: pointer;
-    transition: all 180ms ease;
-    flex-shrink: 0;
-}
-
-.technique-card button:hover {
-    background: rgba(80, 30, 12, 0.9);
-    border-color: rgba(200, 60, 20, 0.6);
-    color: #e0a080;
-}
-
-.technique-card button:active {
-    transform: scale(0.95);
-}
-
-/* =========================================================
-   19. RESUMO DO PERSONAGEM
-========================================================= */
-
-.character-summary {
-    display: flex;
-    flex-direction: column;
-    gap: 0.6rem;
-    margin-bottom: 1.25rem;
-}
-
+.character-summary { display: flex; flex-direction: column; gap: 0.6rem; margin-bottom: 1.25rem; }
 .summary-item {
     display: flex;
     align-items: center;
@@ -1865,30 +1423,10 @@ img {
     padding: 0.75rem 1rem;
     border: 1px solid rgba(131, 65, 43, 0.25);
     border-radius: 0.6rem;
-    background:
-        linear-gradient(145deg, rgba(25, 17, 15, 0.85), rgba(10, 8, 7, 0.95));
+    background: linear-gradient(145deg, rgba(25, 17, 15, 0.85), rgba(10, 8, 7, 0.95));
 }
-
-.summary-item span {
-    font-size: 0.75rem;
-    font-style: italic;
-    color: var(--cream-muted);
-    flex-shrink: 0;
-}
-
-.summary-item strong {
-    font-family: var(--display-font);
-    font-size: 0.95rem;
-    font-weight: 600;
-    letter-spacing: 0.03em;
-    color: var(--cream);
-    text-align: right;
-    word-break: break-word;
-}
-
-/* =========================================================
-   20. NAVEGAÇÃO DA FICHA
-========================================================= */
+.summary-item span { font-size: 0.75rem; font-style: italic; color: var(--cream-muted); flex-shrink: 0; }
+.summary-item strong { font-family: var(--display-font); font-size: 0.95rem; font-weight: 600; letter-spacing: 0.03em; color: var(--cream); text-align: right; word-break: break-word; }
 
 .creation-navigation {
     position: fixed;
@@ -1905,544 +1443,124 @@ img {
     -webkit-backdrop-filter: blur(12px);
     border-top: 1px solid rgba(182, 72, 38, 0.16);
 }
-
-.creation-navigation .primary-button,
-.creation-navigation .secondary-button {
-    flex: 1;
-    min-height: 3.2rem;
-    font-size: 0.75rem;
-}
+.creation-navigation .primary-button, .creation-navigation .secondary-button { flex: 1; min-height: 3.2rem; font-size: 0.75rem; }
 
 /* =========================================================
-   21. RESPONSIVIDADE
+   15. RESPONSIVIDADE
 ========================================================= */
-
 @media (min-width: 40rem) {
-    .home {
-        padding-right: 1.5rem;
-        padding-left: 1.5rem;
-    }
+    .home { padding-right: 1.5rem; padding-left: 1.5rem; }
+    .header { width: calc(100% + 3rem); min-height: 6.5rem; margin-left: -1.5rem; padding-right: 1.5rem; padding-left: 1.5rem; }
+    .header::after { right: 1.5rem; left: 1.5rem; }
+    .header-logo { width: 12rem; }
+    .hero { margin-right: -0.5rem; margin-left: -0.5rem; }
+    .hero-image { aspect-ratio: 1.9 / 1; }
+    .intro { padding-top: 2.1rem; }
+    .main-logo { width: 17rem; }
+    .auth-actions { margin-top: 1.8rem; }
+    
+    .character-creation { padding-right: 1.5rem; padding-left: 1.5rem; }
+    .creation-header { width: calc(100% + 3rem); margin-left: -1.5rem; padding-right: 1.5rem; padding-left: 1.5rem; }
+    .creation-title h1 { font-size: 1.3rem; }
+    .step-heading h2 { font-size: 1.5rem; }
+    .selection-grid { grid-template-columns: repeat(2, 1fr); }
+    .mana-card { grid-template-columns: repeat(2, 1fr); }
+    .creation-navigation { padding-right: 1.5rem; padding-left: 1.5rem; }
 
-    .header {
-        width: calc(100% + 3rem);
-        min-height: 6.5rem;
-        margin-left: -1.5rem;
-        padding-right: 1.5rem;
-        padding-left: 1.5rem;
-    }
+    .profile-content { padding: 48px 32px 36px; border-radius: 32px; max-width: 460px; }
+    .profile-content::before { inset: 10px; border-radius: 22px; }
+    .profile-content::after { border-radius: 32px; }
+    .profile-avatar { width: 120px; height: 120px; margin-bottom: 28px; }
+    #profileName { font-size: 30px; }
+    #profileEmail { font-size: 15px; margin-bottom: 36px; }
+    #editProfileButton, #logoutButton { padding: 18px 24px; font-size: 16px; min-height: 56px; border-radius: 16px; }
+    .profile-close { top: 24px; right: 24px; width: 48px; height: 48px; font-size: 30px; border-radius: 14px; }
 
-    .header::after {
-        right: 1.5rem;
-        left: 1.5rem;
-    }
-
-    .header-logo {
-        width: 12rem;
-    }
-
-    .hero {
-        margin-right: -0.5rem;
-        margin-left: -0.5rem;
-    }
-
-    .hero-image {
-        aspect-ratio: 1.9 / 1;
-    }
-
-    .intro {
-        padding-top: 2.1rem;
-    }
-
-    .main-logo {
-        width: 17rem;
-    }
-
-    .auth-actions {
-        margin-top: 1.8rem;
-    }
-
-    .features {
-        width: 25rem;
-        margin-top: 5rem;
-    }
-
-    .character-creation {
-        padding-right: 1.5rem;
-        padding-left: 1.5rem;
-    }
-
-    .creation-header {
-        width: calc(100% + 3rem);
-        margin-left: -1.5rem;
-        padding-right: 1.5rem;
-        padding-left: 1.5rem;
-    }
-
-    .creation-title h1 {
-        font-size: 1.3rem;
-    }
-
-    .step-heading h2 {
-        font-size: 1.5rem;
-    }
-
-    .selection-grid {
-        grid-template-columns: repeat(2, 1fr);
-    }
-
-    .mana-card {
-        grid-template-columns: repeat(2, 1fr);
-    }
-
-    .creation-navigation {
-        padding-right: 1.5rem;
-        padding-left: 1.5rem;
-    }
-
-    .profile-content {
-        padding: 48px 32px 36px;
-        border-radius: 32px;
-        max-width: 460px;
-    }
-
-    .profile-content::before {
-        inset: 10px;
-        border-radius: 22px;
-    }
-
-    .profile-content::after {
-        border-radius: 32px;
-    }
-
-    .profile-avatar {
-        width: 120px;
-        height: 120px;
-        margin-bottom: 28px;
-    }
-
-    #profileName {
-        font-size: 30px;
-    }
-
-    #profileEmail {
-        font-size: 15px;
-        margin-bottom: 36px;
-    }
-
-    #editProfileButton,
-    #logoutButton {
-        padding: 18px 24px;
-        font-size: 16px;
-        min-height: 56px;
-        border-radius: 16px;
-    }
-
-    .profile-close {
-        top: 24px;
-        right: 24px;
-        width: 48px;
-        height: 48px;
-        font-size: 30px;
-        border-radius: 14px;
-    }
-
-    .auth-box {
-        padding: 40px 32px 32px;
-        border-radius: 32px;
-        max-width: 460px;
-    }
-
-    .auth-box::before {
-        inset: 8px;
-        border-radius: 24px;
-    }
-
-    .auth-box h2 {
-        font-size: 28px;
-    }
-
-    .auth-box input {
-        padding: 18px 20px;
-        font-size: 16px;
-        border-radius: 14px;
-    }
-
-    .auth-discord {
-        padding: 18px 24px;
-        font-size: 17px;
-        min-height: 60px;
-        border-radius: 16px;
-    }
-
-    .auth-box #emailLoginButton,
-    .auth-box #registerButton {
-        padding: 20px;
-        font-size: 18px;
-        min-height: 64px;
-        border-radius: 16px;
-    }
-
-    .auth-close {
-        top: 20px;
-        right: 20px;
-        width: 48px;
-        height: 48px;
-        font-size: 30px;
-    }
+    .auth-box { padding: 40px 32px 32px; border-radius: 32px; max-width: 460px; }
+    .auth-box::before { inset: 8px; border-radius: 24px; }
+    .auth-box h2 { font-size: 28px; }
+    .auth-box input { padding: 18px 20px; font-size: 16px; border-radius: 14px; }
+    .auth-discord { padding: 18px 24px; font-size: 17px; min-height: 60px; border-radius: 16px; }
+    .auth-box #emailLoginButton, .auth-box #registerButton { padding: 20px; font-size: 18px; min-height: 64px; border-radius: 16px; }
+    .auth-close { top: 20px; right: 20px; width: 48px; height: 48px; font-size: 30px; }
 }
 
 @media (min-width: 60rem) {
-    .home {
-        width: min(100%, 50rem);
-        padding-bottom: 4rem;
-    }
-
-    .header {
-        min-height: 7rem;
-    }
-
-    .hero {
-        margin-top: 2.6rem;
-    }
-
-    .feature-card {
-        min-height: 9.2rem;
-    }
-
-    .selection-grid {
-        grid-template-columns: repeat(3, 1fr);
-    }
-
-    .form-group input,
-    .form-group textarea,
-    .form-group select {
-        font-size: 0.95rem;
-    }
-
-    .attribute-select {
-        min-width: 10rem;
-    }
+    .home { width: min(100%, 50rem); padding-bottom: 4rem; }
+    .header { min-height: 7rem; }
+    .hero { margin-top: 2.6rem; }
+    .selection-grid { grid-template-columns: repeat(3, 1fr); }
+    .form-group input, .form-group textarea, .form-group select { font-size: 0.95rem; }
+    .attribute-select { min-width: 10rem; }
 }
 
 @media (max-width: 400px) {
-    .auth-box {
-        padding: 24px 16px 20px;
-        border-radius: 24px;
-    }
+    .auth-box { padding: 24px 16px 20px; border-radius: 24px; }
+    .auth-box h2 { font-size: 20px; }
+    .auth-box input { padding: 14px 16px; font-size: 14px; }
+    .auth-discord { padding: 14px 16px; font-size: 14px; min-height: 50px; }
+    .auth-box #emailLoginButton, .auth-box #registerButton { padding: 16px; font-size: 15px; min-height: 54px; }
+    .auth-close { top: 12px; right: 12px; width: 40px; height: 40px; font-size: 24px; }
 
-    .auth-box h2 {
-        font-size: 20px;
-    }
+    .profile-content { padding: 32px 16px 24px; border-radius: 24px; }
+    .profile-avatar { width: 80px; height: 80px; margin-bottom: 16px; }
+    #profileName { font-size: 22px; }
+    #profileEmail { font-size: 13px; margin-bottom: 24px; }
+    #editProfileButton, #logoutButton { padding: 14px 16px; font-size: 14px; min-height: 48px; border-radius: 12px; }
+    .profile-close { top: 12px; right: 12px; width: 40px; height: 40px; font-size: 24px; border-radius: 10px; }
 
-    .auth-box input {
-        padding: 14px 16px;
-        font-size: 14px;
-    }
-
-    .auth-discord {
-        padding: 14px 16px;
-        font-size: 14px;
-        min-height: 50px;
-    }
-
-    .auth-box #emailLoginButton,
-    .auth-box #registerButton {
-        padding: 16px;
-        font-size: 15px;
-        min-height: 54px;
-    }
-
-    .auth-close {
-        top: 12px;
-        right: 12px;
-        width: 40px;
-        height: 40px;
-        font-size: 24px;
-    }
-
-    .profile-content {
-        padding: 32px 16px 24px;
-        border-radius: 24px;
-    }
-
-    .profile-avatar {
-        width: 80px;
-        height: 80px;
-        margin-bottom: 16px;
-    }
-
-    #profileName {
-        font-size: 22px;
-    }
-
-    #profileEmail {
-        font-size: 13px;
-        margin-bottom: 24px;
-    }
-
-    #editProfileButton,
-    #logoutButton {
-        padding: 14px 16px;
-        font-size: 14px;
-        min-height: 48px;
-        border-radius: 12px;
-    }
-
-    .profile-close {
-        top: 12px;
-        right: 12px;
-        width: 40px;
-        height: 40px;
-        font-size: 24px;
-        border-radius: 10px;
-    }
-
-    .character-creation {
-        padding-left: 0.75rem;
-        padding-right: 0.75rem;
-    }
-
-    .creation-header {
-        width: calc(100% + 1.5rem);
-        margin-left: -0.75rem;
-        padding-left: 0.75rem;
-        padding-right: 0.75rem;
-    }
-
-    .creation-title h1 {
-        font-size: 1rem;
-    }
-
-    .creation-title span {
-        font-size: 0.55rem;
-        letter-spacing: 0.2em;
-    }
-
-    .creation-header .header-button {
-        width: 2.5rem;
-        height: 2.5rem;
-        font-size: 1.2rem;
-    }
-
-    .selection-icon {
-        width: 2rem;
-        height: 2rem;
-        font-size: 1.1rem;
-    }
-
-    .selection-card {
-        padding: 1rem 0.9rem;
-    }
-
-    .selection-card strong {
-        font-size: 0.95rem;
-    }
-
-    .step-number {
-        width: 2.2rem;
-        height: 2.2rem;
-        font-size: 0.75rem;
-    }
-
-    .step-heading h2 {
-        font-size: 1.15rem;
-    }
-
-    .creation-navigation {
-        padding-left: 0.75rem;
-        padding-right: 0.75rem;
-        gap: 0.5rem;
-    }
-
-    .creation-navigation .primary-button,
-    .creation-navigation .secondary-button {
-        font-size: 0.7rem;
-        min-height: 3rem;
-        padding-left: 0.5rem;
-        padding-right: 0.5rem;
-    }
+    .character-creation { padding-left: 0.75rem; padding-right: 0.75rem; }
+    .creation-header { width: calc(100% + 1.5rem); margin-left: -0.75rem; padding-left: 0.75rem; padding-right: 0.75rem; }
+    .creation-title h1 { font-size: 1rem; }
+    .creation-title span { font-size: 0.55rem; letter-spacing: 0.2em; }
+    .creation-header .header-button { width: 2.5rem; height: 2.5rem; font-size: 1.2rem; }
+    .selection-icon { width: 2rem; height: 2rem; font-size: 1.1rem; }
+    .selection-card { padding: 1rem 0.9rem; }
+    .selection-card strong { font-size: 0.95rem; }
+    .step-number { width: 2.2rem; height: 2.2rem; font-size: 0.75rem; }
+    .step-heading h2 { font-size: 1.15rem; }
+    .creation-navigation { padding-left: 0.75rem; padding-right: 0.75rem; gap: 0.5rem; }
+    .creation-navigation .primary-button, .creation-navigation .secondary-button { font-size: 0.7rem; min-height: 3rem; padding-left: 0.5rem; padding-right: 0.5rem; }
 }
 
-/* =========================================================
-   22. ACESSIBILIDADE
-========================================================= */
-
 @media (prefers-reduced-motion: reduce) {
-    *,
-    *::before,
-    *::after {
-        animation-duration: 0.01ms !important;
-        animation-iteration-count: 1 !important;
-        transition-duration: 0.01ms !important;
-        scroll-behavior: auto !important;
-    }
+    *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; scroll-behavior: auto !important; }
 }
 
 /* ========================================
-   AERION - LISTA DE FICHAS
+   16. FICHAS
 ======================================== */
-
-.characters-page {
-    min-height: 100vh;
-}
-
-.characters-content {
-    width: min(1100px, 92%);
-    margin: 0 auto;
-    padding: 40px 0 80px;
-}
-
-.characters-heading {
-    display: flex;
-    align-items: flex-end;
-    justify-content: space-between;
-    gap: 24px;
-    margin-bottom: 35px;
-}
-
-.characters-heading h2 {
-    margin: 8px 0;
-    font-family: var(--display-font);
-    color: var(--gold);
-}
-
-.characters-heading p {
-    margin: 0;
-    color: var(--cream-muted);
-}
-
-.characters-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-    gap: 20px;
-}
-
-.character-card {
-    padding: 24px;
-    border-radius: 16px;
-    border: 1px solid rgba(200, 100, 50, 0.2);
-    background: linear-gradient(145deg, rgba(25, 17, 15, 0.6), rgba(10, 8, 7, 0.8));
-    transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
-}
-
-.character-card:hover {
-    transform: translateY(-3px);
-    border-color: var(--gold);
-    box-shadow: 0 10px 20px rgba(0,0,0,0.5), 0 0 15px rgba(200, 100, 50, 0.15);
-}
-
-.character-card-header {
-    display: flex;
-    align-items: center;
-    gap: 14px;
-    margin-bottom: 24px;
-}
-
-.character-avatar {
-    width: 52px;
-    height: 52px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border-radius: 50%;
-    font-family: var(--display-font);
-    font-size: 22px;
-    font-weight: bold;
-    color: var(--gold);
-    border: 1px solid rgba(200, 100, 50, 0.3);
-    background: rgba(20, 15, 13, 0.8);
-    object-fit: cover;
-}
-
-.character-card-title {
-    min-width: 0;
-}
-
-.character-card-title h3 {
-    margin: 0 0 5px;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-    font-family: var(--display-font);
-    color: var(--cream);
-}
-
-.character-card-title span {
-    font-size: 12px;
-    color: var(--cream-muted);
-}
-
-.character-card-info {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 12px;
-    margin-bottom: 24px;
-}
-
-.character-info-item {
-    padding: 12px;
-    border-radius: 10px;
-    background: rgba(20, 15, 13, 0.5);
-    border: 1px solid rgba(200, 100, 50, 0.1);
-}
-
-.character-info-item span {
-    display: block;
-    margin-bottom: 4px;
-    font-size: 11px;
-    color: var(--gold);
-    text-transform: uppercase;
-}
-
-.character-info-item strong {
-    font-size: 14px;
-    color: var(--cream);
-}
-
-.character-card-actions {
-    display: flex;
-    gap: 10px;
-}
-
-.character-card-actions button {
-    flex: 1;
-}
-
-.characters-message {
-    padding: 50px 20px;
-    text-align: center;
-    border-radius: 16px;
-    border: 1px solid rgba(200, 100, 50, 0.2);
-    background: linear-gradient(145deg, rgba(25, 17, 15, 0.6), rgba(10, 8, 7, 0.8));
-}
-
-.characters-message h3 {
-    margin-top: 0;
-    color: var(--gold);
-    font-family: var(--display-font);
-}
+.characters-page { min-height: 100vh; }
+.characters-content { width: min(1100px, 92%); margin: 0 auto; padding: 40px 0 80px; }
+.characters-heading { display: flex; align-items: flex-end; justify-content: space-between; gap: 24px; margin-bottom: 35px; }
+.characters-heading h2 { margin: 8px 0; font-family: var(--display-font); color: var(--gold); }
+.characters-heading p { margin: 0; color: var(--cream-muted); }
+.characters-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; }
+.character-card { padding: 24px; border-radius: 16px; border: 1px solid rgba(200, 100, 50, 0.2); background: linear-gradient(145deg, rgba(25, 17, 15, 0.6), rgba(10, 8, 7, 0.8)); transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease; }
+.character-card:hover { transform: translateY(-3px); border-color: var(--gold); box-shadow: 0 10px 20px rgba(0,0,0,0.5), 0 0 15px rgba(200, 100, 50, 0.15); }
+.character-card-header { display: flex; align-items: center; gap: 14px; margin-bottom: 24px; }
+.character-avatar { width: 52px; height: 52px; display: flex; align-items: center; justify-content: center; border-radius: 50%; font-family: var(--display-font); font-size: 22px; font-weight: bold; color: var(--gold); border: 1px solid rgba(200, 100, 50, 0.3); background: rgba(20, 15, 13, 0.8); object-fit: cover; }
+.character-card-title { min-width: 0; }
+.character-card-title h3 { margin: 0 0 5px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-family: var(--display-font); color: var(--cream); }
+.character-card-title span { font-size: 12px; color: var(--cream-muted); }
+.character-card-info { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-bottom: 24px; }
+.character-info-item { padding: 12px; border-radius: 10px; background: rgba(20, 15, 13, 0.5); border: 1px solid rgba(200, 100, 50, 0.1); }
+.character-info-item span { display: block; margin-bottom: 4px; font-size: 11px; color: var(--gold); text-transform: uppercase; }
+.character-info-item strong { font-size: 14px; color: var(--cream); }
+.character-card-actions { display: flex; gap: 10px; }
+.character-card-actions button { flex: 1; }
+.characters-message { padding: 50px 20px; text-align: center; border-radius: 16px; border: 1px solid rgba(200, 100, 50, 0.2); background: linear-gradient(145deg, rgba(25, 17, 15, 0.6), rgba(10, 8, 7, 0.8)); }
+.characters-message h3 { margin-top: 0; color: var(--gold); font-family: var(--display-font); }
 
 @media (max-width: 650px) {
-    .characters-content {
-        padding-top: 25px;
-    }
-
-    .characters-heading {
-        align-items: stretch;
-        flex-direction: column;
-    }
-
-    .characters-heading button {
-        width: 100%;
-    }
-
-    .character-card-actions {
-        flex-direction: column;
-    }
+    .characters-content { padding-top: 25px; }
+    .characters-heading { align-items: stretch; flex-direction: column; }
+    .characters-heading button { width: 100%; }
+    .character-card-actions { flex-direction: column; }
 }
 
 /* =========================================================
-   MENU GLOBAL (SIDEBAR) - FASE 12
+   17. MENU GLOBAL (SIDEBAR) E AÇÕES PREMIUM (FASE 12)
 ========================================================= */
 .menu-btn { background: transparent; border: none; color: var(--gold); font-size: 1.8rem; cursor: pointer; padding: 5px; line-height: 1; }
 .menu-btn:hover { color: var(--cream); }
@@ -2463,11 +1581,118 @@ img {
 .sidebar-overlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.6); z-index: 9998; opacity: 0; visibility: hidden; transition: opacity 0.3s; }
 .sidebar-overlay.open { opacity: 1; visibility: visible; }
 
-/* LAYOUT HOME - FASE 12 */
-.home-menu-grid { display: grid; grid-template-columns: 1fr; gap: 20px; max-width: 600px; margin: 40px auto; }
-@media(min-width: 600px) { .home-menu-grid { grid-template-columns: 1fr 1fr; } }
-.home-menu-card { background: linear-gradient(145deg, rgba(25, 17, 15, 0.8), rgba(10, 8, 7, 0.9)); border: 1px solid rgba(200, 100, 50, 0.3); border-radius: 12px; padding: 30px; text-align: center; text-decoration: none; display: flex; flex-direction: column; align-items: center; transition: all 0.3s ease; box-shadow: 0 10px 20px rgba(0,0,0,0.5); }
-.home-menu-card:hover { transform: translateY(-5px); border-color: var(--gold); box-shadow: 0 15px 25px rgba(200, 100, 50, 0.15); }
-.home-menu-card .icon { font-size: 3rem; margin-bottom: 15px; }
-.home-menu-card h3 { font-family: var(--display-font); color: var(--gold); margin: 0 0 10px 0; font-size: 1.5rem; }
-.home-menu-card p { color: var(--cream-muted); font-size: 0.9rem; margin: 0; line-height: 1.4; }
+/* AÇÕES PREMIUM NA HOME */
+.action-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+    width: min(100%, 35rem);
+    margin: 0 auto;
+}
+
+@media (min-width: 600px) {
+    .action-grid { grid-template-columns: 1fr 1fr; }
+}
+
+.action-card {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem 1.5rem;
+    overflow: hidden;
+    border: 1px solid rgba(131, 65, 43, 0.5);
+    border-radius: 0.82rem;
+    background:
+        radial-gradient(circle at 50% 28%, rgba(129, 31, 18, 0.2), transparent 50%),
+        linear-gradient(145deg, rgba(27, 19, 17, 0.96), rgba(8, 7, 7, 0.98));
+    box-shadow:
+        inset 0 1px 0 rgba(224, 141, 81, 0.1),
+        inset 0 0 1.2rem rgba(85, 21, 14, 0.12),
+        0 0.55rem 1.4rem rgba(0, 0, 0, 0.28);
+    text-align: center;
+    text-decoration: none;
+    transition: all 0.3s ease;
+}
+
+.action-card::before,
+.action-card::after {
+    position: absolute;
+    width: 0.75rem;
+    height: 0.75rem;
+    border-color: rgba(223, 113, 56, 0.64);
+    content: "";
+    transition: all 0.3s ease;
+}
+
+.action-card::before {
+    top: 0.6rem;
+    left: 0.6rem;
+    border-top: 1px solid;
+    border-left: 1px solid;
+}
+
+.action-card::after {
+    right: 0.6rem;
+    bottom: 0.6rem;
+    border-right: 1px solid;
+    border-bottom: 1px solid;
+}
+
+.action-card:hover {
+    border-color: rgba(225, 99, 45, 0.72);
+    box-shadow:
+        inset 0 1px 0 rgba(255, 173, 95, 0.17),
+        0 0.65rem 1.6rem rgba(93, 25, 15, 0.28),
+        0 0 1rem rgba(151, 40, 20, 0.12);
+    transform: translateY(-4px);
+}
+.action-card:hover::before,
+.action-card:hover::after {
+    width: 1rem;
+    height: 1rem;
+    border-color: var(--gold);
+}
+
+.action-icon {
+    display: grid;
+    width: 3rem;
+    height: 3rem;
+    margin-bottom: 1rem;
+    place-items: center;
+    color: var(--orange);
+    font-family: Georgia, serif;
+    font-size: 2.2rem;
+    line-height: 1;
+    text-shadow:
+        0 0 0.45rem rgba(245, 57, 25, 0.72),
+        0 0 1rem rgba(149, 27, 14, 0.52);
+    transition: all 0.3s ease;
+}
+
+.action-card:hover .action-icon {
+    color: var(--gold);
+    transform: scale(1.1);
+    text-shadow: 0 0 1rem rgba(232, 160, 93, 0.6);
+}
+
+.action-card h3 {
+    margin: 0;
+    color: var(--cream);
+    font-family: var(--display-font);
+    font-size: 1.1rem;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    line-height: 1.25;
+    text-transform: uppercase;
+    margin-bottom: 0.5rem;
+}
+
+.action-card p {
+    margin: 0;
+    color: var(--cream-muted);
+    font-family: var(--body-font);
+    font-size: 0.8rem;
+    line-height: 1.45;
+}
