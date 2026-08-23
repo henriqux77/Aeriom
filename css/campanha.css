@@ -1,5 +1,5 @@
 /* =========================================================
-   AERION — PAINEL DA CAMPANHA (UNIFICADO - FASE 1 A FASE 11)
+   AERION — PAINEL DA CAMPANHA (UNIFICADO ATÉ FASE A)
 ========================================================= */
 
 .campaign-dashboard { width: min(100%, 1000px); margin: 0 auto; padding: 0 1rem 4rem; min-height: 100vh; }
@@ -64,7 +64,7 @@
 .remove-combatant-btn { background: transparent; border: none; color: var(--cream-muted); font-size: 1.5rem; cursor: pointer; padding: 0 5px; }
 .remove-combatant-btn:hover { color: #d46a4a; }
 
-/* MURAL & LOGS */
+/* MURAL */
 .mural-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 15px; margin-top: 15px; }
 .mural-card { border: 1px solid rgba(200, 100, 50, 0.3); background: rgba(20, 15, 13, 0.8); border-radius: 8px; text-align: center; box-shadow: inset 0 0 20px rgba(0,0,0,0.5); position: relative; display: flex; flex-direction: column; overflow: hidden; }
 .mural-card::before { content: '📌'; position: absolute; top: -5px; left: 50%; transform: translateX(-50%); font-size: 1.5rem; z-index: 5; }
@@ -72,13 +72,6 @@
 .mural-content-box { padding: 20px; flex: 1; }
 .mural-card h4 { font-family: var(--display-font); color: var(--gold); margin: 0 0 10px 0; font-size: 1.1rem; border-bottom: 1px solid rgba(200, 100, 50, 0.2); padding-bottom: 8px; }
 .mural-card p { font-size: 0.9rem; color: var(--cream); font-family: 'Georgia', serif; line-height: 1.5; white-space: pre-wrap; margin: 0; }
-
-.logs-container { border: 1px solid rgba(131, 65, 43, 0.3); border-radius: 8px; background: rgba(10, 8, 7, 0.8); padding: 15px; max-height: 400px; overflow-y: auto; }
-.log-item { padding: 8px 0; border-bottom: 1px solid rgba(255, 255, 255, 0.05); font-size: 0.85rem; color: var(--cream); display: flex; gap: 10px; }
-.log-item:last-child { border-bottom: none; }
-.log-time { color: var(--gold); font-family: monospace; font-size: 0.75rem; min-width: 65px; }
-.log-item.log-request { color: var(--gold); font-weight: bold; }
-.log-item.log-roll { color: #ff9d85; }
 
 /* ESQUELETOS */
 .placeholder-panel { text-align: center; display: flex; flex-direction: column; justify-content: center; align-items: center; min-height: 250px; }
@@ -106,33 +99,66 @@
 @keyframes slideUp { from { bottom: -100px; opacity: 0; } to { bottom: 20px; opacity: 1; } }
 @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.1); } 100% { transform: scale(1); } }
 
-/* =========================================================
-   SISTEMA DE COZINHA (FASE 11)
-========================================================= */
+/* SISTEMA DE COZINHA */
 .cooking-active-meal { border: 1px solid var(--gold); border-radius: 12px; background: linear-gradient(145deg, rgba(40, 30, 20, 0.8), rgba(20, 15, 10, 0.9)); padding: 20px; text-align: center; margin-bottom: 30px; box-shadow: 0 0 20px rgba(200, 100, 50, 0.15); }
 .cooking-active-meal h4 { font-family: var(--display-font); color: var(--gold); margin: 0 0 10px 0; font-size: 1.2rem; }
 .cooking-active-meal p { color: var(--cream); font-size: 0.9rem; margin: 0 0 15px 0; }
 .meal-bonus-box { display: inline-block; background: rgba(5, 3, 3, 0.6); padding: 8px 20px; border-radius: 20px; border: 1px solid rgba(200, 100, 50, 0.3); font-size: 0.85rem; color: var(--cream); }
 .meal-bonus-box span { color: var(--orange); font-weight: bold; }
-
 .cooking-layout { display: grid; grid-template-columns: 1fr; gap: 20px; }
 @media(min-width: 768px) { .cooking-layout { grid-template-columns: 1fr 1fr; } }
-
 .cooking-bag-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 10px; max-height: 350px; overflow-y: auto; padding-right: 5px; }
 .ingredient-card { background: rgba(20, 15, 13, 0.8); border: 1px solid rgba(200, 100, 50, 0.3); border-radius: 8px; padding: 10px; text-align: center; cursor: pointer; transition: all 0.2s; position: relative; }
 .ingredient-card:hover { border-color: var(--gold); transform: translateY(-2px); background: rgba(30, 22, 18, 0.9); }
 .ingredient-img { width: 45px; height: 45px; object-fit: cover; border-radius: 50%; border: 1px solid var(--gold); margin: 0 auto 8px; display: block; background: #111; }
 .ingredient-card h5 { font-family: var(--display-font); color: var(--cream); font-size: 0.85rem; margin: 0 0 4px 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .ingredient-card span { font-size: 0.75rem; color: var(--gold); }
-
 .cauldron-container { border: 2px dashed rgba(200, 100, 50, 0.4); border-radius: 12px; background: rgba(15, 10, 8, 0.9); padding: 20px; text-align: center; min-height: 250px; display: flex; flex-direction: column; justify-content: space-between; }
 .cauldron-drop-zone { flex: 1; display: flex; flex-wrap: wrap; gap: 8px; align-content: flex-start; justify-content: center; padding: 10px; min-height: 120px; }
 .cauldron-placeholder { color: var(--cream-muted); font-size: 0.85rem; margin: auto; font-style: italic; }
 .cauldron-item { background: rgba(40, 25, 20, 0.9); border: 1px solid var(--gold); border-radius: 6px; padding: 6px 10px; display: flex; align-items: center; gap: 8px; font-size: 0.8rem; color: var(--cream); animation: fadeIn 0.2s ease; }
 .cauldron-item button { background: transparent; border: none; color: #d46a4a; cursor: pointer; font-size: 1rem; padding: 0; line-height: 1; }
-
 .recipe-book-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 15px; }
 .recipe-card { background: rgba(20, 15, 13, 0.8); border: 1px solid rgba(131, 65, 43, 0.4); border-radius: 10px; padding: 15px; display: flex; gap: 12px; align-items: center; }
 .recipe-img { width: 55px; height: 55px; object-fit: cover; border-radius: 8px; border: 1px solid var(--gold); background: #111; }
 .recipe-info h5 { font-family: var(--display-font); color: var(--cream); font-size: 0.95rem; margin: 0 0 4px 0; }
 .recipe-info p { font-size: 0.75rem; color: var(--cream-muted); margin: 0; }
+
+/* =========================================================
+   LINHA DO TEMPO (FASE A)
+========================================================= */
+.timeline-container { position: relative; padding: 20px 0; }
+.timeline-track { position: absolute; left: 24px; top: 0; bottom: 0; width: 2px; background: rgba(200, 100, 50, 0.2); }
+.timeline-item { position: relative; display: flex; gap: 15px; margin-bottom: 20px; align-items: flex-start; padding-left: 10px; animation: slideUp 0.3s ease forwards; }
+.tl-icon { width: 30px; height: 30px; border-radius: 50%; background: #111; border: 2px solid var(--gold); display: grid; place-items: center; font-size: 14px; z-index: 2; flex-shrink: 0; margin-top: 5px; }
+.tl-content { background: rgba(20, 15, 13, 0.6); border: 1px solid rgba(200, 100, 50, 0.15); border-radius: 8px; padding: 12px; flex: 1; position: relative; transition: all 0.2s ease; }
+.tl-content:hover { border-color: rgba(200, 100, 50, 0.4); background: rgba(25, 17, 15, 0.8); transform: translateX(2px); }
+.tl-content::before { content: ''; position: absolute; left: -6px; top: 10px; width: 10px; height: 10px; background: inherit; border-left: 1px solid rgba(200, 100, 50, 0.15); border-bottom: 1px solid rgba(200, 100, 50, 0.15); transform: rotate(45deg); transition: inherit; }
+.tl-time { display: block; font-family: monospace; font-size: 11px; color: var(--gold); margin-bottom: 5px; opacity: 0.8; }
+.tl-desc { margin: 0; font-size: 0.9rem; color: var(--cream); line-height: 1.4; }
+
+/* Cores por tipo de evento */
+.tl-roll .tl-icon { border-color: var(--gold); background: rgba(200, 100, 50, 0.2); }
+.tl-request .tl-icon { border-color: var(--gold); background: rgba(200, 100, 50, 0.5); animation: pulse 1.5s infinite; }
+.tl-combat .tl-icon { border-color: var(--fire); background: rgba(188, 48, 28, 0.2); }
+.tl-damage .tl-icon { border-color: #8b1c1c; background: rgba(80, 10, 10, 0.5); }
+.tl-heal .tl-icon { border-color: #5ab85a; background: rgba(40, 100, 40, 0.2); }
+.tl-cozinha .tl-icon { border-color: var(--orange); background: rgba(240, 106, 47, 0.2); }
+.tl-scene .tl-icon { border-color: #9d5bb5; background: rgba(100, 50, 150, 0.2); }
+.tl-system .tl-icon { border-color: #666; background: rgba(50, 50, 50, 0.2); filter: grayscale(1); }
+
+/* =========================================================
+   ROLAGEM CINEMATOGRÁFICA (FASE A)
+========================================================= */
+.cinematic-overlay { position: fixed; inset: 0; background: rgba(5, 3, 2, 0.85); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); z-index: 10000; display: flex; flex-direction: column; align-items: center; justify-content: center; opacity: 0; visibility: hidden; transition: opacity 0.3s ease, visibility 0.3s ease; }
+.cinematic-overlay.active { opacity: 1; visibility: visible; }
+.cinematic-box { text-align: center; transform: scale(0.8); transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+.cinematic-overlay.active .cinematic-box { transform: scale(1); }
+
+.cine-title { font-family: var(--display-font); color: var(--gold); font-size: 1.5rem; letter-spacing: 3px; text-transform: uppercase; margin: 0 0 5px; text-shadow: 0 2px 10px rgba(0,0,0,0.8); }
+.cine-subtitle { color: var(--cream-muted); font-size: 1rem; margin: 0 0 30px; font-style: italic; }
+
+.cine-result-circle { width: 140px; height: 140px; border-radius: 50%; border: 3px solid var(--gold); margin: 0 auto; display: grid; place-items: center; background: radial-gradient(circle, rgba(200, 100, 50, 0.4), transparent); box-shadow: 0 0 40px rgba(200, 100, 50, 0.4), inset 0 0 30px rgba(200, 100, 50, 0.3); animation: floatDice 3s ease-in-out infinite; }
+@keyframes floatDice { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
+
+.cine-result { font-family: var(--display-font); font-size: 3.5rem; font-weight: bold; color: var(--cream); text-shadow: 0 0 20px var(--orange); }
