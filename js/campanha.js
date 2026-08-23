@@ -12,9 +12,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     let playerSheetLinkId = null;
     let playerSheetCharName = "";
     
-    // Variáveis de Combate (FASE 10)
     let combatState = null;
-
     let currentRequestAttrValue = 0;
     let currentRequestAttrName = "";
 
@@ -78,7 +76,6 @@ document.addEventListener("DOMContentLoaded", async () => {
     const closeSelectCharacterModal = document.getElementById("closeSelectCharacterModal");
     const userCharactersList = document.getElementById("userCharactersList");
 
-    // ELEMENTOS DO COMBATE (FASE 10)
     const toggleCombatBtn = document.getElementById("toggleCombatBtn");
     const combatMasterPanel = document.getElementById("combatMasterPanel");
     const addCombatantForm = document.getElementById("addCombatantForm");
@@ -113,11 +110,13 @@ document.addEventListener("DOMContentLoaded", async () => {
         await loadCampaignData();
         setupTabs();
         setupRealtime();
+
+        // Inicializa o Sistema de Cozinha ao carregar o painel
+        if (window.initCookingSystem) {
+            window.initCookingSystem(supabase, campaignId);
+        }
     }
 
-    // =========================================================
-    // SUPABASE REALTIME
-    // =========================================================
     function setupRealtime() {
         supabase.channel('campaign-events')
             .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'campaign_logs', filter: `campaign_id=eq.${campaignId}` }, async (payload) => {
@@ -135,9 +134,6 @@ document.addEventListener("DOMContentLoaded", async () => {
             .subscribe();
     }
 
-    // =========================================================
-    // TABS & DADOS DA CAMPANHA
-    // =========================================================
     function setupTabs() {
         tabs.forEach(tab => {
             tab.addEventListener('click', () => {
@@ -150,7 +146,10 @@ document.addEventListener("DOMContentLoaded", async () => {
                 if (targetId === 'tab-mural') loadMural();
                 if (targetId === 'tab-logs') loadLogs();
                 if (targetId === 'tab-overview') loadCampaignCharacters();
-                if (targetId === 'tab-combate') loadCombatState(); // Carrega combate ao abrir a aba
+                if (targetId === 'tab-combate') loadCombatState();
+                if (targetId === 'tab-cozinha' && window.initCookingSystem) {
+                    window.initCookingSystem(supabase, campaignId);
+                }
             });
         });
     }
@@ -191,9 +190,6 @@ document.addEventListener("DOMContentLoaded", async () => {
         }
     }
 
-    // =========================================================
-    // COMBATE E INICIATIVA (FASE 10)
-    // =========================================================
     async function loadCombatState() {
         try {
             const { data, error } = await supabase.from('campaign_combat').select('*').eq('campaign_id', campaignId).maybeSingle();
@@ -223,13 +219,11 @@ document.addEventListener("DOMContentLoaded", async () => {
             
             if (userRole === 'master') {
                 toggleCombatBtn.textContent = "Encerrar Combate";
-                toggleCombatBtn.style.background = "#8b2518"; // Cor vermelha para indicar parada
+                toggleCombatBtn.style.background = "#8b2518";
                 combatMasterPanel.hidden = false;
             }
 
-            // Renderiza a lista de iniciativa
             initiativeList.innerHTML = '';
-            
             if (!combatState.combatants || combatState.combatants.length === 0) {
                 initiativeList.innerHTML = '<p style="color: var(--cream-muted); text-align: center; font-size: 0.9rem;">O campo de batalha está vazio.</p>';
             } else {
@@ -237,7 +231,6 @@ document.addEventListener("DOMContentLoaded", async () => {
                     const isActiveTurn = index === combatState.turn_index;
                     const card = document.createElement('div');
                     card.className = `combatant-card ${isActiveTurn ? 'active-turn' : ''}`;
-                    
                     const removeBtnHtml = userRole === 'master' ? `<button class="remove-combatant-btn" data-index="${index}">×</button>` : '';
 
                     card.innerHTML = `
@@ -248,7 +241,6 @@ document.addEventListener("DOMContentLoaded", async () => {
                     initiativeList.appendChild(card);
                 });
 
-                // Adicionar eventos aos botões de remover
                 if (userRole === 'master') {
                     document.querySelectorAll('.remove-combatant-btn').forEach(btn => {
                         btn.addEventListener('click', async (e) => {
@@ -263,7 +255,6 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     async function saveCombatState() {
         try {
-            // Upsert para garantir que crie se não existir e atualize se existir
             const { error } = await supabase.from('campaign_combat').upsert({
                 campaign_id: campaignId,
                 is_active: combatState.is_active,
@@ -274,7 +265,6 @@ document.addEventListener("DOMContentLoaded", async () => {
             });
             if (error) throw error;
         } catch (e) {
-            console.error("Falha ao salvar combate:", e);
             alert("Erro ao sincronizar combate com o servidor.");
         }
     }
@@ -282,7 +272,6 @@ document.addEventListener("DOMContentLoaded", async () => {
     if (toggleCombatBtn) {
         toggleCombatBtn.addEventListener('click', async () => {
             if (!combatState) combatState = { is_active: false, round_number: 1, turn_index: 0, combatants: [] };
-            
             if (combatState.is_active) {
                 const conf = confirm("Deseja encerrar o combate e limpar a lista de iniciativa?");
                 if (!conf) return;
@@ -295,7 +284,6 @@ document.addEventListener("DOMContentLoaded", async () => {
                 combatState.is_active = true;
                 await generateLog("O Mestre iniciou um novo combate!", "system");
             }
-            
             renderCombat();
             await saveCombatState();
         });
@@ -306,21 +294,12 @@ document.addEventListener("DOMContentLoaded", async () => {
             e.preventDefault();
             const name = combatantNameInput.value.trim();
             const init = parseInt(combatantInitInput.value) || 0;
-            
             if (!combatState.combatants) combatState.combatants = [];
-            
             combatState.combatants.push({ name: name, init: init });
-            
-            // Ordena a lista do maior para o menor
             combatState.combatants.sort((a, b) => b.init - a.init);
-            
-            // Reseta o turno temporariamente (para evitar bugs de índice ao adicionar no meio)
-            // Em uma VTT avançada faríamos matemática para manter a vez da pessoa, mas para iniciar é mais seguro assim.
             combatState.turn_index = 0; 
-            
             combatantNameInput.value = '';
             combatantInitInput.value = '';
-            
             renderCombat();
             await saveCombatState();
         });
@@ -329,13 +308,11 @@ document.addEventListener("DOMContentLoaded", async () => {
     if (nextTurnBtn) {
         nextTurnBtn.addEventListener('click', async () => {
             if (!combatState.combatants || combatState.combatants.length === 0) return;
-            
             combatState.turn_index++;
             if (combatState.turn_index >= combatState.combatants.length) {
                 combatState.turn_index = 0;
                 combatState.round_number++;
             }
-            
             renderCombat();
             await saveCombatState();
         });
@@ -344,22 +321,15 @@ document.addEventListener("DOMContentLoaded", async () => {
     async function removeCombatant(index) {
         if (!combatState.combatants) return;
         combatState.combatants.splice(index, 1);
-        
-        // Ajusta o turno se removeu alguém que estava antes do turno atual
         if (index < combatState.turn_index) {
             combatState.turn_index--;
         } else if (combatState.turn_index >= combatState.combatants.length) {
             combatState.turn_index = 0;
         }
-        
         renderCombat();
         await saveCombatState();
     }
 
-
-    // =========================================================
-    // VINCULAR FICHA E AVENTUREIROS
-    // =========================================================
     if (addMyCharacterBtn) {
         addMyCharacterBtn.addEventListener('click', async () => {
             selectCharacterModal.style.display = 'flex';
@@ -575,9 +545,6 @@ document.addEventListener("DOMContentLoaded", async () => {
         });
     }
 
-    // =========================================================
-    // MURAL E LOGS
-    // =========================================================
     async function loadMural() {
         try {
             const { data, error } = await supabase.from('campaign_mural').select('*').eq('campaign_id', campaignId).order('created_at', { ascending: false });
@@ -666,9 +633,6 @@ document.addEventListener("DOMContentLoaded", async () => {
         } catch (e) {}
     }
 
-    // =========================================================
-    // REQUEST DE TESTES DO MESTRE (FASE 9)
-    // =========================================================
     if (sendRollRequestBtn) {
         sendRollRequestBtn.addEventListener('click', async () => {
             const attr = requestRollSelect.value;
@@ -732,9 +696,6 @@ document.addEventListener("DOMContentLoaded", async () => {
         });
     });
 
-    // =========================================================
-    // CONFIGURAÇÕES E CONVITE
-    // =========================================================
     if (settingsForm) {
         settingsForm.addEventListener('submit', async (e) => {
             e.preventDefault();
