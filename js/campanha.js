@@ -41,9 +41,10 @@ document.addEventListener("DOMContentLoaded", async () => {
         setupTabs();
         setupRealtime();
 
-        // Inicializa Módulos Separados
+        // Inicializa Módulos Separados AQUI DENTRO da função init()
         if (window.initTimelineSystem) window.initTimelineSystem(supabase, campaignId);
         if (window.initCookingSystem) window.initCookingSystem(supabase, campaignId);
+        if (window.initSessionSystem) window.initSessionSystem(supabase, campaignId);
     }
 
     function setupRealtime() {
@@ -316,12 +317,6 @@ document.addEventListener("DOMContentLoaded", async () => {
     
     document.getElementById("requestToastCloseBtn")?.addEventListener('click', () => document.getElementById("requestToast").hidden = true);
 
-    init();
-        // Inicializa Módulos Separados
-        if (window.initTimelineSystem) window.initTimelineSystem(supabase, campaignId);
-        if (window.initCookingSystem) window.initCookingSystem(supabase, campaignId);
-        // ADICIONE ESTA LINHA:
-        if (window.initSessionSystem) window.initSessionSystem(supabase, campaignId);
-
+    init(); // Chama a função principal de inicialização
 
 });
