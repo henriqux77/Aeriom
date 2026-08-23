@@ -3,10 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Aeriom — Plataforma de RPG de Mesa</title>
-    <!-- Carrega os estilos globais do Design System -->
+    <title>Aeriom — RPG Digital</title>
+    <!-- Estilos globais do Design System -->
     <link rel="stylesheet" href="css/style.css">
-    <!-- Inicia o gerenciador de temas imediatamente para evitar FOUC -->
+    <!-- Gerenciador de temas (FOUC prevention) -->
     <script src="js/theme.js"></script>
 </head>
 <body>
@@ -16,111 +16,148 @@
     ========================================================= -->
     <header class="topbar">
         <div class="app-container topbar-content">
-            <button class="btn-icon" id="menuButton" aria-label="Abrir menu">
-                ☰
-            </button>
-            
-            <a href="index.html" class="brand-logo">
-                <img src="https://i.ibb.co/d0SnBLcV/Design-sem-nome-20260817-180846-0000.jpg" alt="Aeriom">
-            </a>
-            
+            <button class="btn-icon" id="menuButton" aria-label="Abrir menu">☰</button>
+            <a href="index.html" class="brand-logo" aria-label="Aeriom Home"></a>
             <div style="display: flex; gap: 8px;">
-                <button class="btn-icon" id="openCommandBarBtn" title="Ações Rápidas (Ctrl+K)">
-                    ⌘
-                </button>
-                <button class="btn-icon" id="profileButton" aria-label="Abrir Perfil">
-                    ♙
-                </button>
+                <button class="btn-icon" id="openCommandBarBtn" title="Ações Rápidas (Ctrl+K)">⌘</button>
+                <button class="btn-icon" id="profileButton" aria-label="Abrir Perfil">♙</button>
             </div>
         </div>
     </header>
 
     <!-- =========================================================
-         CONTEÚDO PRINCIPAL (Main Stage)
+         MAIN CONTENT: HOME / DASHBOARD
     ========================================================= -->
-    <main class="app-container" style="padding-top: 3rem; padding-bottom: 3rem; flex: 1; display: flex; flex-direction: column; justify-content: center;">
-
-        <!-- ESTADO DESLOGADO: LANDING PAGE -->
-        <section id="loggedOutActions" style="text-align: center; max-width: 600px; margin: auto;">
-            <h1 style="margin-bottom: 1.5rem; font-size: 3.5rem; text-shadow: var(--shadow-soft);">Sua Mesa Digital</h1>
-            <p style="margin-bottom: 3rem; color: var(--text-secondary); font-size: 1.1rem;">O Aeriom organiza as fichas, o combate e as ferramentas narrativas para que o Mestre foque na história e os jogadores na imersão.</p>
-            
-            <div style="display: flex; flex-direction: column; gap: 1rem; max-width: 300px; margin: 0 auto;">
-                <button class="btn btn-primary w-full" id="createAccountButton">Criar Conta Grátis</button>
-                <button class="btn btn-secondary w-full" id="loginButton">Entrar na Plataforma</button>
+    <main class="app-container" style="padding-top: 2rem; padding-bottom: 5rem;">
+        
+        <!-- ESTADO 1: DESLOGADO (Visitante) -->
+        <div id="loggedOutActions" style="display: none; text-align: center; max-width: 600px; margin: 4rem auto;">
+            <div style="font-size: 4rem; color: var(--color-primary); margin-bottom: 1rem; filter: drop-shadow(0 0 15px var(--color-primary-muted));">🐉</div>
+            <h1 style="font-size: 3rem; margin-bottom: 1rem; color: var(--color-text);">Bem-vindo a Aeriom</h1>
+            <p class="text-muted" style="font-size: 1.1rem; margin-bottom: 2rem; line-height: 1.6;">
+                A sua plataforma definitiva para forjar lendas, gerir campanhas e organizar as suas mesas de RPG de fantasia sombria.
+            </p>
+            <div style="display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap;">
+                <button id="loginButton" class="btn btn-secondary btn-lg">Acessar o Grimório</button>
+                <button id="createAccountButton" class="btn btn-primary btn-lg">Criar Conta</button>
             </div>
-        </section>
+        </div>
 
-        <!-- ESTADO LOGADO: DASHBOARD PRINCIPAL -->
-        <section id="loggedInActions" style="display: none; width: 100%;">
+        <!-- ESTADO 2: LOGADO (Dashboard do Aventureiro) -->
+        <div id="loggedInActions" style="display: none;">
             
-            <div style="margin-bottom: 3rem;">
-                <h1 id="welcomeUserText" style="font-size: 2rem; margin-bottom: 0.5rem;">Saudações, Aventureiro.</h1>
-                <p style="color: var(--text-secondary);">Sua jornada aguarda.</p>
+            <div style="margin-bottom: var(--space-xl);">
+                <h1 id="welcomeUserText" style="color: var(--color-primary); margin-bottom: var(--space-xs);">Saudações.</h1>
+                <p class="text-muted">O salão de aventuras aguarda as suas decisões.</p>
             </div>
 
-            <!-- Destaque: Sessão Recente (Apenas Visual por enquanto) -->
-            <div style="background: linear-gradient(145deg, var(--theme-surface), var(--theme-bg)); border: 1px solid var(--theme-border-strong); border-radius: var(--radius-lg); padding: 1.5rem; display: flex; align-items: center; gap: 1.5rem; margin-bottom: 3rem; box-shadow: var(--shadow-soft); flex-wrap: wrap;">
-                <div style="width: 64px; height: 64px; border-radius: 50%; background: var(--theme-surface-interactive); border: 2px solid var(--theme-primary-soft); display: grid; place-items: center; font-size: 1.5rem; font-family: var(--font-heading); color: var(--theme-primary);">E</div>
-                <div style="flex: 1; min-width: 200px;">
-                    <p style="color: var(--text-muted); font-size: 0.75rem; text-transform: uppercase; font-weight: 600; letter-spacing: 1px; margin-bottom: 4px;">Sua Última Aventura</p>
-                    <h3 style="font-size: 1.5rem; margin-bottom: 0.5rem;">O Chamado de Eldoria</h3>
-                    <div style="display: flex; gap: 8px;">
-                        <span style="background: var(--theme-surface-elevated); color: var(--text-secondary); border: 1px solid var(--theme-border); display: inline-flex; align-items: center; gap: 8px; font-size: 0.8rem; padding: 4px 10px; border-radius: 20px;">⚔️ Kael - Mago Nv.4</span>
-                    </div>
+            <!-- Card de Sessão Recente (Injetado via JS) -->
+            <div id="recentCampaignContainer" style="margin-bottom: var(--space-xl);">
+                <!-- O JS (main.js) constrói aqui o card interativo da última campanha -->
+            </div>
+
+            <!-- Acesso Rápido -->
+            <h3 style="margin-bottom: var(--space-md); border-bottom: 1px solid var(--color-border-strong); padding-bottom: var(--space-sm);">Acesso Rápido</h3>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: var(--space-lg);">
+                
+                <div class="aeriom-card-interactive text-center" onclick="window.location.href='fichas.html'">
+                    <div style="font-size: 2.5rem; margin-bottom: var(--space-sm);">📜</div>
+                    <h3 style="color: var(--color-text); margin-bottom: 4px;">Minhas Fichas</h3>
+                    <p class="text-muted" style="font-size: 0.85rem;">Gerir ou forjar novos heróis.</p>
                 </div>
-                <button class="btn btn-primary" onclick="window.location.href='campanhas.html'" style="white-space: nowrap;">Continuar Aventura</button>
-            </div>
 
-            <h3 style="font-size: 0.85rem; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 1rem;">Acesso Rápido</h3>
-            
-            <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 1rem;">
-                <a href="fichas.html" style="background: var(--theme-surface); border: 1px solid var(--theme-border); border-radius: var(--radius-md); padding: 1.5rem; display: flex; align-items: center; gap: 1rem; transition: var(--transition-fast);">
-                    <div style="width: 48px; height: 48px; border-radius: var(--radius-sm); background: var(--theme-bg); border: 1px solid var(--theme-border); display: grid; place-items: center; font-size: 1.5rem; color: var(--theme-primary);">📜</div>
-                    <div>
-                        <h4 style="font-size: 1.05rem; font-family: var(--font-body); margin-bottom: 0.2rem; color: var(--text-primary);">Minhas Fichas</h4>
-                        <p style="font-size: 0.8rem; color: var(--text-muted);">Crie e edite seus heróis.</p>
-                    </div>
-                </a>
-                <a href="campanhas.html" style="background: var(--theme-surface); border: 1px solid var(--theme-border); border-radius: var(--radius-md); padding: 1.5rem; display: flex; align-items: center; gap: 1rem; transition: var(--transition-fast);">
-                    <div style="width: 48px; height: 48px; border-radius: var(--radius-sm); background: var(--theme-bg); border: 1px solid var(--theme-border); display: grid; place-items: center; font-size: 1.5rem; color: var(--theme-primary);">⚔️</div>
-                    <div>
-                        <h4 style="font-size: 1.05rem; font-family: var(--font-body); margin-bottom: 0.2rem; color: var(--text-primary);">Campanhas</h4>
-                        <p style="font-size: 0.8rem; color: var(--text-muted);">Mesas ativas e convites.</p>
-                    </div>
-                </a>
-                <a href="#" onclick="alert('O Rolador Físico chegará na Fase 6!')" style="background: var(--theme-surface); border: 1px solid var(--theme-border); border-radius: var(--radius-md); padding: 1.5rem; display: flex; align-items: center; gap: 1rem; transition: var(--transition-fast);">
-                    <div style="width: 48px; height: 48px; border-radius: var(--radius-sm); background: var(--theme-bg); border: 1px solid var(--theme-border); display: grid; place-items: center; font-size: 1.5rem; color: var(--theme-primary);">🎲</div>
-                    <div>
-                        <h4 style="font-size: 1.05rem; font-family: var(--font-body); margin-bottom: 0.2rem; color: var(--text-primary);">Rolador</h4>
-                        <p style="font-size: 0.8rem; color: var(--text-muted);">Testes rápidos.</p>
-                    </div>
-                </a>
-            </div>
+                <div class="aeriom-card-interactive text-center" onclick="window.location.href='campanhas.html'">
+                    <div style="font-size: 2.5rem; margin-bottom: var(--space-sm);">🗺️</div>
+                    <h3 style="color: var(--color-text); margin-bottom: 4px;">Campanhas</h3>
+                    <p class="text-muted" style="font-size: 0.85rem;">Acessar as suas mesas de RPG.</p>
+                </div>
 
-        </section>
+            </div>
+        </div>
+
     </main>
 
     <!-- =========================================================
-         MODAIS GLOBAIS
+         MODAIS DE AUTENTICAÇÃO E PERFIL
     ========================================================= -->
-    
-    <!-- COMMAND BAR (PESQUISA RÁPIDA / CTRL+K) -->
-    <div id="commandBarModal" class="command-bar-modal">
-        <div class="global-overlay active" id="commandBarOverlay"></div>
-        <div class="command-bar-surface" style="z-index: 10006;">
-            <div class="command-input-wrapper">
-                <span>🔍</span>
-                <input type="text" class="command-input" id="commandBarInput" placeholder="O que você quer fazer? (ex: 'Rolar', 'Ficha')">
-                <div style="font-size: 0.7rem; background: var(--theme-surface-interactive); padding: 4px 8px; border-radius: var(--radius-sm); color: var(--text-muted); font-weight: 600;">ESC</div>
+
+    <!-- MODAL DE AUTENTICAÇÃO (Login / Registro) -->
+    <div id="authModal" class="modal-backdrop">
+        <div class="modal-surface">
+            <button id="closeAuth" class="modal-close" title="Fechar">×</button>
+            
+            <div class="modal-header">
+                <h2>Portal de Aeriom</h2>
+                <p class="text-muted">Identifique-se para acessar os seus registos.</p>
             </div>
-            <div class="command-list" id="commandBarList">
-                <a href="fichas.html" class="command-item">
-                    <span class="command-item-icon">📜</span> Abrir Minhas Fichas
-                </a>
-                <a href="campanhas.html" class="command-item">
-                    <span class="command-item-icon">⚔️</span> Acessar Campanhas
-                </a>
+            
+            <div id="authMessage" class="msg-box mb-4"></div>
+
+            <!-- FORMULÁRIO DE LOGIN -->
+            <div id="loginForm">
+                <div class="form-group">
+                    <label class="form-label" for="loginEmail">E-mail Arcânico</label>
+                    <input type="email" id="loginEmail" class="form-input" placeholder="seu@email.com">
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="loginPassword">Senha</label>
+                    <input type="password" id="loginPassword" class="form-input" placeholder="••••••••">
+                </div>
+                <button id="emailLoginButton" class="btn btn-primary w-full mt-2">Entrar</button>
+                
+                <div style="text-align: center; margin: var(--space-lg) 0; position: relative;">
+                    <hr style="border-color: var(--color-border-strong);">
+                    <span style="position: absolute; top: -10px; left: 50%; transform: translateX(-50%); background: var(--color-surface-raised); padding: 0 10px; color: var(--color-text-disabled); font-size: 0.8rem; font-weight: 600;">OU</span>
+                </div>
+                
+                <button id="discordLoginButton" class="btn btn-secondary w-full" style="color: #5865F2; border-color: rgba(88, 101, 242, 0.3);">Entrar com Discord</button>
+                
+                <p class="text-center mt-4 text-muted" style="font-size: 0.85rem;">
+                    Ainda não tem os seus registos? <a href="#" id="showRegisterButton" style="color: var(--color-primary); font-weight: 600;">Forjar Nova Conta</a>
+                </p>
+            </div>
+
+            <!-- FORMULÁRIO DE REGISTRO -->
+            <div id="registerForm" style="display: none;">
+                <div class="form-group">
+                    <label class="form-label" for="registerEmail">E-mail Arcânico</label>
+                    <input type="email" id="registerEmail" class="form-input" placeholder="seu@email.com">
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="registerPassword">Senha</label>
+                    <input type="password" id="registerPassword" class="form-input" placeholder="Mínimo de 6 caracteres">
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="registerPasswordConfirm">Confirmar Senha</label>
+                    <input type="password" id="registerPasswordConfirm" class="form-input" placeholder="Repita a senha">
+                </div>
+                <button id="registerButton" class="btn btn-primary w-full mt-2">Criar Conta</button>
+                
+                <div style="text-align: center; margin: var(--space-lg) 0; position: relative;">
+                    <hr style="border-color: var(--color-border-strong);">
+                    <span style="position: absolute; top: -10px; left: 50%; transform: translateX(-50%); background: var(--color-surface-raised); padding: 0 10px; color: var(--color-text-disabled); font-size: 0.8rem; font-weight: 600;">OU</span>
+                </div>
+                
+                <button id="discordRegisterButton" class="btn btn-secondary w-full" style="color: #5865F2; border-color: rgba(88, 101, 242, 0.3);">Criar com Discord</button>
+
+                <p class="text-center mt-4 text-muted" style="font-size: 0.85rem;">
+                    Já possui os seus registos? <a href="#" id="showLoginButton" style="color: var(--color-primary); font-weight: 600;">Voltar ao Login</a>
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL DE COMMAND BAR -->
+    <div id="commandBarModal" class="modal-backdrop" style="z-index: 10006; align-items: flex-start; padding-top: 15vh;">
+        <div class="modal-surface" style="padding: 0;">
+            <div style="display: flex; align-items: center; padding: 1.2rem 1.5rem; border-bottom: 1px solid var(--color-border); gap: 12px;">
+                <span>🔍</span>
+                <input type="text" class="form-input" style="border:none; background:transparent; box-shadow:none; padding:0;" id="commandBarInput" placeholder="Navegação Rápida (ex: 'Fichas')">
+                <div style="font-size: 0.7rem; background: var(--color-surface-hover); padding: 4px 8px; border-radius: var(--radius-sm); color: var(--color-text-muted); font-weight: 600;">ESC</div>
+            </div>
+            <div style="padding: 0.5rem; max-height: 300px; overflow-y: auto;">
+                <a href="fichas.html" class="sidebar-link"><span class="sidebar-icon">📜</span> Minhas Fichas</a>
+                <a href="campanhas.html" class="sidebar-link"><span class="sidebar-icon">🗺️</span> Campanhas</a>
             </div>
         </div>
     </div>
@@ -129,118 +166,41 @@
     <div id="profilePanel" class="modal-backdrop">
         <div class="modal-surface text-center">
             <button id="closeProfile" class="modal-close">×</button>
-            <div style="width: 80px; height: 80px; border-radius: 50%; background: var(--theme-surface-interactive); margin: 0 auto 1.5rem; border: 1px solid var(--theme-border-strong); display: grid; place-items: center; font-size: 2rem; font-family: var(--font-heading); color: var(--theme-primary);">♙</div>
-            <img id="profileAvatar" src="" alt="Avatar" style="display: none; width: 80px; height: 80px; border-radius: 50%; margin: 0 auto 1.5rem; object-fit: cover; border: 1px solid var(--theme-border-strong);">
-            
+            <div style="width: 80px; height: 80px; border-radius: 50%; background: var(--color-surface-hover); margin: 0 auto 1.5rem; border: 1px solid var(--color-border-strong); display: grid; place-items: center; font-size: 2rem; font-family: var(--font-heading); color: var(--color-primary); overflow: hidden;">
+                <img id="profileAvatar" src="" alt="Avatar" style="width: 100%; height: 100%; object-fit: cover; display: none;">
+                <span id="profileFallback">♙</span>
+            </div>
             <h2 id="profileName" style="margin-bottom: 0.25rem;">Carregando...</h2>
-            <p id="profileEmail" class="text-secondary mb-4">Aguarde...</p>
-            
-            <div class="form-group">
-                <button id="editProfileButton" class="btn btn-secondary w-full">Editar Perfil</button>
-                <button id="logoutButton" class="btn btn-ghost w-full" style="color: var(--danger); margin-top: 8px;">Sair da Conta</button>
+            <p id="profileEmail" class="text-muted mb-4">Aguarde...</p>
+            <div class="form-group mb-0">
+                <button id="logoutButton" class="btn btn-danger w-full mt-2">Sair da Conta</button>
             </div>
-        </div>
-    </div>
-
-    <!-- MODAL DE AUTENTICAÇÃO -->
-    <div id="authModal" class="modal-backdrop">
-        <div class="modal-surface">
-            <button id="closeAuth" class="modal-close">×</button>
-
-            <div id="loginForm">
-                <div class="modal-header">
-                    <h2>Acesso à Taverna</h2>
-                    <p>Entre com suas credenciais.</p>
-                </div>
-                <button id="discordLoginButton" class="btn btn-secondary w-full" style="justify-content: center; height: 3rem; margin-bottom: 1rem;">🎮 Entrar com Discord</button>
-                <div class="auth-divider">ou use seu e-mail</div>
-                <div class="form-group">
-                    <label class="form-label" for="loginEmail">E-mail</label>
-                    <input type="email" id="loginEmail" class="form-input" placeholder="aventureiro@email.com" autocomplete="email">
-                </div>
-                <div class="form-group mb-4">
-                    <label class="form-label" for="loginPassword">Senha</label>
-                    <input type="password" id="loginPassword" class="form-input" placeholder="••••••••" autocomplete="current-password">
-                </div>
-                <button id="emailLoginButton" class="btn btn-primary w-full mb-4">Entrar</button>
-                <button id="showRegisterButton" class="btn btn-ghost w-full">Não tem conta? Forjar uma nova</button>
-            </div>
-
-            <div id="registerForm" style="display: none;">
-                <div class="modal-header">
-                    <h2>Forjar Conta</h2>
-                    <p>Comece sua jornada no Aeriom.</p>
-                </div>
-                <button id="discordRegisterButton" class="btn btn-secondary w-full" style="justify-content: center; height: 3rem; margin-bottom: 1rem;">🎮 Registrar com Discord</button>
-                <div class="auth-divider">ou use seu e-mail</div>
-                <div class="form-group">
-                    <label class="form-label" for="registerEmail">E-mail</label>
-                    <input type="email" id="registerEmail" class="form-input" placeholder="aventureiro@email.com" autocomplete="email">
-                </div>
-                <div class="form-group">
-                    <label class="form-label" for="registerPassword">Senha</label>
-                    <input type="password" id="registerPassword" class="form-input" placeholder="Mínimo 6 caracteres" autocomplete="new-password">
-                </div>
-                <div class="form-group mb-4">
-                    <label class="form-label" for="registerPasswordConfirm">Confirmar Senha</label>
-                    <input type="password" id="registerPasswordConfirm" class="form-input" placeholder="Digite novamente" autocomplete="new-password">
-                </div>
-                <button id="registerButton" class="btn btn-primary w-full mb-4">Registrar-se</button>
-                <button id="showLoginButton" class="btn btn-ghost w-full">Já tenho uma conta</button>
-            </div>
-
-            <div id="authMessage" class="msg-box"></div>
         </div>
     </div>
 
     <!-- =========================================================
-         SCRIPTS CORE
+         SCRIPTS
     ========================================================= -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="js/supabase.js"></script>
     <script src="js/auth.js"></script>
-    <script src="js/main.js"></script>
     <script src="js/menu.js"></script>
+    <!-- Script Principal (Lógica da Home e Auth UI) -->
+    <script src="js/main.js"></script>
     
-    <!-- Script Estrutural da Home para Command Bar -->
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             const cmdModal = document.getElementById('commandBarModal');
-            const cmdOverlay = document.getElementById('commandBarOverlay');
             const cmdInput = document.getElementById('commandBarInput');
-            
             function toggleCommandBar() {
-                if(cmdModal.classList.contains('active')) {
-                    cmdModal.classList.remove('active');
-                    cmdInput.value = '';
-                } else {
-                    cmdModal.classList.add('active');
-                    cmdInput.focus();
-                }
+                if(cmdModal.classList.contains('active')) { cmdModal.classList.remove('active'); cmdInput.value = ''; } 
+                else { cmdModal.classList.add('active'); cmdInput.focus(); }
             }
-
             document.getElementById('openCommandBarBtn')?.addEventListener('click', toggleCommandBar);
-            cmdOverlay?.addEventListener('click', toggleCommandBar);
-            
             document.addEventListener('keydown', (e) => {
-                if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
-                    e.preventDefault();
-                    toggleCommandBar();
-                }
-                if (e.key === 'Escape' && cmdModal.classList.contains('active')) {
-                    toggleCommandBar();
-                }
+                if ((e.ctrlKey || e.metaKey) && e.key === 'k') { e.preventDefault(); toggleCommandBar(); }
+                if (e.key === 'Escape' && cmdModal.classList.contains('active')) { toggleCommandBar(); }
             });
-            
-            // Corrige o Grid na alteração de estado do Auth
-            const observer = new MutationObserver(() => {
-                const loggedIn = document.getElementById('loggedInActions');
-                if (loggedIn && loggedIn.style.display === 'flex') {
-                    loggedIn.style.display = 'block';
-                }
-            });
-            const loggedInEl = document.getElementById('loggedInActions');
-            if (loggedInEl) observer.observe(loggedInEl, { attributes: true, attributeFilter: ['style'] });
         });
     </script>
 </body>
