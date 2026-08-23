@@ -8,7 +8,6 @@ document.addEventListener("DOMContentLoaded", async () => {
     let currentCampaign = null;
     let userRole = null;
     let activeStateLinkId = null;
-    let activeStateCharName = "";
     let playerSheetLinkId = null;
     let playerSheetCharName = "";
     
@@ -41,11 +40,13 @@ document.addEventListener("DOMContentLoaded", async () => {
         setupTabs();
         setupRealtime();
 
-        // Inicializa Módulos Separados AQUI DENTRO da função init()
+        // Inicializa Módulos Separados
         if (window.initTimelineSystem) window.initTimelineSystem(supabase, campaignId);
         if (window.initCookingSystem) window.initCookingSystem(supabase, campaignId);
         if (window.initSessionSystem) window.initSessionSystem(supabase, campaignId);
         if (window.initSceneSystem) window.initSceneSystem(supabase, campaignId);
+        if (window.initSecretsSystem) window.initSecretsSystem(supabase, campaignId, currentUser, userRole);
+        if (window.initMapSystem) window.initMapSystem(supabase, campaignId, userRole);
     }
 
     function setupRealtime() {
@@ -202,7 +203,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         document.getElementById("playerSheetModal").style.display = "none";
     });
 
-    // Mural
+    // Mural com Integração de Mapa
     async function loadMural() {
         const { data } = await supabase.from('campaign_mural').select('*').eq('campaign_id', campaignId).order('created_at', { ascending: false });
         const list = document.getElementById("muralList");
@@ -210,7 +211,15 @@ document.addEventListener("DOMContentLoaded", async () => {
         if(data) data.forEach(item => {
             const div = document.createElement('div');
             div.className = 'mural-card';
-            div.innerHTML = (item.image_url ? `<img src="${item.image_url}" class="mural-image">` : '') + `<div class="mural-content-box"><h4>${item.title}</h4><p>${item.content}</p></div>`;
+            let imgHtml = '';
+            let mapBtnHtml = '';
+            
+            if (item.image_url) {
+                imgHtml = `<img src="${item.image_url}" class="mural-image">`;
+                mapBtnHtml = `<button class="secondary-button" style="margin: 10px auto; width: 90%; min-height: 30px; font-size: 11px;" onclick="window.openInteractiveMap('${item.id}', '${item.image_url}', '${item.title.replace(/'/g, "\\'")}')">🗺️ Abrir Mapa Interativo</button>`;
+            }
+
+            div.innerHTML = `${imgHtml}<div class="mural-content-box"><h4>${item.title}</h4><p>${item.content}</p>${mapBtnHtml}</div>`;
             list.appendChild(div);
         });
     }
@@ -318,8 +327,5 @@ document.addEventListener("DOMContentLoaded", async () => {
     
     document.getElementById("requestToastCloseBtn")?.addEventListener('click', () => document.getElementById("requestToast").hidden = true);
 
-        if (window.initSecretsSystem) window.initSecretsSystem(supabase, campaignId, currentUser, userRole);
-
-    init(); // Chama a função principal de inicialização
-
+    init(); // Inicializa
 });
