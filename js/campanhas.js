@@ -1,288 +1,252 @@
+/* =========================================================
+   AERIOM — GERENCIADOR DE CAMPANHAS (js/campanhas.js)
+   Correção de Integração: Estados UI, Anti-XSS e Capas via URL
+========================================================= */
 document.addEventListener("DOMContentLoaded", async () => {
     "use strict";
 
     const supabase = window.supabaseClient;
     if (!supabase) {
-        console.error("Aeriom: supabaseClient não encontrado.");
+        console.error("❌ Supabase não inicializado.");
         return;
     }
 
     let currentUser = null;
-    let pendingCampaignId = null; // Armazena ID da campanha ao entrar por convite
 
-    const listContainer = document.getElementById("campaignsList");
-    const loadingEl = document.getElementById("loadingCampaigns");
-    const emptyEl = document.getElementById("emptyCampaigns");
-    const backBtn = document.getElementById("backButton");
-    
-    const createModal = document.getElementById("createCampaignModal");
-    const btnOpenModal = document.getElementById("createCampaignBtn");
-    const btnEmptyCreate = document.getElementById("emptyCreateCampaignBtn");
-    const btnCloseModal = document.getElementById("closeCreateModal");
-    const createForm = document.getElementById("createCampaignForm");
-    const submitBtn = document.getElementById("submitCampaignBtn");
+    // Elementos de Estado da Interface
+    const loadingCampaigns = document.getElementById("loadingCampaigns");
+    const emptyCampaigns = document.getElementById("emptyCampaigns");
+    const campaignsList = document.getElementById("campaignsList");
+    const campaignsMessage = document.getElementById("campaignsMessage");
 
-    const joinModal = document.getElementById("joinCampaignModal");
-    const btnOpenJoinModal = document.getElementById("openJoinModalBtn");
-    const btnCloseJoinModal = document.getElementById("closeJoinModal");
-    const joinForm = document.getElementById("joinCampaignForm");
-    const joinMessage = document.getElementById("joinMessage");
+    // Elementos de Criação
+    const createCampaignBtn = document.getElementById("createCampaignBtn");
+    const createCampaignModal = document.getElementById("createCampaignModal");
+    const closeCreateModal = document.getElementById("closeCreateModal");
+    const createCampaignForm = document.getElementById("createCampaignForm");
+    const submitCampaignBtn = document.getElementById("submitCampaignBtn");
 
-    const selectCharacterModal = document.getElementById("selectCharacterModal");
-    const userCharactersList = document.getElementById("userCharactersList");
-
-    if (backBtn) {
-        backBtn.addEventListener("click", () => window.location.href = "index.html");
-    }
-
-    async function init() {
-        const { data: { session }, error } = await supabase.auth.getSession();
-        if (error || !session) {
-            window.location.href = "index.html";
-            return;
-        }
-        currentUser = session.user;
-        await loadCampaigns();
+    // =========================================================
+    // 1. UTILITÁRIOS DE FEEDBACK E ESTADO
+    // =========================================================
+    function showMessage(msg, isError = false) {
+        if (!campaignsMessage) return;
+        campaignsMessage.textContent = msg;
+        campaignsMessage.className = `msg-box mb-4 ${isError ? 'msg-error' : 'msg-success'} active`;
+        setTimeout(() => { campaignsMessage.classList.remove('active'); }, 4000);
     }
 
     function showState(state) {
-        loadingEl.style.display = state === 'loading' ? 'block' : 'none';
-        emptyEl.style.display = state === 'empty' ? 'block' : 'none';
-        listContainer.style.display = state === 'list' ? 'grid' : 'none';
+        // Esconde tudo primeiro (Proteção contra null)
+        if (loadingCampaigns) loadingCampaigns.style.display = "none";
+        if (emptyCampaigns) emptyCampaigns.style.display = "none";
+        if (campaignsList) campaignsList.style.display = "none";
+
+        // Exibe o estado correto
+        if (state === 'loading' && loadingCampaigns) loadingCampaigns.style.display = "flex";
+        if (state === 'empty' && emptyCampaigns) emptyCampaigns.style.display = "flex";
+        if (state === 'list' && campaignsList) campaignsList.style.display = "grid"; // Usa Grid para os cards
     }
 
+    // =========================================================
+    // 2. CARREGAMENTO DE CAMPANHAS
+    // =========================================================
     async function loadCampaigns() {
         showState('loading');
+        
         try {
-            const { data, error } = await supabase
+            const { data: { session }, error: authError } = await supabase.auth.getSession();
+            
+            if (authError || !session) {
+                window.location.href = "index.html";
+                return;
+            }
+            
+            currentUser = session.user;
+
+            // Busca as mesas nas quais o jogador é membro
+            const { data: memberships, error: dbError } = await supabase
                 .from('campaign_members')
-                .select(`role, campaigns (id, name, description, cover_url)`)
+                .select('role, campaigns(id, name, description, cover_url)')
                 .eq('user_id', currentUser.id)
-                .order('joined_at', { ascending: false });
+                .order('created_at', { ascending: false });
 
-            if (error) throw error;
+            if (dbError) throw dbError;
 
-            if (!data || data.length === 0) {
+            if (!memberships || memberships.length === 0) {
                 showState('empty');
                 return;
             }
 
-            listContainer.innerHTML = '';
-            data.forEach(item => {
-                if(item.campaigns) listContainer.appendChild(createCampaignCard(item.campaigns, item.role));
-            });
+            renderCampaigns(memberships);
             showState('list');
+
         } catch (error) {
-            console.error("Erro ao carregar campanhas:", error);
-            showState('empty');
+            console.error("Erro ao consultar campanhas:", error);
+            // Mostra o estado vazio por segurança visual, mas avisa do erro real
+            showState('empty'); 
+            showMessage("Erro de comunicação com os servidores. Tente atualizar a página.", true);
         }
     }
 
-    function createCampaignCard(campaign, role) {
-        const card = document.createElement('article');
-        card.className = 'campaign-card';
-        const roleText = role === 'master' ? 'Mestre' : 'Jogador';
-        const roleClass = role === 'master' ? 'master' : 'player';
-        const name = campaign.name.replace(/</g, "&lt;").replace(/>/g, "&gt;");
-        const desc = (campaign.description || "Sem descrição.").replace(/</g, "&lt;").replace(/>/g, "&gt;");
-        const cover = campaign.cover_url || 'https://via.placeholder.com/300x140?text=Sem+Capa';
+    // =========================================================
+    // 3. RENDERIZAÇÃO SEGURA (Anti-XSS e Design System)
+    // =========================================================
+    function renderCampaigns(memberships) {
+        if (!campaignsList) return;
+        campaignsList.innerHTML = '';
 
-        card.innerHTML = `
-            <div class="campaign-cover">
-                <span class="campaign-role-badge ${roleClass}">${roleText}</span>
-                <img src="${cover}" alt="Capa de ${name}" loading="lazy" onerror="this.src='https://via.placeholder.com/300x140?text=Erro+na+Imagem'">
-            </div>
-            <div class="campaign-info">
-                <h3>${name}</h3>
-                <p>${desc.length > 80 ? desc.substring(0, 80) + '...' : desc}</p>
-                <button class="primary-button enter-campaign-btn" data-id="${campaign.id}">Entrar no Mundo</button>
-            </div>
-        `;
+        memberships.forEach(member => {
+            const camp = member.campaigns;
+            if (!camp) return;
 
-        card.querySelector('.enter-campaign-btn').addEventListener('click', () => {
-            localStorage.setItem("aeriom_active_campaign", campaign.id);
-            window.location.href = "campanha.html"; 
+            // Card Principal
+            const card = document.createElement("div");
+            card.className = "aeriom-card-interactive";
+            card.style.padding = "0"; // Sobrescreve para a imagem ocupar o topo
+            card.style.display = "flex";
+            card.style.flexDirection = "column";
+            card.style.overflow = "hidden";
+
+            // Capa da Campanha
+            const cover = document.createElement("div");
+            cover.style.height = "140px";
+            cover.style.width = "100%";
+            cover.style.borderBottom = "1px solid var(--color-border-strong)";
+            cover.style.backgroundColor = "var(--color-bg-secondary)";
+            
+            if (camp.cover_url && camp.cover_url.trim() !== '') {
+                cover.style.backgroundImage = `url('${camp.cover_url}')`;
+                cover.style.backgroundSize = "cover";
+                cover.style.backgroundPosition = "center";
+            } else {
+                cover.style.display = "grid";
+                cover.style.placeItems = "center";
+                const initial = document.createElement("span");
+                initial.textContent = camp.name ? camp.name.charAt(0).toUpperCase() : "A";
+                initial.style.fontSize = "3rem";
+                initial.style.fontFamily = "var(--font-heading)";
+                initial.style.color = "var(--color-primary-muted)";
+                cover.appendChild(initial);
+            }
+
+            // Conteúdo Interno
+            const content = document.createElement("div");
+            content.style.padding = "var(--space-lg)";
+            content.style.display = "flex";
+            content.style.flexDirection = "column";
+            content.style.gap = "var(--space-sm)";
+            content.style.flex = "1";
+
+            const title = document.createElement("h3");
+            title.style.color = "var(--color-primary)";
+            title.style.margin = "0";
+            title.textContent = camp.name || "Mesa Sem Nome";
+
+            const desc = document.createElement("p");
+            desc.className = "text-muted";
+            desc.style.fontSize = "0.9rem";
+            desc.style.margin = "0";
+            desc.style.flex = "1";
+            desc.style.display = "-webkit-box";
+            desc.style.webkitLineClamp = "3";
+            desc.style.webkitBoxOrient = "vertical";
+            desc.style.overflow = "hidden";
+            desc.textContent = camp.description || "Sem descrição registada.";
+
+            // Role Badge (Selo de Mestre ou Jogador)
+            const roleBadge = document.createElement("div");
+            roleBadge.style.marginTop = "var(--space-md)";
+            roleBadge.style.fontSize = "0.75rem";
+            roleBadge.style.fontWeight = "600";
+            roleBadge.style.textTransform = "uppercase";
+            roleBadge.style.letterSpacing = "0.05em";
+
+            if (member.role === 'master') {
+                roleBadge.style.color = "var(--color-accent)";
+                roleBadge.textContent = "👑 Mestre da Mesa";
+            } else {
+                roleBadge.style.color = "var(--color-primary)";
+                roleBadge.textContent = "⚔️ Aventureiro";
+            }
+
+            content.appendChild(title);
+            content.appendChild(desc);
+            content.appendChild(roleBadge);
+
+            card.appendChild(cover);
+            card.appendChild(content);
+
+            // Ação de clique para entrar na VTT
+            card.addEventListener("click", () => {
+                localStorage.setItem("aeriom_active_campaign", camp.id);
+                window.location.href = "campanha.html";
+            });
+
+            campaignsList.appendChild(card);
         });
-        return card;
     }
 
-    // MODAIS DE CRIAÇÃO E CONVITE
-    function closeAllModals() {
-        createModal.style.display = 'none';
-        joinModal.style.display = 'none';
-        selectCharacterModal.style.display = 'none';
-        createForm.reset();
-        joinForm.reset();
-        joinMessage.textContent = "";
-    }
-
-    if(btnOpenModal) btnOpenModal.addEventListener('click', () => createModal.style.display = 'flex');
-    if(btnEmptyCreate) btnEmptyCreate.addEventListener('click', () => createModal.style.display = 'flex');
-    if(btnCloseModal) btnCloseModal.addEventListener('click', closeAllModals);
-    
-    if(btnOpenJoinModal) btnOpenJoinModal.addEventListener('click', () => joinModal.style.display = 'flex');
-    if(btnCloseJoinModal) btnCloseJoinModal.addEventListener('click', closeAllModals);
-
-    window.addEventListener('click', (e) => {
-        if(e.target === createModal || e.target === joinModal) closeAllModals();
+    // =========================================================
+    // 4. CRIAÇÃO DE NOVA CAMPANHA
+    // =========================================================
+    createCampaignBtn?.addEventListener("click", () => {
+        if (createCampaignModal) createCampaignModal.classList.add("active");
     });
 
-    // =========================================================
-    // CRIAR CAMPANHA
-    // =========================================================
-    createForm.addEventListener('submit', async (e) => {
+    closeCreateModal?.addEventListener("click", () => {
+        if (createCampaignModal) createCampaignModal.classList.remove("active");
+    });
+
+    createCampaignForm?.addEventListener("submit", async (e) => {
         e.preventDefault();
+        
+        if (!currentUser) return showMessage("Precisa estar logado para criar uma campanha.", true);
+
+        if (submitCampaignBtn) {
+            submitCampaignBtn.disabled = true;
+            submitCampaignBtn.textContent = "A Fundar Mesa...";
+        }
+
         const name = document.getElementById("campaignName").value.trim();
         const desc = document.getElementById("campaignDesc").value.trim();
-        const file = document.getElementById("campaignCover").files[0];
-
-        if (!name || !file) return alert("Nome e imagem são obrigatórios.");
-        if (file.size > 3 * 1024 * 1024) return alert("Capa max 3MB.");
-
-        submitBtn.disabled = true;
-        submitBtn.textContent = "Forjando o mundo...";
+        const cover = document.getElementById("campaignCover").value.trim(); // URL Direta
 
         try {
-            const fileExt = file.name.split('.').pop();
-            const filePath = `${currentUser.id}/${Date.now()}.${fileExt}`;
-            const { error: uploadError } = await supabase.storage.from('campaign_covers').upload(filePath, file);
-            if (uploadError) throw uploadError;
+            // 1. Cria a campanha
+            const { data: newCampaign, error: campError } = await supabase
+                .from('campaigns')
+                .insert([{ name: name, description: desc, cover_url: cover }])
+                .select()
+                .single();
 
-            const { data: publicUrlData } = supabase.storage.from('campaign_covers').getPublicUrl(filePath);
-            const { data: campData, error: campError } = await supabase.from('campaigns').insert({
-                name, description: desc, cover_url: publicUrlData.publicUrl, master_id: currentUser.id
-            }).select('id').single();
             if (campError) throw campError;
 
-            await supabase.from('campaign_members').insert({ campaign_id: campData.id, user_id: currentUser.id, role: 'master' });
-            
-            closeAllModals();
-            await loadCampaigns();
-        } catch (error) {
-            console.error(error);
-            alert("Falha ao criar campanha.");
-        } finally {
-            submitBtn.disabled = false;
-            submitBtn.textContent = "Criar Mundo";
-        }
-    });
-
-    // =========================================================
-    // ENTRAR VIA CONVITE
-    // =========================================================
-    joinForm.addEventListener('submit', async (e) => {
-        e.preventDefault();
-        const code = document.getElementById("inviteCodeInput").value.trim().toUpperCase();
-        if(!code) return;
-        joinMessage.textContent = "Verificando código...";
-
-        try {
-            // Verifica o convite
-            const { data: invite, error: inviteError } = await supabase
-                .from('campaign_invites')
-                .select('campaign_id')
-                .eq('code', code)
-                .eq('is_active', true)
-                .maybeSingle();
-
-            if (inviteError || !invite) {
-                joinMessage.textContent = "Convite inválido ou expirado.";
-                return;
-            }
-
-            pendingCampaignId = invite.campaign_id;
-
-            // Insere o usuário como membro (ignora erro se já for membro via unique constraint)
+            // 2. Associa o utilizador como Mestre
             const { error: memberError } = await supabase
                 .from('campaign_members')
-                .insert({ campaign_id: pendingCampaignId, user_id: currentUser.id, role: 'player' });
+                .insert([{ campaign_id: newCampaign.id, user_id: currentUser.id, role: 'master' }]);
 
-            if (memberError && memberError.code !== '23505') throw memberError;
+            if (memberError) throw memberError;
 
-            // Passa para a seleção de ficha
-            joinModal.style.display = 'none';
-            openCharacterSelection();
+            showMessage("Mesa fundada com sucesso!");
+            createCampaignForm.reset();
+            if (createCampaignModal) createCampaignModal.classList.remove("active");
+            
+            // Recarrega a lista
+            await loadCampaigns();
 
         } catch (error) {
-            console.error("Erro no convite:", error);
-            joinMessage.textContent = "Erro ao processar o convite.";
+            console.error("Erro ao fundar campanha:", error);
+            showMessage("Uma falha impediu a fundação da mesa.", true);
+        } finally {
+            if (submitCampaignBtn) {
+                submitCampaignBtn.disabled = false;
+                submitCampaignBtn.textContent = "Fundar Campanha";
+            }
         }
     });
 
-    // =========================================================
-    // ESCOLHER FICHA
-    // =========================================================
-    async function openCharacterSelection() {
-        selectCharacterModal.style.display = 'flex';
-        userCharactersList.innerHTML = '<p style="text-align: center;">Carregando suas fichas...</p>';
-
-        try {
-            const { data: characters, error } = await supabase
-                .from('characters')
-                .select('id, name, race, class, avatar_url')
-                .eq('user_id', currentUser.id);
-
-            if (error) throw error;
-
-            if (!characters || characters.length === 0) {
-                userCharactersList.innerHTML = `<p style="text-align: center; color: var(--cream-muted);">Você não possui nenhuma ficha criada. Crie uma ficha primeiro.</p>`;
-                return;
-            }
-
-            userCharactersList.innerHTML = '';
-            characters.forEach(char => {
-                const charEl = document.createElement('div');
-                charEl.style.display = 'flex';
-                charEl.style.alignItems = 'center';
-                charEl.style.gap = '15px';
-                charEl.style.padding = '12px';
-                charEl.style.border = '1px solid rgba(200, 100, 50, 0.3)';
-                charEl.style.borderRadius = '10px';
-                charEl.style.background = 'rgba(25, 17, 15, 0.6)';
-                charEl.style.cursor = 'pointer';
-
-                const avatar = char.avatar_url ? `<img src="${char.avatar_url}" style="width:40px; height:40px; border-radius:50%; object-fit:cover;">` : `<div style="width:40px; height:40px; border-radius:50%; background:#222; display:grid; place-items:center; color:var(--gold); border:1px solid var(--gold);">${char.name.charAt(0)}</div>`;
-
-                charEl.innerHTML = `
-                    ${avatar}
-                    <div style="flex:1;">
-                        <h4 style="margin:0; color:var(--cream); font-family:var(--display-font);">${char.name}</h4>
-                        <span style="font-size:11px; color:var(--cream-muted);">${char.race || '?'} • ${char.class || '?'}</span>
-                    </div>
-                    <button class="secondary-button" style="min-height:30px; padding:5px 15px; font-size:10px;">Selecionar</button>
-                `;
-
-                charEl.addEventListener('click', () => selectCharacterForCampaign(char.id));
-                userCharactersList.appendChild(charEl);
-            });
-
-        } catch (error) {
-            console.error("Erro ao carregar fichas:", error);
-            userCharactersList.innerHTML = '<p style="color:#d46a4a;">Erro ao carregar fichas.</p>';
-        }
-    }
-
-    async function selectCharacterForCampaign(characterId) {
-        if (!pendingCampaignId) return;
-        
-        try {
-            const { error } = await supabase
-                .from('campaign_characters')
-                .insert({
-                    campaign_id: pendingCampaignId,
-                    user_id: currentUser.id,
-                    character_id: characterId
-                });
-
-            if (error && error.code !== '23505') throw error; // 23505 = já vinculado
-
-            localStorage.setItem("aeriom_active_campaign", pendingCampaignId);
-            window.location.href = "campanha.html";
-        } catch (error) {
-            console.error("Erro ao vincular ficha:", error);
-            alert("Não foi possível vincular sua ficha à campanha. Tente novamente.");
-        }
-    }
-
-    init();
+    // Início
+    loadCampaigns();
 });
