@@ -4,35 +4,35 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="theme-color" content="#09090b">
-    <title>Aeriom — Painel da Campanha</title>
+    <title>Aeriom — Mesa Digital</title>
     <link rel="stylesheet" href="css/style.css">
     <link rel="stylesheet" href="css/campanha.css">
 </head>
 <body>
 
-<!-- CRONÔMETRO GLOBAL (FASE B) -->
+<!-- CRONÔMETRO GLOBAL -->
 <div id="globalTimerDisplay" class="global-timer" hidden>
-    <span id="timerLabel" class="label">Tempo Narrativo</span>
+    <span id="timerLabel" class="hud-label">Tempo Narrativo</span>
     <strong id="timerCountdown" class="time">00:00</strong>
 </div>
 
 <!-- =========================================================
-     NOVO LAYOUT: WEB APP (SIDEBAR + MAIN CONTENT)
+     APP LAYOUT (WEB APP)
 ========================================================= -->
 <div class="app-layout">
 
     <!-- HEADER EXCLUSIVO MOBILE -->
-    <header class="mobile-header">
-        <button class="btn btn-ghost" id="backToCampaignsBtnMob" style="padding: 0.5rem;">← Voltar</button>
-        <h1 class="mobile-header-title" id="campaignTitleMob">Carregando...</h1>
-        <button class="btn btn-ghost menu-btn" id="menuButtonMob" style="padding: 0.5rem;">☰</button>
+    <header class="mobile-topbar">
+        <button class="btn-icon" id="backToCampaignsBtnMob">←</button>
+        <h1 id="campaignTitleMob">Carregando...</h1>
+        <button class="btn-icon menu-btn" id="menuButtonMob">☰</button>
     </header>
 
     <!-- SIDEBAR FIXA (DESKTOP) -->
-    <aside class="campaign-sidebar">
+    <aside class="app-sidebar">
         <div class="sidebar-brand">
-            <button class="btn-back" id="backToCampaignsBtn" title="Voltar">←</button>
-            <button class="menu-btn btn-ghost" id="menuButton" style="padding: 0; font-size: 1.25rem;">☰ Menu</button>
+            <button class="btn-icon" id="backToCampaignsBtn" title="Voltar" style="border: none; background: transparent;">←</button>
+            <button class="btn-ghost menu-btn" id="menuButton" style="padding: 0.5rem;">☰ Menu</button>
         </div>
         
         <div class="campaign-info-mini">
@@ -41,43 +41,49 @@
         </div>
 
         <nav class="campaign-nav">
+            <div class="nav-category">A Mesa</div>
             <button class="dash-tab active" data-tab="tab-overview">
-                <span class="dash-tab-icon">🌍</span> Visão Geral
+                <span class="tab-icon">🌍</span> Visão Geral
             </button>
             <button class="dash-tab" data-tab="tab-combate">
-                <span class="dash-tab-icon">⚔️</span> Combate
+                <span class="tab-icon">⚔️</span> Campo de Batalha
             </button>
-            <button class="dash-tab" data-tab="tab-mural">
-                <span class="dash-tab-icon">📌</span> Mural
-            </button>
+
+            <div class="nav-category">Acampamento</div>
             <button class="dash-tab" data-tab="tab-cozinha">
-                <span class="dash-tab-icon">🍲</span> Cozinha
+                <span class="tab-icon">🍲</span> Cozinha
             </button>
             <button class="dash-tab" data-tab="tab-craft">
-                <span class="dash-tab-icon">🛠️</span> Craft
+                <span class="tab-icon">🛠️</span> Bancada Craft
             </button>
             <button class="dash-tab" data-tab="tab-forja">
-                <span class="dash-tab-icon">🔨</span> Forja
+                <span class="tab-icon">🔨</span> Forja Ancestral
+            </button>
+
+            <div class="nav-category">Aventura</div>
+            <button class="dash-tab" data-tab="tab-mural">
+                <span class="tab-icon">📌</span> Mural
             </button>
             <button class="dash-tab" data-tab="tab-logs">
-                <span class="dash-tab-icon">📜</span> Histórico
+                <span class="tab-icon">📜</span> Diário e Logs
             </button>
-            <button class="dash-tab master-only" data-tab="tab-settings" hidden>
-                <span class="dash-tab-icon">⚙️</span> Configurações
+
+            <button class="dash-tab master-only" data-tab="tab-settings" style="margin-top: 1rem;" hidden>
+                <span class="tab-icon">⚙️</span> Configurações
             </button>
         </nav>
     </aside>
 
-    <!-- PALCO PRINCIPAL -->
-    <main class="campaign-main">
-        <div class="campaign-content-wrapper">
+    <!-- PALCO PRINCIPAL (MAIN VIEW) -->
+    <main class="app-main">
+        <div class="main-container">
             
             <div id="loadingDash" class="text-center mt-4">
                 <p class="text-muted">Acessando o mundo...</p>
             </div>
 
             <section id="dashContent" hidden>
-                <!-- CABEÇALHO DA CAMPANHA (Visual) -->
+                <!-- BANNER DA CAMPANHA -->
                 <div class="campaign-banner" id="campaignBanner">
                     <div class="banner-overlay"></div>
                     <h2 id="bannerName">Nome da Campanha</h2>
@@ -88,14 +94,14 @@
                 =========================== -->
                 <div id="tab-overview" class="dash-tab-content active">
                     
-                    <!-- PAINEL DO MESTRE (NOVO LAYOUT) -->
-                    <div id="masterPanel" class="panel-card master-panel" hidden>
+                    <!-- PAINEL DO MESTRE (DASHBOARD) -->
+                    <div id="masterPanel" class="panel master-panel" hidden>
                         <div class="panel-header">
                             <h3>Controle do Mestre</h3>
-                            <p>Ferramentas rápidas de administração da sessão.</p>
+                            <p>Ferramentas de administração da sessão.</p>
                         </div>
                         
-                        <div class="tools-grid">
+                        <div class="master-tools-grid">
                             <!-- Solicitar Teste -->
                             <div class="tool-box">
                                 <span class="tool-box-header">Solicitar Teste</span>
@@ -112,25 +118,11 @@
 
                             <!-- Convites -->
                             <div class="tool-box">
-                                <span class="tool-box-header">Jogadores</span>
+                                <span class="tool-box-header">Gerenciar Jogadores</span>
                                 <div style="display: flex; gap: 8px;">
-                                    <button id="generateInviteBtn" class="btn btn-secondary">Gerar Convite</button>
-                                    <div id="inviteCodeDisplay" class="form-input text-center text-gold" style="font-family: monospace; letter-spacing: 2px;" hidden></div>
+                                    <button id="generateInviteBtn" class="btn btn-secondary w-full">Gerar Convite</button>
                                 </div>
-                            </div>
-
-                            <!-- Rolagens Rápidas -->
-                            <div class="tool-box" style="grid-column: 1 / -1;">
-                                <span class="tool-box-header">Rolagens Rápidas (Públicas)</span>
-                                <div class="dice-buttons-container">
-                                    <button class="dice-btn master-dice-btn" data-dice="4">d4</button>
-                                    <button class="dice-btn master-dice-btn" data-dice="6">d6</button>
-                                    <button class="dice-btn master-dice-btn" data-dice="8">d8</button>
-                                    <button class="dice-btn master-dice-btn" data-dice="10">d10</button>
-                                    <button class="dice-btn master-dice-btn" data-dice="12">d12</button>
-                                    <button class="dice-btn master-dice-btn dice-d20" data-dice="20">d20</button>
-                                    <button class="dice-btn master-dice-btn" data-dice="100">d100</button>
-                                </div>
+                                <div id="inviteCodeDisplay" class="form-input text-center mt-4" style="color: var(--gold-primary); font-family: monospace; letter-spacing: 2px;" hidden></div>
                             </div>
 
                             <!-- Cronômetro Narrativo -->
@@ -143,55 +135,69 @@
                                     </div>
                                     <div style="display: flex; gap: 8px; margin-top: 8px;">
                                         <button id="startTimerBtn" class="btn btn-primary w-full">Iniciar</button>
-                                        <button id="stopTimerBtn" class="btn btn-secondary w-full" style="color: var(--accent-danger);">Parar</button>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <!-- Modo Cenas -->
-                            <div class="tool-box" style="grid-column: 1 / -1;">
-                                <span class="tool-box-header">🎭 Apresentar Cena</span>
-                                <div class="form-group">
-                                    <input type="text" id="sceneTitleInput" class="form-input" placeholder="Título (ex: Floresta de Eldoria)">
-                                    <textarea id="sceneDescInput" class="form-input" placeholder="Descreva a cena para os jogadores..." style="min-height: 60px;"></textarea>
-                                    <input type="text" id="sceneImageInput" class="form-input" placeholder="URL da Imagem de Fundo (opcional)">
-                                    <div style="display: flex; gap: 8px; margin-top: 8px;">
-                                        <button id="startSceneBtn" class="btn btn-primary" style="flex: 2;">Iniciar Apresentação</button>
-                                        <button id="stopSceneBtn" class="btn btn-secondary" style="flex: 1; color: var(--accent-danger);">Encerrar</button>
+                                        <button id="stopTimerBtn" class="btn btn-secondary w-full" style="color: var(--danger);">Parar</button>
                                     </div>
                                 </div>
                             </div>
 
                             <!-- Segredos -->
                             <div class="tool-box">
-                                <span class="tool-box-header">🔐 Mensagens Privadas</span>
-                                <p class="text-muted" style="font-size: 0.8rem; margin-bottom: 8px;">Envie informações secretas para alvos específicos.</p>
-                                <button id="openCreateSecretBtn" class="btn btn-primary w-full" style="background: var(--accent-magic); border-color: var(--accent-magic);">+ Revelar Segredo</button>
+                                <span class="tool-box-header">🔐 Segredos</span>
+                                <p class="text-muted" style="font-size: 0.8rem; margin-bottom: 8px;">Envie informações secretas exclusivas.</p>
+                                <button id="openCreateSecretBtn" class="btn btn-primary w-full" style="background: var(--bg-elevated); border-color: #a855f7; color: #d8b4fe;">+ Revelar Segredo</button>
+                            </div>
+
+                            <!-- Modo Cenas -->
+                            <div class="tool-box" style="grid-column: 1 / -1;">
+                                <span class="tool-box-header">🎭 Modo Cena</span>
+                                <div class="form-group">
+                                    <input type="text" id="sceneTitleInput" class="form-input" placeholder="Título (ex: A Caverna Escura)">
+                                    <textarea id="sceneDescInput" class="form-input" placeholder="Descreva a cena..."></textarea>
+                                    <input type="text" id="sceneImageInput" class="form-input" placeholder="URL da Imagem de Fundo (opcional)">
+                                    <div style="display: flex; gap: 8px; margin-top: 8px;">
+                                        <button id="startSceneBtn" class="btn btn-primary" style="flex: 2;">Apresentar Cena</button>
+                                        <button id="stopSceneBtn" class="btn btn-secondary" style="flex: 1; color: var(--danger);">Encerrar</button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Rolagens Rápidas -->
+                            <div class="tool-box" style="grid-column: 1 / -1;">
+                                <span class="tool-box-header">Rolagens Rápidas (Públicas)</span>
+                                <div class="dice-buttons-container">
+                                    <button class="master-dice-btn" data-dice="4">d4</button>
+                                    <button class="master-dice-btn" data-dice="6">d6</button>
+                                    <button class="master-dice-btn" data-dice="8">d8</button>
+                                    <button class="master-dice-btn" data-dice="10">d10</button>
+                                    <button class="master-dice-btn" data-dice="12">d12</button>
+                                    <button class="master-dice-btn dice-d20" data-dice="20">d20</button>
+                                    <button class="master-dice-btn" data-dice="100">d100</button>
+                                </div>
                             </div>
                         </div>
                     </div>
 
                     <!-- AVENTUREIROS -->
-                    <div class="panel-card">
+                    <div class="panel">
                         <div class="panel-header">
                             <div>
                                 <h3>O Grupo</h3>
                                 <p>Heróis presentes neste mundo.</p>
                             </div>
-                            <button id="addMyCharacterBtn" class="btn btn-primary">+ Adicionar Ficha</button>
+                            <button id="addMyCharacterBtn" class="btn btn-primary">Vincular Ficha</button>
                         </div>
-                        <div id="campaignCharactersList" class="char-grid">
+                        <div id="campaignCharactersList" class="campaign-characters-grid">
                             <p class="text-muted">Buscando aventureiros...</p>
                         </div>
                     </div>
 
                     <!-- SEGREDOS DO JOGADOR -->
-                    <div class="panel-card" style="border-color: rgba(142, 75, 158, 0.3);">
+                    <div class="panel" style="border-color: rgba(168, 85, 247, 0.3);">
                         <div class="panel-header">
-                            <h3 style="color: #dfb2f2;">🔐 Meus Segredos</h3>
-                            <p>Anotações privadas reveladas pelo Mestre.</p>
+                            <h3 style="color: #d8b4fe;">🔐 Conhecimento Secreto</h3>
+                            <p>Anotações privadas reveladas para você.</p>
                         </div>
-                        <div id="mySecretsList" style="display: flex; flex-direction: column; gap: 10px;">
+                        <div id="mySecretsList">
                             <!-- Segredos aparecerão aqui -->
                         </div>
                     </div>
@@ -202,7 +208,7 @@
                      ABA 2: COMBATE
                 =========================== -->
                 <div id="tab-combate" class="dash-tab-content" hidden>
-                    <div class="panel-card">
+                    <div class="panel">
                         <div class="panel-header">
                             <div>
                                 <h3>Campo de Batalha</h3>
@@ -212,16 +218,16 @@
                         </div>
 
                         <!-- Painel Adicionar -->
-                        <div id="combatMasterPanel" class="master-panel" style="padding: 1rem; border-radius: var(--radius-md); margin-bottom: 1.5rem;" hidden>
-                            <h4 class="text-gold mb-4">Adicionar ao Combate</h4>
+                        <div id="combatMasterPanel" class="master-panel" style="padding: 1rem; border-radius: var(--radius-sm); margin-bottom: 1.5rem;" hidden>
+                            <h4 class="text-primary mb-4">Adicionar ao Combate</h4>
                             <form id="addCombatantForm" style="display: flex; gap: 10px; align-items: flex-end;">
                                 <div class="form-group" style="flex: 2; margin: 0;">
                                     <label class="form-label">Nome</label>
-                                    <input type="text" id="combatantName" class="form-input" required placeholder="Ex: Kael">
+                                    <input type="text" id="combatantName" class="form-input" required>
                                 </div>
                                 <div class="form-group" style="flex: 1; margin: 0;">
                                     <label class="form-label">Iniciativa</label>
-                                    <input type="number" id="combatantInit" class="form-input" required placeholder="0">
+                                    <input type="number" id="combatantInit" class="form-input" required>
                                 </div>
                                 <button type="submit" class="btn btn-primary">Add</button>
                             </form>
@@ -229,16 +235,16 @@
 
                         <!-- Tracker -->
                         <div id="combatTrackerContainer" style="display: none;">
-                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; padding: 10px; background: var(--bg-base); border-radius: var(--radius-sm);">
-                                <span class="text-gold font-heading" style="font-size: 1.1rem;">Rodada: <span id="combatRoundDisplay">1</span></span>
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; padding: 1rem; background: var(--bg-elevated); border-radius: var(--radius-sm);">
+                                <span style="font-family: var(--font-heading); font-size: 1.1rem;">Rodada: <span id="combatRoundDisplay" style="color: var(--gold-primary);">1</span></span>
                                 <button id="nextTurnBtn" class="btn btn-primary master-only" hidden>Próximo Turno ➔</button>
                             </div>
                             <div id="initiativeList" class="combat-tracker"></div>
                         </div>
 
-                        <div id="noCombatPlaceholder" class="text-center" style="padding: 3rem 0;">
-                            <div style="font-size: 3rem; opacity: 0.3; margin-bottom: 1rem;">⚔️</div>
-                            <h3>Combate em Repouso</h3>
+                        <div id="noCombatPlaceholder" class="placeholder-panel">
+                            <div class="placeholder-icon">⚔️</div>
+                            <h3>Área Segura</h3>
                             <p class="text-muted">Nenhum conflito ativo no momento.</p>
                         </div>
                     </div>
@@ -248,23 +254,23 @@
                      OUTRAS ABAS E PLACEHOLDERS
                 =========================== -->
                 <div id="tab-craft" class="dash-tab-content" hidden>
-                    <div class="panel-card text-center" style="padding: 4rem 2rem;">
-                        <div style="font-size: 3rem; opacity: 0.3; margin-bottom: 1rem;">🛠️</div>
+                    <div class="panel placeholder-panel">
+                        <div class="placeholder-icon">🛠️</div>
                         <h3>Bancada de Criação</h3>
-                        <p class="text-muted">Em construção.</p>
+                        <p class="text-muted">Ferramenta em desenvolvimento.</p>
                     </div>
                 </div>
 
                 <div id="tab-forja" class="dash-tab-content" hidden>
-                    <div class="panel-card text-center" style="padding: 4rem 2rem;">
-                        <div style="font-size: 3rem; opacity: 0.3; margin-bottom: 1rem;">🔨</div>
+                    <div class="panel placeholder-panel">
+                        <div class="placeholder-icon">🔨</div>
                         <h3>Forja Ancestral</h3>
-                        <p class="text-muted">Em construção.</p>
+                        <p class="text-muted">Ferramenta em desenvolvimento.</p>
                     </div>
                 </div>
 
                 <div id="tab-cozinha" class="dash-tab-content" hidden>
-                    <div class="panel-card text-center">
+                    <div class="panel text-center">
                         <p>Carregando cozinha...</p>
                     </div>
                 </div>
@@ -277,22 +283,21 @@
                         </div>
                         <button id="openMuralModalBtn" class="btn btn-primary master-only" hidden>+ Novo Cartaz</button>
                     </div>
-                    <div id="muralList"></div>
+                    <div id="muralList" class="mural-grid"></div>
                 </div>
 
                 <div id="tab-logs" class="dash-tab-content" hidden>
-                    <div class="panel-card">
+                    <div class="panel">
                         <div class="panel-header">
                             <h3>Histórico da Sessão</h3>
                         </div>
-                        <div id="logsList"></div>
+                        <div id="logsList" class="timeline-container"></div>
                     </div>
                 </div>
 
                 <div id="tab-settings" class="dash-tab-content" hidden>
-                    <div class="panel-card">
+                    <div class="panel">
                         <h3>Configurações</h3>
-                        <!-- Form simplificado -->
                     </div>
                 </div>
 
@@ -304,18 +309,18 @@
 <!-- =========================================================
      BOTTOM NAV (EXCLUSIVO MOBILE)
 ========================================================= -->
-<nav class="campaign-nav-mobile">
+<nav class="bottom-nav">
     <button class="nav-mob-btn active" data-tab="tab-overview">
-        <span class="nav-mob-icon">🌍</span><span class="nav-mob-label">Visão Geral</span>
+        <span class="nav-mob-icon">🌍</span><span class="nav-mob-label">Mesa</span>
     </button>
     <button class="nav-mob-btn" data-tab="tab-combate">
-        <span class="nav-mob-icon">⚔️</span><span class="nav-mob-label">Combate</span>
+        <span class="nav-mob-icon">⚔️</span><span class="nav-mob-label">Luta</span>
     </button>
     <button class="nav-mob-btn" data-tab="tab-mural">
         <span class="nav-mob-icon">📌</span><span class="nav-mob-label">Mural</span>
     </button>
     <button class="nav-mob-btn" data-tab="tab-cozinha">
-        <span class="nav-mob-icon">🍲</span><span class="nav-mob-label">Cozinha</span>
+        <span class="nav-mob-icon">🍲</span><span class="nav-mob-label">Acamp</span>
     </button>
     <button class="nav-mob-btn" data-tab="tab-logs">
         <span class="nav-mob-icon">📜</span><span class="nav-mob-label">Logs</span>
@@ -324,14 +329,13 @@
 
 <!-- =========================================================
      MODAIS E OVERLAYS
-     Múltiplos modais foram convertidos para a nova base.
 ========================================================= -->
 
 <!-- Modal de Estado Rápido -->
 <div id="characterStateModal" class="modal-backdrop">
     <div class="modal-surface text-center">
-        <button id="closeCharacterStateModal" class="modal-close-btn">×</button>
-        <h2>Estado Atual</h2>
+        <button id="closeCharacterStateModal" class="modal-close btn-ghost" style="font-size: 1.5rem;">×</button>
+        <h2>Estado Rápido</h2>
         <form id="characterStateForm" class="mt-4">
             <div class="form-group">
                 <label class="form-label text-left">PV Atual</label>
@@ -352,8 +356,8 @@
 
 <!-- Modal Selecionar Ficha -->
 <div id="selectCharacterModal" class="modal-backdrop">
-    <div class="modal-surface">
-        <button id="closeSelectCharacterModal" class="modal-close-btn">×</button>
+    <div class="modal-surface" style="max-width: 600px;">
+        <button id="closeSelectCharacterModal" class="modal-close btn-ghost" style="font-size: 1.5rem;">×</button>
         <div class="modal-header">
             <h2>Vincular Ficha</h2>
             <p>Selecione seu herói.</p>
@@ -362,11 +366,11 @@
     </div>
 </div>
 
-<!-- Outros Modais (Mural, Segredos, PlayerSheet) preservados na lógica, reescritos em classe -->
+<!-- Modal Segredos -->
 <div id="createSecretModal" class="modal-backdrop">
-    <div class="modal-surface">
-        <button id="closeCreateSecretModal" class="modal-close-btn">×</button>
-        <h2>Revelar Segredo</h2>
+    <div class="modal-surface" style="max-width: 500px;">
+        <button id="closeCreateSecretModal" class="modal-close btn-ghost" style="font-size: 1.5rem;">×</button>
+        <h2 style="color: #d8b4fe;">Revelar Segredo</h2>
         <form id="createSecretForm" class="mt-4">
             <div class="form-group">
                 <input type="text" id="secretTitleInput" class="form-input" placeholder="Título" required>
@@ -376,88 +380,142 @@
             </div>
             <div class="form-group">
                 <label class="form-label text-left">Alvos:</label>
-                <div id="secretTargetsContainer" style="background: var(--bg-base); border: 1px solid var(--border-subtle); border-radius: var(--radius-sm); padding: 10px; max-height: 120px; overflow-y: auto;"></div>
+                <div id="secretTargetsContainer" style="background: var(--bg-obsidian); border: 1px solid var(--border-light); border-radius: var(--radius-sm); padding: 10px; max-height: 120px; overflow-y: auto;"></div>
             </div>
-            <button type="submit" id="saveSecretBtn" class="btn btn-primary w-full" style="background: var(--accent-magic); border-color: var(--accent-magic);">Revelar Segredo</button>
+            <button type="submit" id="saveSecretBtn" class="btn btn-primary w-full" style="background: #a855f7; border-color: #a855f7; color: #fff;">Revelar Segredo</button>
         </form>
     </div>
 </div>
 
-<!-- Ficha In-Game (Mantida com IDs base) -->
+<!-- =========================================================
+     A NOVA FICHA IN-GAME (HUD DRAWER LATERAL)
+========================================================= -->
 <div id="playerSheetModal" class="modal-backdrop">
-    <div class="modal-surface" style="max-width: 800px; padding: 0;">
-        <button id="closePlayerSheetModal" class="modal-close-btn" style="z-index: 10; background: var(--bg-elevated);">×</button>
-        <div style="padding: 2rem; background: var(--bg-elevated); border-bottom: 1px solid var(--border-subtle);">
+    <div class="modal-surface">
+        <button id="closePlayerSheetModal" class="modal-close btn-ghost" style="font-size: 1.5rem; z-index: 10;">×</button>
+        
+        <div class="ps-header">
             <h2 id="psName">Nome</h2>
-            <span id="psSubinfo" class="text-muted">Info</span>
+            <span id="psSubinfo">Info</span>
         </div>
-        <!-- Resto do Player Sheet preservado na estrutura de divs para o JS atualizar valores -->
-        <div style="padding: 2rem;">
-            <p class="text-center text-muted">Ferramenta em reformulação na Prioridade 4.</p>
+        
+        <div class="ps-body">
+            <!-- Novo HUD de Barras Visuais -->
+            <div class="hud-stats-grid">
+                <div class="hud-stat-box">
+                    <span class="hud-label">Saúde (PV)</span>
+                    <strong id="psHpView" class="hud-value val-hp">--</strong>
+                </div>
+                <div class="hud-stat-box">
+                    <span class="hud-label">Energia (MP)</span>
+                    <strong id="psManaView" class="hud-value val-mp">--</strong>
+                </div>
+            </div>
+
+            <div style="margin-bottom: 2rem;">
+                <span class="hud-label">Condições</span>
+                <p id="psConditionsView" style="color: var(--text-secondary); font-size: 0.9rem;">Nenhuma</p>
+                <button type="button" id="psToggleEditStateBtn" class="btn btn-secondary w-full mt-4">Ajustar Valores</button>
+            </div>
+
+            <!-- Form Oculto de Ajuste -->
+            <form id="psStateForm" style="display: none; background: var(--bg-obsidian); padding: 1rem; border-radius: var(--radius-sm); margin-bottom: 2rem;">
+                <div class="form-group"><label class="form-label">PV</label><input type="number" id="psHp" class="form-input"></div>
+                <div class="form-group"><label class="form-label">MP</label><input type="number" id="psMana" class="form-input"></div>
+                <div class="form-group"><label class="form-label">Condições</label><textarea id="psConditions" class="form-input"></textarea></div>
+                <button type="submit" id="psSaveStateBtn" class="btn btn-primary w-full">Salvar</button>
+            </form>
+
+            <h3 style="font-size: 1rem; margin-bottom: 1rem; border-bottom: 1px solid var(--border-light); padding-bottom: 0.5rem;">Atributos</h3>
+            <div id="psAttributesGrid" class="attributes-roll-grid"></div>
+
+            <h3 style="font-size: 1rem; margin: 1.5rem 0 1rem; border-bottom: 1px solid var(--border-light); padding-bottom: 0.5rem;">Inventário</h3>
+            <p id="psInventory" style="white-space: pre-wrap; font-size: 0.85rem; color: var(--text-secondary);">Vazio</p>
+
+            <h3 style="font-size: 1rem; margin: 1.5rem 0 1rem; border-bottom: 1px solid var(--border-light); padding-bottom: 0.5rem;">Habilidades</h3>
+            <p id="psSkills" style="white-space: pre-wrap; font-size: 0.85rem; color: var(--text-secondary);">Sem registros</p>
         </div>
     </div>
 </div>
 
-<!-- TOASTS -->
-<div id="requestToast" class="request-toast" hidden>...</div>
-<div id="privateCardToast" class="private-card-toast" hidden>...</div>
+<!-- =========================================================
+     MAPA, TOASTS & OVERLAYS MANTIDOS
+========================================================= -->
+<div id="mapViewModal" class="modal-backdrop">...</div>
+<div id="createPinModal" class="modal-backdrop">...</div>
+
+<div id="requestToast" class="request-toast" hidden>
+    <span style="font-size: 1.5rem;">🎲</span>
+    <div style="flex: 1;">
+        <strong style="color: var(--gold-primary); display: block; font-size: 0.9rem;">O Mestre Solicitou</strong>
+        <span id="requestToastMsg" style="font-size: 0.8rem; color: var(--text-primary);">Teste</span>
+    </div>
+    <button id="requestToastRollBtn" class="btn btn-primary">Rolar</button>
+    <button id="requestToastCloseBtn" class="btn-ghost">×</button>
+</div>
+
+<div id="privateCardToast" class="private-card-toast" hidden>
+    <div style="font-size: 3rem; margin-bottom: 1rem;">🔐</div>
+    <h3 id="privateCardTitle" style="color: #d8b4fe; font-family: var(--font-heading); font-size: 1.5rem; margin-bottom: 1rem;">Nova Mensagem</h3>
+    <p id="privateCardContent" style="color: var(--text-primary); font-size: 1rem; margin-bottom: 2rem;"></p>
+    <button id="closePrivateCardBtn" class="btn btn-secondary w-full">Entendido</button>
+</div>
+
+<div id="cinematicRollOverlay" class="cinematic-overlay">
+    <div class="cine-box">
+        <h2 id="cineRollTitle" class="cine-title">Rolagem</h2>
+        <p id="cineRollSubtitle" class="cine-subtitle">Personagem</p>
+        <div class="cine-result-circle"><span id="cineRollResult" class="cine-result">20</span></div>
+    </div>
+</div>
+
+<div id="globalSceneOverlay" class="scene-overlay">
+    <div class="scene-background" id="sceneBackground"></div>
+    <div class="scene-content-box">
+        <h2 id="sceneDisplayTitle" style="font-family: var(--font-heading); font-size: 3rem; color: var(--gold-primary);">Título</h2>
+        <p id="sceneDisplayDesc" style="font-size: 1.2rem; color: var(--text-primary);">Descrição...</p>
+        <button id="closeSceneViewBtn" class="btn btn-secondary mt-4">Continuar Jogando</button>
+    </div>
+</div>
+<div id="activeSceneIndicator" class="active-scene-indicator" hidden><span>🎭 Cena Ativa</span></div>
 
 <!-- Scripts Core -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="js/supabase.js?v=22"></script>
-<script src="js/auth.js?v=22"></script>
-<script src="js/menu.js?v=4"></script>
+<script src="js/supabase.js?v=23"></script>
+<script src="js/auth.js?v=23"></script>
+<script src="js/menu.js?v=5"></script>
 
 <!-- Módulos da Campanha -->
-<script src="js/campanha-timeline.js?v=2"></script>
-<script src="js/campanha-sessao.js?v=2"></script>
-<script src="js/campanha-cena.js?v=2"></script>
-<script src="js/campanha-segredos.js?v=2"></script>
-<script src="js/campanha-mapa.js?v=2"></script>
-<script src="js/campanha-cozinha.js?v=4"></script>
-
-<!-- Lógica Principal -->
-<script src="js/campanha.js?v=22"></script>
+<script src="js/campanha-timeline.js?v=3"></script>
+<script src="js/campanha-sessao.js?v=3"></script>
+<script src="js/campanha-cena.js?v=3"></script>
+<script src="js/campanha-segredos.js?v=3"></script>
+<script src="js/campanha-mapa.js?v=3"></script>
+<script src="js/campanha-cozinha.js?v=5"></script>
+<script src="js/campanha.js?v=23"></script>
 
 <!-- Lógica Exclusiva para Nav Mobile -->
 <script>
 document.addEventListener("DOMContentLoaded", () => {
-    // Sincronizar Bottom Nav Mobile com as Abas do Desktop
     const mobBtns = document.querySelectorAll('.nav-mob-btn');
     mobBtns.forEach(btn => {
         btn.addEventListener('click', () => {
             mobBtns.forEach(b => b.classList.remove('active'));
             btn.classList.add('active');
-            
-            // Dispara o clique simulado na aba principal do Desktop (mantendo a lógica original intocada)
             const targetId = btn.getAttribute('data-tab');
             const deskTab = document.querySelector(`.dash-tab[data-tab="${targetId}"]`);
             if (deskTab) deskTab.click();
         });
     });
 
-    // Fixar o título mobile e o botão de menu
-    const titleMob = document.getElementById('campaignTitleMob');
-    const menuBtnMob = document.getElementById('menuButtonMob');
-    const backBtnMob = document.getElementById('backToCampaignsBtnMob');
-    
-    // Observer rápido para copiar o nome da campanha do header desktop para o mobile
     setTimeout(() => {
         const deskTitle = document.getElementById('campaignTitle')?.textContent;
+        const titleMob = document.getElementById('campaignTitleMob');
         if(deskTitle && titleMob) titleMob.textContent = deskTitle;
     }, 1500);
 
-    // Conectar os botões do mobile aos listeners originais via simulação de clique
-    if (menuBtnMob) {
-        menuBtnMob.addEventListener('click', () => {
-            document.getElementById('menuButton')?.click();
-        });
-    }
-    if (backBtnMob) {
-        backBtnMob.addEventListener('click', () => {
-            document.getElementById('backToCampaignsBtn')?.click();
-        });
-    }
+    document.getElementById('menuButtonMob')?.addEventListener('click', () => document.getElementById('menuButton')?.click());
+    document.getElementById('backToCampaignsBtnMob')?.addEventListener('click', () => document.getElementById('backToCampaignsBtn')?.click());
 });
 </script>
 
