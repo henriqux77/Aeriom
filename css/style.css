@@ -1,13 +1,13 @@
 /* =========================================================
    AERIOM — DESIGN SYSTEM E ESTILOS GLOBAIS (CORE)
-   Dark Fantasy Premium, Theme-Ready, UI Layering
+   Fase 0: Dark Fantasy Premium + Retrocompatibilidade
 ========================================================= */
 
 @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap');
 
 /* =========================================================
-   1. DESIGN TOKENS (SISTEMA DE TEMAS PREPARADO)
-   Essas variáveis podem ser sobrescritas via JS dinamicamente
+   1. DESIGN TOKENS (NOVO SISTEMA DE TEMAS)
+   Variáveis principais que controlam a atmosfera.
 ========================================================= */
 :root {
     /* Cores Temáticas Principais (Padrão: Aeriom Dark Fantasy) */
@@ -19,7 +19,6 @@
     --theme-bg: #09090b;             /* Obsidiana puro */
     
     /* Superfícies Translúcidas (Layer 1 - UI) */
-    /* Usamos RGBA para permitir que backgrounds fotográficos apareçam levemente */
     --theme-surface: rgba(24, 24, 27, 0.85);          
     --theme-surface-elevated: rgba(39, 39, 42, 0.95); 
     --theme-surface-interactive: rgba(63, 63, 70, 0.8);
@@ -63,6 +62,25 @@
 }
 
 /* =========================================================
+   1.1 RETROCOMPATIBILIDADE (FASE 0 - ALIAsES DE VARIÁVEIS)
+   Garante que HTMLs não reformados ainda funcionem.
+========================================================= */
+:root {
+    --bg-obsidian: var(--theme-bg);
+    --bg-charcoal: var(--theme-surface);
+    --bg-elevated: var(--theme-surface-elevated);
+    --bg-glass: var(--theme-surface-interactive);
+    --gold-primary: var(--theme-primary);
+    --gold-hover: var(--theme-primary-hover);
+    --gold-dim: var(--theme-primary-soft);
+    --border-light: var(--theme-border);
+    --border-focus: var(--theme-border-focus);
+    --danger-dim: var(--danger-soft);
+    --success-dim: var(--success-soft);
+    --font-body: var(--font-ui);
+}
+
+/* =========================================================
    2. RESET E BASE DO SISTEMA
 ========================================================= */
 *, *::before, *::after {
@@ -89,10 +107,9 @@ body {
     background-size: cover;
     background-attachment: fixed;
     background-repeat: no-repeat;
-    /* O tema padrão não tem imagem, mas a cor sólida base segura a visualização */
 }
 
-/* Container que segura a interface, permitindo pointer-events vazarem pro fundo no futuro */
+/* Container principal de conteúdo */
 .app-container {
     width: 100%;
     max-width: 1400px;
@@ -123,8 +140,10 @@ button:disabled { opacity: 0.5; cursor: not-allowed; filter: grayscale(1); }
 
 /* =========================================================
    3. COMPONENTES: BOTÕES (AÇÕES RPG)
+   Mantendo aliases seguros para botões antigos sem "@extend"
 ========================================================= */
-.btn {
+/* Aplica base do botão nas classes novas e legadas simultaneamente */
+.btn, .primary-button, .secondary-button {
     display: inline-flex;
     align-items: center;
     justify-content: center;
@@ -138,20 +157,21 @@ button:disabled { opacity: 0.5; cursor: not-allowed; filter: grayscale(1); }
     position: relative;
     overflow: hidden;
     user-select: none;
+    transition: var(--transition-fast);
 }
 
 /* Efeito tátil comum para todos os botões ativos */
-.btn:active:not(:disabled) {
+.btn:active:not(:disabled), .primary-button:active:not(:disabled), .secondary-button:active:not(:disabled) {
     transform: scale(0.97);
 }
 
-/* Primário: Ações essenciais (Rolar, Salvar, Iniciar) */
-.btn-primary {
+/* Primário (Novo e Legado) */
+.btn-primary, .primary-button {
     background: var(--text-primary);
     color: var(--theme-bg);
     border: 1px solid var(--text-primary);
 }
-.btn-primary:hover:not(:disabled) {
+.btn-primary:hover:not(:disabled), .primary-button:hover:not(:disabled) {
     background: var(--theme-primary);
     border-color: var(--theme-primary);
     color: var(--theme-bg);
@@ -159,14 +179,14 @@ button:disabled { opacity: 0.5; cursor: not-allowed; filter: grayscale(1); }
     transform: translateY(-2px);
 }
 
-/* Secundário: Ações de suporte (Cancelar, Voltar) */
-.btn-secondary {
+/* Secundário (Novo e Legado) */
+.btn-secondary, .secondary-button {
     background: var(--theme-surface);
     color: var(--text-secondary);
     border: 1px solid var(--theme-border-strong);
     backdrop-filter: blur(8px);
 }
-.btn-secondary:hover:not(:disabled) {
+.btn-secondary:hover:not(:disabled), .secondary-button:hover:not(:disabled) {
     background: var(--theme-surface-interactive);
     color: var(--text-primary);
     border-color: var(--text-secondary);
@@ -235,7 +255,7 @@ button:disabled { opacity: 0.5; cursor: not-allowed; filter: grayscale(1); }
 .form-input {
     width: 100%;
     padding: 0.875rem 1rem;
-    background: rgba(0, 0, 0, 0.3); /* Fundo mais escuro para input dar contraste com a superfície */
+    background: rgba(0, 0, 0, 0.3);
     border: 1px solid var(--theme-border-strong);
     border-radius: var(--radius-sm);
     color: var(--text-primary);
@@ -277,7 +297,7 @@ button:disabled { opacity: 0.5; cursor: not-allowed; filter: grayscale(1); }
 }
 
 /* =========================================================
-   6. MENU LATERAL GLOBAIS E OVERLAYS (GLASSMORPHISM)
+   6. MENU LATERAL GLOBAIS E OVERLAYS
 ========================================================= */
 .global-overlay {
     position: fixed;
