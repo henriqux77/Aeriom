@@ -9,6 +9,7 @@
     <link rel="stylesheet" href="css/campanha.css">
 </head>
 <body>
+
 <!-- CRONÔMETRO GLOBAL (FASE B) -->
 <div id="globalTimerDisplay" class="global-timer" hidden>
     <span id="timerLabel" class="label">Tempo Narrativo</span>
@@ -53,41 +54,8 @@
             <div id="masterPanel" class="dash-panel master-panel" hidden>
                 <h3>Ferramentas do Mestre</h3>
                 <div class="master-tools-grid">
-                                        <!-- CRONÔMETRO (FASE B) -->
                     <div class="tool-section">
-                        <span class="tool-label">⏳ Cronômetro Narrativo</span>
-                        <div style="display: flex; flex-direction: column; gap: 10px; margin-top: 8px;">
-                            <div style="display: flex; gap: 10px;">
-                                <input type="text" id="timerInputLabel" placeholder="Ex: A caverna desmorona..." style="flex: 2; padding: 10px; background: rgba(20, 15, 13, 0.8); border: 1px solid rgba(200, 100, 50, 0.3); color: var(--cream); border-radius: 6px; font-size: 12px;">
-                                <input type="number" id="timerInputMinutes" placeholder="Min" value="10" style="flex: 1; padding: 10px; background: rgba(20, 15, 13, 0.8); border: 1px solid rgba(200, 100, 50, 0.3); color: var(--cream); border-radius: 6px; font-size: 12px; text-align: center;">
-                            </div>
-                            <div style="display: flex; gap: 10px;">
-                                <button id="startTimerBtn" class="primary-button" style="flex: 1; min-height: 35px; font-size: 11px;">Iniciar</button>
-                                <button id="stopTimerBtn" class="secondary-button" style="flex: 1; min-height: 35px; font-size: 11px; border-color: rgba(188,48,28,0.5); color: #d46a4a;">Parar</button>
-                            </div>
-                        </div>
-                    </div>
-                    <!-- MODO CENA (FASE C) -->
-                    <div class="tool-section" style="grid-column: 1 / -1;">
-                        <span class="tool-label">🎭 Iniciar Cena</span>
-                        <div style="display: flex; flex-direction: column; gap: 10px; margin-top: 8px;">
-                            <input type="text" id="sceneTitleInput" placeholder="Título (ex: Floresta de Eldoria)" style="width: 100%; padding: 10px; background: rgba(20, 15, 13, 0.8); border: 1px solid rgba(200, 100, 50, 0.3); color: var(--cream); border-radius: 6px; font-size: 12px;">
-                            <textarea id="sceneDescInput" placeholder="Descreva a cena para os jogadores..." style="width: 100%; padding: 10px; background: rgba(20, 15, 13, 0.8); border: 1px solid rgba(200, 100, 50, 0.3); color: var(--cream); border-radius: 6px; font-size: 12px; min-height: 60px;"></textarea>
-                            <input type="text" id="sceneImageInput" placeholder="URL da Imagem (opcional)" style="width: 100%; padding: 10px; background: rgba(20, 15, 13, 0.8); border: 1px dashed rgba(200, 100, 50, 0.3); color: var(--cream); border-radius: 6px; font-size: 12px;">
-                            <div style="display: flex; gap: 10px;">
-                                <button id="startSceneBtn" class="primary-button" style="flex: 2; min-height: 35px; font-size: 11px;">Apresentar Cena</button>
-                                <button id="stopSceneBtn" class="secondary-button" style="flex: 1; min-height: 35px; font-size: 11px; border-color: rgba(188,48,28,0.5); color: #d46a4a;">Encerrar Cena</button>
-                            </div>
-                        </div>
-                    </div>
-                    <!-- MODO SEGREDOS (FASE D) -->
-                    <div class="tool-section">
-                        <span class="tool-label">🔐 Mensagens Privadas</span>
-                        <p style="font-size: 0.75rem; color: var(--cream-muted); margin-bottom: 10px;">Envie informações secretas apenas para jogadores específicos.</p>
-                        <button id="openCreateSecretBtn" class="primary-button" style="width: 100%; min-height: 35px; font-size: 11px; background: linear-gradient(180deg, #6c2d82 0%, #3e164f 100%); border-color: #9d5bb5;">+ Criar Segredo</button>
-                    </div>
-
-                        <span class="tool-label">Solicitar Teste aos Jogadores</span>
+                        <span class="tool-label">Solicitar Teste</span>
                         <div style="display: flex; gap: 10px; align-items: center; margin-top: 8px;">
                             <select id="requestRollSelect" style="flex: 1; padding: 10px; background: rgba(20, 15, 13, 0.8); border: 1px solid rgba(200, 100, 50, 0.3); color: var(--cream); border-radius: 6px;">
                                 <option value="Percepção">Percepção</option>
@@ -100,18 +68,18 @@
                                 <option value="Controle">Controle</option>
                                 <option value="Puro (1d20)">Puro (Sem atributo)</option>
                             </select>
-                            <button id="sendRollRequestBtn" class="primary-button" style="width: auto; min-height: 38px; font-size: 11px;">Pedir Teste</button>
+                            <button id="sendRollRequestBtn" class="primary-button" style="width: auto; min-height: 38px; font-size: 11px;">Pedir</button>
                         </div>
                     </div>
                     <div class="tool-section">
-                        <span class="tool-label">Adicionar Jogadores</span>
+                        <span class="tool-label">Jogadores</span>
                         <div style="display: flex; gap: 10px; align-items: center; margin-top: 8px;">
                             <button id="generateInviteBtn" class="secondary-button" style="width: auto; min-height: 35px; font-size: 11px;">Gerar Convite</button>
                             <div id="inviteCodeDisplay" style="padding: 8px 12px; border: 1px dashed var(--gold); border-radius: 6px; color: var(--gold); font-family: monospace; font-size: 14px; letter-spacing: 2px;" hidden></div>
                         </div>
                     </div>
                     <div class="tool-section" style="grid-column: 1 / -1;">
-                        <span class="tool-label">Rolagens Rápidas (Registra no Histórico)</span>
+                        <span class="tool-label">Rolagens Rápidas</span>
                         <div class="dice-buttons-container">
                             <button class="dice-btn master-dice-btn" data-dice="4">1d4</button>
                             <button class="dice-btn master-dice-btn" data-dice="6">1d6</button>
@@ -120,6 +88,42 @@
                             <button class="dice-btn master-dice-btn" data-dice="12">1d12</button>
                             <button class="dice-btn master-dice-btn dice-d20" data-dice="20">1d20</button>
                             <button class="dice-btn master-dice-btn" data-dice="100">1d100</button>
+                        </div>
+                    </div>
+
+                    <!-- CRONÔMETRO (FASE B) -->
+                    <div class="tool-section">
+                        <span class="tool-label">⏳ Cronômetro Narrativo</span>
+                        <div style="display: flex; flex-direction: column; gap: 10px; margin-top: 8px;">
+                            <div style="display: flex; gap: 10px;">
+                                <input type="text" id="timerInputLabel" placeholder="Ex: Caverna caindo..." style="flex: 2; padding: 10px; background: rgba(20, 15, 13, 0.8); border: 1px solid rgba(200, 100, 50, 0.3); color: var(--cream); border-radius: 6px; font-size: 12px;">
+                                <input type="number" id="timerInputMinutes" placeholder="Min" value="10" style="flex: 1; padding: 10px; background: rgba(20, 15, 13, 0.8); border: 1px solid rgba(200, 100, 50, 0.3); color: var(--cream); border-radius: 6px; font-size: 12px; text-align: center;">
+                            </div>
+                            <div style="display: flex; gap: 10px;">
+                                <button id="startTimerBtn" class="primary-button" style="flex: 1; min-height: 35px; font-size: 11px;">Iniciar</button>
+                                <button id="stopTimerBtn" class="secondary-button" style="flex: 1; min-height: 35px; font-size: 11px; border-color: rgba(188,48,28,0.5); color: #d46a4a;">Parar</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- MODO SEGREDOS (FASE D) -->
+                    <div class="tool-section">
+                        <span class="tool-label">🔐 Mensagens Privadas</span>
+                        <p style="font-size: 0.75rem; color: var(--cream-muted); margin-bottom: 10px;">Envie informações secretas apenas para jogadores específicos.</p>
+                        <button id="openCreateSecretBtn" class="primary-button" style="width: 100%; min-height: 35px; font-size: 11px; background: linear-gradient(180deg, #6c2d82 0%, #3e164f 100%); border-color: #9d5bb5;">+ Criar Segredo</button>
+                    </div>
+
+                    <!-- MODO CENA (FASE C) -->
+                    <div class="tool-section" style="grid-column: 1 / -1;">
+                        <span class="tool-label">🎭 Iniciar Cena</span>
+                        <div style="display: flex; flex-direction: column; gap: 10px; margin-top: 8px;">
+                            <input type="text" id="sceneTitleInput" placeholder="Título (ex: Floresta de Eldoria)" style="width: 100%; padding: 10px; background: rgba(20, 15, 13, 0.8); border: 1px solid rgba(200, 100, 50, 0.3); color: var(--cream); border-radius: 6px; font-size: 12px;">
+                            <textarea id="sceneDescInput" placeholder="Descreva a cena para os jogadores..." style="width: 100%; padding: 10px; background: rgba(20, 15, 13, 0.8); border: 1px solid rgba(200, 100, 50, 0.3); color: var(--cream); border-radius: 6px; font-size: 12px; min-height: 60px;"></textarea>
+                            <input type="text" id="sceneImageInput" placeholder="URL da Imagem (opcional)" style="width: 100%; padding: 10px; background: rgba(20, 15, 13, 0.8); border: 1px dashed rgba(200, 100, 50, 0.3); color: var(--cream); border-radius: 6px; font-size: 12px;">
+                            <div style="display: flex; gap: 10px;">
+                                <button id="startSceneBtn" class="primary-button" style="flex: 2; min-height: 35px; font-size: 11px;">Apresentar Cena</button>
+                                <button id="stopSceneBtn" class="secondary-button" style="flex: 1; min-height: 35px; font-size: 11px; border-color: rgba(188,48,28,0.5); color: #d46a4a;">Encerrar Cena</button>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -137,7 +141,8 @@
                     <p style="color: var(--cream-muted); font-size: 0.9rem;">Buscando aventureiros...</p>
                 </div>
             </div>
-        </div>
+
+            <!-- CAIXA DE SEGREDOS DO JOGADOR (FASE D) -->
             <div class="campaign-section" style="margin-top: 30px;">
                 <div class="section-header">
                     <h3 style="color: #dfb2f2;">🔐 Meus Segredos / Informações</h3>
@@ -147,6 +152,7 @@
                     <!-- Segredos aparecerão aqui -->
                 </div>
             </div>
+        </div>
 
         <!-- ABA 2: COMBATE -->
         <div id="tab-combate" class="dash-tab-content" hidden>
@@ -223,7 +229,7 @@
             <div id="muralList" class="mural-grid"></div>
         </div>
 
-        <!-- ABA 7: LOGS / LINHA DO TEMPO (REMODELADO - FASE A) -->
+        <!-- ABA 7: LOGS / LINHA DO TEMPO -->
         <div id="tab-logs" class="dash-tab-content" hidden>
             <div class="section-header">
                 <h3>Linha do Tempo</h3>
@@ -256,7 +262,7 @@
     </section>
 </main>
 
-<!-- MODAIS GERAIS -->
+<!-- MODAIS GERAIS (ESTADO, ESCOLHER FICHA, MURAL) -->
 <div id="characterStateModal" class="auth-modal" style="display: none; align-items: center; justify-content: center;">
     <div class="auth-box" style="max-width: 400px; text-align: center;">
         <button id="closeCharacterStateModal" class="auth-close">×</button>
@@ -285,7 +291,7 @@
             </div>
             <label class="sheet-field" style="display: block; margin-bottom: 20px;">
                 <span style="display: block; color: var(--gold); font-family: var(--display-font); font-size: 10px; margin-bottom: 5px; text-align: left;">Condições e Efeitos</span>
-                <textarea id="stateConditions" placeholder="Ex: Envenenado..." style="width: 100%; padding: 12px; background: rgba(20, 15, 13, 0.8); border: 1px solid rgba(200, 100, 50, 0.3); color: var(--cream); border-radius: 8px; min-height: 80px;"></textarea>
+                <textarea id="stateConditions" style="width: 100%; padding: 12px; background: rgba(20, 15, 13, 0.8); border: 1px solid rgba(200, 100, 50, 0.3); color: var(--cream); border-radius: 8px; min-height: 80px;"></textarea>
             </label>
             <button type="submit" id="saveStateBtn" class="primary-button" style="width: 100%;">Salvar Estado</button>
         </form>
@@ -296,7 +302,6 @@
     <div class="auth-box" style="max-width: 600px;">
         <button id="closeSelectCharacterModal" class="auth-close">×</button>
         <h2>Vincular Ficha</h2>
-        <p>Escolha qual personagem você quer adicionar à campanha.</p>
         <div id="userCharactersList" style="display: flex; flex-direction: column; gap: 10px; max-height: 400px; overflow-y: auto; margin-bottom: 20px;"></div>
     </div>
 </div>
@@ -307,18 +312,41 @@
         <h2>Aviso no Mural</h2>
         <form id="muralForm">
             <label class="sheet-field" style="display: block; margin-bottom: 15px;">
-                <span style="display: block; color: var(--gold); font-family: var(--display-font); font-size: 10px; margin-bottom: 5px;">Título do Cartaz</span>
-                <input type="text" id="muralTitle" required maxlength="100" style="width: 100%; padding: 12px; background: rgba(20, 15, 13, 0.8); border: 1px solid rgba(200, 100, 50, 0.3); color: var(--cream); border-radius: 8px;">
+                <span style="display: block; color: var(--gold); font-size: 10px; margin-bottom: 5px;">Título</span>
+                <input type="text" id="muralTitle" required style="width: 100%; padding: 12px; background: rgba(20, 15, 13, 0.8); border: 1px solid rgba(200, 100, 50, 0.3); color: var(--cream); border-radius: 8px;">
             </label>
             <label class="sheet-field" style="display: block; margin-bottom: 15px;">
-                <span style="display: block; color: var(--gold); font-family: var(--display-font); font-size: 10px; margin-bottom: 5px;">Imagem (Opcional)</span>
-                <input type="file" id="muralImage" accept="image/png,image/jpeg,image/webp" style="width: 100%; padding: 10px; background: rgba(20, 15, 13, 0.8); border: 1px dashed rgba(200, 100, 50, 0.3); color: var(--cream); border-radius: 8px;">
+                <span style="display: block; color: var(--gold); font-size: 10px; margin-bottom: 5px;">Imagem / Mapa URL</span>
+                <input type="text" id="muralImage" placeholder="URL da imagem..." style="width: 100%; padding: 10px; background: rgba(20, 15, 13, 0.8); border: 1px dashed rgba(200, 100, 50, 0.3); color: var(--cream); border-radius: 8px;">
             </label>
             <label class="sheet-field" style="display: block; margin-bottom: 20px;">
-                <span style="display: block; color: var(--gold); font-family: var(--display-font); font-size: 10px; margin-bottom: 5px;">Conteúdo</span>
-                <textarea id="muralContent" style="width: 100%; padding: 12px; background: rgba(20, 15, 13, 0.8); border: 1px solid rgba(200, 100, 50, 0.3); color: var(--cream); border-radius: 8px; min-height: 80px; font-family: 'Georgia', serif;"></textarea>
+                <span style="display: block; color: var(--gold); font-size: 10px; margin-bottom: 5px;">Conteúdo</span>
+                <textarea id="muralContent" style="width: 100%; padding: 12px; background: rgba(20, 15, 13, 0.8); border: 1px solid rgba(200, 100, 50, 0.3); color: var(--cream); border-radius: 8px; min-height: 80px;"></textarea>
             </label>
             <button type="submit" id="saveMuralBtn" class="primary-button" style="width: 100%;">Fixar no Mural</button>
+        </form>
+    </div>
+</div>
+
+<!-- MODAL: CRIAR SEGREDO (MESTRE) -->
+<div id="createSecretModal" class="auth-modal" style="display: none; align-items: center; justify-content: center;">
+    <div class="auth-box" style="max-width: 500px;">
+        <button id="closeCreateSecretModal" class="auth-close">×</button>
+        <h2 style="color: #dfb2f2;">Revelar Segredo</h2>
+        <form id="createSecretForm">
+            <label class="sheet-field" style="display: block; margin-bottom: 15px;">
+                <span style="display: block; color: #dfb2f2; font-size: 10px; margin-bottom: 5px;">Título da Mensagem</span>
+                <input type="text" id="secretTitleInput" required style="width: 100%; padding: 10px; background: rgba(20, 15, 13, 0.8); border: 1px solid rgba(157, 91, 181, 0.3); color: var(--cream); border-radius: 8px;">
+            </label>
+            <label class="sheet-field" style="display: block; margin-bottom: 15px;">
+                <span style="display: block; color: #dfb2f2; font-size: 10px; margin-bottom: 5px;">Conteúdo Secreto</span>
+                <textarea id="secretContentInput" required style="width: 100%; padding: 10px; background: rgba(20, 15, 13, 0.8); border: 1px solid rgba(157, 91, 181, 0.3); color: var(--cream); border-radius: 8px; min-height: 80px;"></textarea>
+            </label>
+            <div style="margin-bottom: 20px;">
+                <span style="display: block; color: #dfb2f2; font-size: 10px; margin-bottom: 5px;">Quem pode ler?</span>
+                <div id="secretTargetsContainer" style="display: flex; flex-direction: column; gap: 5px; background: rgba(0,0,0,0.3); padding: 10px; border-radius: 6px; border: 1px solid rgba(157, 91, 181, 0.2); max-height: 120px; overflow-y: auto;"></div>
+            </div>
+            <button type="submit" id="saveSecretBtn" class="primary-button" style="width: 100%; background: linear-gradient(180deg, #6c2d82 0%, #3e164f 100%); border-color: #9d5bb5;">Revelar Segredo</button>
         </form>
     </div>
 </div>
@@ -337,7 +365,7 @@
         </div>
         <div class="dash-panel" style="margin-bottom: 20px; padding: 15px; border-color: var(--fire); background: rgba(40, 20, 15, 0.4);">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
-                <h3 style="font-size: 1rem; color: var(--fire); margin: 0;">Estado Atual (Campanha)</h3>
+                <h3 style="font-size: 1rem; color: var(--fire); margin: 0;">Estado Atual</h3>
                 <button type="button" id="psToggleEditStateBtn" class="secondary-button" style="width: auto; min-height: 25px; font-size: 10px; padding: 5px 10px; border-color: var(--fire); color: var(--fire);">Editar Estado</button>
             </div>
             <div id="psStateView" style="display: flex; gap: 20px;">
@@ -373,7 +401,46 @@
     </div>
 </div>
 
-<!-- TOASTS DE TESTE -->
+<!-- MAPA INTERATIVO (FASE E) -->
+<div id="mapViewModal" class="auth-modal" style="display: none; align-items: center; justify-content: center;">
+    <div class="auth-box map-view-box">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+            <h2 id="mapViewTitle" style="color: var(--gold); margin: 0; font-size: 1.5rem;">Mapa</h2>
+            <button id="closeMapViewBtn" class="secondary-button" style="width: auto; min-height: 30px; padding: 5px 15px;">Fechar Mapa</button>
+        </div>
+        <p class="master-only" style="display:none; font-size: 0.8rem; color: var(--cream-muted); margin-bottom: 10px;">Clique em qualquer lugar da imagem para adicionar um pin.</p>
+        <div class="map-interactive-area" id="mapInteractiveArea">
+            <img id="mapInteractiveImage" class="map-interactive-image" src="" alt="Mapa">
+            <div id="mapPinsContainer" style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; pointer-events: none;"></div>
+        </div>
+    </div>
+</div>
+
+<!-- CRIAR PIN (MESTRE) -->
+<div id="createPinModal" class="auth-modal" style="display: none; align-items: center; justify-content: center; z-index: 10001;">
+    <div class="auth-box" style="max-width: 400px;">
+        <button id="closeCreatePinBtn" class="auth-close">×</button>
+        <h2 style="color: var(--gold);">Nova Marcação</h2>
+        <form id="createPinForm">
+            <input type="hidden" id="pinPosX">
+            <input type="hidden" id="pinPosY">
+            <label class="sheet-field" style="display: block; margin-bottom: 15px;">
+                <span style="display: block; color: var(--gold); font-size: 10px; margin-bottom: 5px;">Título / Local</span>
+                <input type="text" id="pinTitleInput" required style="width: 100%; padding: 10px; background: rgba(20, 15, 13, 0.8); border: 1px solid rgba(200, 100, 50, 0.3); color: var(--cream); border-radius: 8px;">
+            </label>
+            <label class="sheet-field" style="display: block; margin-bottom: 15px;">
+                <span style="display: block; color: var(--gold); font-size: 10px; margin-bottom: 5px;">Descrição</span>
+                <textarea id="pinDescInput" style="width: 100%; padding: 10px; background: rgba(20, 15, 13, 0.8); border: 1px solid rgba(200, 100, 50, 0.3); color: var(--cream); border-radius: 8px; min-height: 60px;"></textarea>
+            </label>
+            <label style="display: flex; align-items: center; gap: 10px; color: var(--cream-muted); font-size: 0.9rem; margin-bottom: 20px; cursor: pointer;">
+                <input type="checkbox" id="pinHiddenInput" checked> 🔒 Oculto dos Jogadores
+            </label>
+            <button type="submit" id="savePinBtn" class="primary-button" style="width: 100%;">Salvar Marcação</button>
+        </form>
+    </div>
+</div>
+
+<!-- TOASTS & OVERLAYS -->
 <div id="requestToast" class="request-toast" hidden>
     <div class="request-toast-content">
         <span class="request-icon">🎲</span>
@@ -386,125 +453,47 @@
     </div>
 </div>
 
-<!-- OVERLAY DE ROLAGEM CINEMATOGRÁFICA (FASE A) -->
+<div id="privateCardToast" class="private-card-toast">
+    <div style="font-size: 40px; margin-bottom: 10px;">🔐</div>
+    <h3 id="privateCardTitle" style="color: #dfb2f2; font-family: var(--display-font); font-size: 1.3rem; margin-bottom: 10px;">Nova Mensagem</h3>
+    <p id="privateCardContent" style="color: var(--cream); font-size: 0.95rem; line-height: 1.5; font-family: 'Georgia', serif; margin-bottom: 25px;"></p>
+    <button id="closePrivateCardBtn" class="secondary-button" style="width: 100%;">Entendido</button>
+</div>
+
 <div id="cinematicRollOverlay" class="cinematic-overlay">
     <div class="cinematic-box">
         <h2 id="cineRollTitle" class="cine-title">Rolagem</h2>
         <p id="cineRollSubtitle" class="cine-subtitle">Personagem</p>
-        <div class="cine-result-circle">
-            <span id="cineRollResult" class="cine-result">20</span>
-        </div>
+        <div class="cine-result-circle"><span id="cineRollResult" class="cine-result">20</span></div>
     </div>
 </div>
-<!-- OVERLAY DO MODO CENA (FASE C) -->
+
 <div id="globalSceneOverlay" class="scene-overlay">
     <div class="scene-background" id="sceneBackground"></div>
     <div class="scene-content-box">
         <h2 id="sceneDisplayTitle">Título da Cena</h2>
-        <p id="sceneDisplayDesc">Descrição imersiva da cena vai aqui...</p>
-        <button id="closeSceneViewBtn" class="secondary-button" style="margin-top: 20px;">Minimizar Visualização (Continuar Jogando)</button>
+        <p id="sceneDisplayDesc">Descrição...</p>
+        <button id="closeSceneViewBtn" class="secondary-button" style="margin-top: 20px;">Continuar Jogando</button>
     </div>
 </div>
+<div id="activeSceneIndicator" class="active-scene-indicator" hidden><span>🎭 Cena Ativa</span></div>
 
-<!-- INDICADOR DE CENA MINIMIZADA -->
-<div id="activeSceneIndicator" class="active-scene-indicator" hidden>
-    <span>🎭 Cena Ativa</span>
-</div>
-<!-- MODAL DE CRIAR SEGREDO (MESTRE) -->
-<div id="createSecretModal" class="auth-modal" style="display: none; align-items: center; justify-content: center;">
-    <div class="auth-box" style="max-width: 500px;">
-        <button id="closeCreateSecretModal" class="auth-close">×</button>
-        <h2 style="color: #dfb2f2;">Revelar Segredo</h2>
-        <p>Escolha quem poderá ler esta informação.</p>
-        <form id="createSecretForm">
-            <label class="sheet-field" style="display: block; margin-bottom: 15px;">
-                <span style="display: block; color: #dfb2f2; font-size: 10px; margin-bottom: 5px;">Título da Mensagem</span>
-                <input type="text" id="secretTitleInput" placeholder="Ex: Símbolo da Guilda" required style="width: 100%; padding: 10px; background: rgba(20, 15, 13, 0.8); border: 1px solid rgba(157, 91, 181, 0.3); color: var(--cream); border-radius: 8px;">
-            </label>
-            <label class="sheet-field" style="display: block; margin-bottom: 15px;">
-                <span style="display: block; color: #dfb2f2; font-size: 10px; margin-bottom: 5px;">Conteúdo Secreto</span>
-                <textarea id="secretContentInput" placeholder="Apenas os alvos poderão ler isso..." required style="width: 100%; padding: 10px; background: rgba(20, 15, 13, 0.8); border: 1px solid rgba(157, 91, 181, 0.3); color: var(--cream); border-radius: 8px; min-height: 80px;"></textarea>
-            </label>
-            
-            <div style="margin-bottom: 20px;">
-                <span style="display: block; color: #dfb2f2; font-size: 10px; margin-bottom: 5px;">Quem pode ler?</span>
-                <div id="secretTargetsContainer" style="display: flex; flex-direction: column; gap: 5px; background: rgba(0,0,0,0.3); padding: 10px; border-radius: 6px; border: 1px solid rgba(157, 91, 181, 0.2); max-height: 120px; overflow-y: auto;">
-                    <!-- Checkboxes de jogadores carregam aqui -->
-                </div>
-            </div>
-
-            <button type="submit" id="saveSecretBtn" class="primary-button" style="width: 100%; background: linear-gradient(180deg, #6c2d82 0%, #3e164f 100%); border-color: #9d5bb5;">Revelar Segredo</button>
-        </form>
-    </div>
-</div>
-
-<!-- TOAST DE CARTÃO PRIVADO (JOGADOR) -->
-<div id="privateCardToast" class="private-card-toast">
-    <div style="font-size: 40px; margin-bottom: 10px;">🔐</div>
-    <h3 id="privateCardTitle" style="color: #dfb2f2; font-family: var(--display-font); font-size: 1.3rem; margin-bottom: 10px;">Nova Mensagem Privada</h3>
-    <p id="privateCardContent" style="color: var(--cream); font-size: 0.95rem; line-height: 1.5; font-family: 'Georgia', serif; margin-bottom: 25px;"></p>
-    <button id="closePrivateCardBtn" class="secondary-button" style="width: 100%;">Entendido</button>
-</div>
-<!-- MODAL DO MAPA INTERATIVO (FASE E) -->
-<div id="mapViewModal" class="auth-modal" style="display: none; align-items: center; justify-content: center;">
-    <div class="auth-box map-view-box">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
-            <h2 id="mapViewTitle" style="color: var(--gold); margin: 0; font-size: 1.5rem;">Mapa</h2>
-            <button id="closeMapViewBtn" class="secondary-button" style="width: auto; min-height: 30px; padding: 5px 15px;">Fechar Mapa</button>
-        </div>
-        
-        <p class="master-only" style="display:none; font-size: 0.8rem; color: var(--cream-muted); margin-bottom: 10px;">Clique em qualquer lugar da imagem para adicionar um pin.</p>
-        
-        <div class="map-interactive-area" id="mapInteractiveArea">
-            <img id="mapInteractiveImage" class="map-interactive-image" src="" alt="Mapa">
-            <!-- Os pins serão injetados nesta div invisível que cobre a imagem exata -->
-            <div id="mapPinsContainer" style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; pointer-events: none;"></div>
-        </div>
-    </div>
-</div>
-
-<!-- MODAL DE CRIAR PIN (MESTRE) -->
-<div id="createPinModal" class="auth-modal" style="display: none; align-items: center; justify-content: center; z-index: 10001;">
-    <div class="auth-box" style="max-width: 400px;">
-        <button id="closeCreatePinBtn" class="auth-close">×</button>
-        <h2 style="color: var(--gold);">Nova Marcação</h2>
-        <form id="createPinForm">
-            <!-- Coordenadas ocultas -->
-            <input type="hidden" id="pinPosX">
-            <input type="hidden" id="pinPosY">
-            
-            <label class="sheet-field" style="display: block; margin-bottom: 15px;">
-                <span style="display: block; color: var(--gold); font-size: 10px; margin-bottom: 5px;">Título / Local</span>
-                <input type="text" id="pinTitleInput" required style="width: 100%; padding: 10px; background: rgba(20, 15, 13, 0.8); border: 1px solid rgba(200, 100, 50, 0.3); color: var(--cream); border-radius: 8px;">
-            </label>
-            <label class="sheet-field" style="display: block; margin-bottom: 15px;">
-                <span style="display: block; color: var(--gold); font-size: 10px; margin-bottom: 5px;">Descrição (Opcional)</span>
-                <textarea id="pinDescInput" style="width: 100%; padding: 10px; background: rgba(20, 15, 13, 0.8); border: 1px solid rgba(200, 100, 50, 0.3); color: var(--cream); border-radius: 8px; min-height: 60px;"></textarea>
-            </label>
-            <label style="display: flex; align-items: center; gap: 10px; color: var(--cream-muted); font-size: 0.9rem; margin-bottom: 20px; cursor: pointer;">
-                <input type="checkbox" id="pinHiddenInput" checked>
-                🔒 Iniciar Oculto dos Jogadores
-            </label>
-            <button type="submit" id="savePinBtn" class="primary-button" style="width: 100%;">Salvar Marcação</button>
-        </form>
-    </div>
-</div>
-
-<!-- Scripts -->
+<!-- Scripts Core -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="js/supabase.js?v=20"></script>
 <script src="js/auth.js?v=20"></script>
 <script src="js/menu.js?v=2"></script>
 
-<!-- Módulos Adicionais (Ordem Importante) -->
+<!-- Módulos da Campanha -->
 <script src="js/campanha-timeline.js?v=1"></script>
-<script src="js/campanha-cozinha.js?v=3"></script>
 <script src="js/campanha-sessao.js?v=1"></script>
 <script src="js/campanha-cena.js?v=1"></script>
 <script src="js/campanha-segredos.js?v=1"></script>
 <script src="js/campanha-mapa.js?v=1"></script>
+<script src="js/campanha-cozinha.js?v=3"></script>
 
-<script src="js/campanha.js?v=14"></script>
+<!-- Lógica Principal -->
+<script src="js/campanha.js?v=20"></script>
 
 </body>
 </html>
