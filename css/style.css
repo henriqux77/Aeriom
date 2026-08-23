@@ -1,69 +1,68 @@
 /* =========================================================
    AERIOM — DESIGN SYSTEM E ESTILOS GLOBAIS (CORE)
-   Fase 0: Dark Fantasy Premium + Retrocompatibilidade
+   Fase 1: Fundação Global & Compatibilidade Total
 ========================================================= */
 
 @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap');
 
 /* =========================================================
-   1. DESIGN TOKENS (NOVO SISTEMA DE TEMAS)
-   Variáveis principais que controlam a atmosfera.
+   1. DESIGN TOKENS (SISTEMA DE TEMAS)
 ========================================================= */
 :root {
-    /* Cores Temáticas Principais (Padrão: Aeriom Dark Fantasy) */
-    --theme-primary: #d4af37;        /* Destaque (Dourado/Laranja) */
+    /* Cores Temáticas Principais */
+    --theme-primary: #d4af37;
     --theme-primary-hover: #f1cf5b;
     --theme-primary-soft: rgba(212, 175, 55, 0.15);
     
-    /* Fundo Global (Layer 0) */
-    --theme-bg: #09090b;             /* Obsidiana puro */
+    /* Fundos */
+    --theme-bg: #09090b;
     
     /* Superfícies Translúcidas (Layer 1 - UI) */
     --theme-surface: rgba(24, 24, 27, 0.85);          
     --theme-surface-elevated: rgba(39, 39, 42, 0.95); 
     --theme-surface-interactive: rgba(63, 63, 70, 0.8);
 
-    /* Textos (Alto Contraste UI) */
-    --text-primary: #f4f4f5;         /* Branco Gelo */
-    --text-secondary: #a1a1aa;       /* Cinza Leitura */
-    --text-muted: #71717a;           /* Cinza Desabilitado */
+    /* Textos */
+    --text-primary: #f4f4f5;
+    --text-secondary: #a1a1aa;
+    --text-muted: #71717a;
 
-    /* Bordas e Contornos */
+    /* Bordas */
     --theme-border: rgba(255, 255, 255, 0.08);
     --theme-border-strong: rgba(255, 255, 255, 0.15);
     --theme-border-focus: rgba(212, 175, 55, 0.5);
 
-    /* Cores de Feedback (RPG Stats) */
-    --danger: #ef4444;               /* Dano, HP Baixo, Erro */
+    /* Cores Semânticas (Feedback) */
+    --danger: #ef4444;
     --danger-soft: rgba(239, 68, 68, 0.15);
-    --success: #22c55e;              /* Cura, Sucesso */
+    --success: #22c55e;
     --success-soft: rgba(34, 197, 94, 0.15);
     --warning: #f59e0b;
-    --mana: #3b82f6;                 /* Magia, MP */
+    --mana: #3b82f6;
 
     /* Tipografia */
     --font-heading: 'Cinzel', serif;
     --font-ui: 'Inter', sans-serif;
 
-    /* Geometria e Formas */
+    /* Geometria */
     --radius-sm: 6px;
     --radius-md: 12px;
     --radius-lg: 20px;
     
-    /* Sombras e Iluminação Sutil */
+    /* Sombras e Iluminação (Novas) */
     --shadow-soft: 0 4px 12px rgba(0, 0, 0, 0.4);
     --shadow-hard: 0 12px 32px rgba(0, 0, 0, 0.7);
     --shadow-glow: 0 0 20px var(--theme-primary-soft);
     --shadow-glass: 0 25px 50px -12px rgba(0, 0, 0, 0.9);
 
-    /* Microinterações */
+    /* Transições */
     --transition-fast: 0.15s cubic-bezier(0.4, 0, 0.2, 1);
     --transition-smooth: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 /* =========================================================
-   1.1 RETROCOMPATIBILIDADE (FASE 0 - ALIAsES DE VARIÁVEIS)
-   Garante que HTMLs não reformados ainda funcionem.
+   1.1 RETROCOMPATIBILIDADE (FASE 1 - VARIÁVEIS ANTIGAS)
+   Garante que páginas não atualizadas não quebrem visualmente.
 ========================================================= */
 :root {
     --bg-obsidian: var(--theme-bg);
@@ -78,6 +77,10 @@
     --danger-dim: var(--danger-soft);
     --success-dim: var(--success-soft);
     --font-body: var(--font-ui);
+    
+    /* Sombras Antigas */
+    --shadow-sm: var(--shadow-soft);
+    --shadow-md: var(--shadow-hard);
 }
 
 /* =========================================================
@@ -97,7 +100,6 @@ html {
     -moz-osx-font-smoothing: grayscale;
 }
 
-/* Preparação para injeção de Background Image (Temas) no body */
 body {
     min-height: 100vh;
     display: flex;
@@ -109,8 +111,8 @@ body {
     background-repeat: no-repeat;
 }
 
-/* Container principal de conteúdo */
-.app-container {
+/* Compatibilidade Estrutural: Container Antigo e Novo */
+.container, .app-container {
     width: 100%;
     max-width: 1400px;
     margin: 0 auto;
@@ -132,7 +134,6 @@ button, input, select, textarea { font-family: inherit; color: inherit; backgrou
 button { cursor: pointer; transition: var(--transition-fast); }
 button:disabled { opacity: 0.5; cursor: not-allowed; filter: grayscale(1); }
 
-/* Foco Acessível Premium */
 :focus-visible {
     outline: 2px solid var(--theme-primary);
     outline-offset: 2px;
@@ -140,9 +141,8 @@ button:disabled { opacity: 0.5; cursor: not-allowed; filter: grayscale(1); }
 
 /* =========================================================
    3. COMPONENTES: BOTÕES (AÇÕES RPG)
-   Mantendo aliases seguros para botões antigos sem "@extend"
+   Compatibilidade de classes: .btn, .primary-button, etc.
 ========================================================= */
-/* Aplica base do botão nas classes novas e legadas simultaneamente */
 .btn, .primary-button, .secondary-button {
     display: inline-flex;
     align-items: center;
@@ -160,12 +160,10 @@ button:disabled { opacity: 0.5; cursor: not-allowed; filter: grayscale(1); }
     transition: var(--transition-fast);
 }
 
-/* Efeito tátil comum para todos os botões ativos */
 .btn:active:not(:disabled), .primary-button:active:not(:disabled), .secondary-button:active:not(:disabled) {
     transform: scale(0.97);
 }
 
-/* Primário (Novo e Legado) */
 .btn-primary, .primary-button {
     background: var(--text-primary);
     color: var(--theme-bg);
@@ -179,7 +177,6 @@ button:disabled { opacity: 0.5; cursor: not-allowed; filter: grayscale(1); }
     transform: translateY(-2px);
 }
 
-/* Secundário (Novo e Legado) */
 .btn-secondary, .secondary-button {
     background: var(--theme-surface);
     color: var(--text-secondary);
@@ -193,7 +190,6 @@ button:disabled { opacity: 0.5; cursor: not-allowed; filter: grayscale(1); }
     transform: translateY(-2px);
 }
 
-/* Perigo: Excluir, Causar Dano, Parar */
 .btn-danger {
     background: var(--danger-soft);
     color: var(--danger);
@@ -205,7 +201,6 @@ button:disabled { opacity: 0.5; cursor: not-allowed; filter: grayscale(1); }
     box-shadow: 0 0 15px var(--danger-soft);
 }
 
-/* Ghost: Atalhos e botões sem borda aparente */
 .btn-ghost {
     background: transparent;
     color: var(--text-muted);
@@ -215,7 +210,6 @@ button:disabled { opacity: 0.5; cursor: not-allowed; filter: grayscale(1); }
     background: var(--theme-surface-interactive);
 }
 
-/* Ícones de Navegação Topo/Ações Rápidas */
 .btn-icon {
     width: 40px;
     height: 40px;
@@ -298,8 +292,10 @@ button:disabled { opacity: 0.5; cursor: not-allowed; filter: grayscale(1); }
 
 /* =========================================================
    6. MENU LATERAL GLOBAIS E OVERLAYS
+   Compatibilidade total: .global-overlay vs .sidebar-overlay
+   Compatibilidade total: .active vs .open
 ========================================================= */
-.global-overlay {
+.global-overlay, .sidebar-overlay {
     position: fixed;
     inset: 0;
     background: rgba(0, 0, 0, 0.75);
@@ -309,9 +305,13 @@ button:disabled { opacity: 0.5; cursor: not-allowed; filter: grayscale(1); }
     visibility: hidden;
     transition: var(--transition-smooth);
 }
-.global-overlay.active { opacity: 1; visibility: visible; }
+.global-overlay.active, .global-overlay.open, 
+.sidebar-overlay.active, .sidebar-overlay.open { 
+    opacity: 1; 
+    visibility: visible; 
+}
 
-.global-sidebar {
+.global-sidebar, .sidebar {
     position: fixed;
     top: 0;
     left: -320px;
@@ -325,7 +325,10 @@ button:disabled { opacity: 0.5; cursor: not-allowed; filter: grayscale(1); }
     transition: transform var(--transition-smooth);
     box-shadow: var(--shadow-glass);
 }
-.global-sidebar.active { transform: translateX(320px); }
+.global-sidebar.active, .global-sidebar.open, 
+.sidebar.active, .sidebar.open { 
+    transform: translateX(320px); 
+}
 
 .sidebar-header {
     padding: 1.5rem;
@@ -334,7 +337,7 @@ button:disabled { opacity: 0.5; cursor: not-allowed; filter: grayscale(1); }
     align-items: center;
     border-bottom: 1px solid var(--theme-border);
 }
-.sidebar-header h2 { font-size: 1.1rem; color: var(--theme-primary); letter-spacing: 1px; }
+.sidebar-header h2 { font-size: 1.1rem; color: var(--theme-primary); letter-spacing: 1px; margin: 0; }
 
 .sidebar-nav {
     flex: 1;
@@ -360,7 +363,7 @@ button:disabled { opacity: 0.5; cursor: not-allowed; filter: grayscale(1); }
     border-left: 3px solid transparent;
 }
 .sidebar-link:hover { color: var(--text-primary); background: var(--theme-surface-interactive); }
-.sidebar-link.current {
+.sidebar-link.current, .sidebar-link.active {
     color: var(--theme-primary);
     background: var(--theme-primary-soft);
     border-left-color: var(--theme-primary);
@@ -379,7 +382,7 @@ button:disabled { opacity: 0.5; cursor: not-allowed; filter: grayscale(1); }
     justify-content: center;
     padding-top: 15vh;
 }
-.command-bar-modal.active { display: flex; }
+.command-bar-modal.active, .command-bar-modal.open { display: flex; }
 
 .command-bar-surface {
     width: 100%;
@@ -434,8 +437,10 @@ button:disabled { opacity: 0.5; cursor: not-allowed; filter: grayscale(1); }
 
 /* =========================================================
    8. MODAIS BASE (AUTENTICAÇÃO E PERFIL)
+   Compatibilidade: .auth-modal = .modal-backdrop
+   Compatibilidade: .auth-box = .modal-surface
 ========================================================= */
-.modal-backdrop {
+.modal-backdrop, .auth-modal {
     position: fixed;
     inset: 0;
     background: var(--bg-glass);
@@ -447,9 +452,12 @@ button:disabled { opacity: 0.5; cursor: not-allowed; filter: grayscale(1); }
     justify-content: center;
     padding: 1rem;
 }
-.modal-backdrop.active { display: flex; }
+.modal-backdrop.active, .modal-backdrop.open,
+.auth-modal.active, .auth-modal.open { 
+    display: flex; 
+}
 
-.modal-surface {
+.modal-surface, .auth-box {
     background: var(--theme-surface-elevated);
     border: 1px solid var(--theme-border-strong);
     border-radius: var(--radius-md);
@@ -470,7 +478,7 @@ button:disabled { opacity: 0.5; cursor: not-allowed; filter: grayscale(1); }
     to { opacity: 1; transform: translateY(0) scale(1); } 
 }
 
-.modal-close {
+.modal-close, .auth-close {
     position: absolute;
     top: 1rem;
     right: 1rem;
@@ -482,11 +490,14 @@ button:disabled { opacity: 0.5; cursor: not-allowed; filter: grayscale(1); }
     border-radius: var(--radius-sm);
     color: var(--text-muted);
 }
-.modal-close:hover { background: var(--theme-surface-interactive); color: var(--text-primary); }
+.modal-close:hover, .auth-close:hover { 
+    background: var(--theme-surface-interactive); 
+    color: var(--text-primary); 
+}
 
 .modal-header { text-align: center; margin-bottom: 2rem; }
 .modal-header h2 { font-size: 1.5rem; margin-bottom: 0.5rem; color: var(--theme-primary); }
-.modal-header p { color: var(--text-muted); font-size: 0.9rem; }
+.modal-header p { color: var(--text-muted); font-size: 0.9rem; margin: 0; }
 
 /* Mensagens do Sistema (Toasts/Erros) */
 .msg-box { padding: 1rem; border-radius: var(--radius-sm); font-size: 0.875rem; text-align: center; margin-top: 1rem; display: none; font-weight: 500; }
