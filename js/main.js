@@ -5,7 +5,7 @@
 document.addEventListener("DOMContentLoaded", async () => {
     "use strict";
 
-    const AERION_URL = "https://henriqux77.github.io/Aeriom/";
+    const AERION_URL = "https://i.ibb.co/zYVXyTC/Design-sem-nome-20260823-184618-0000.png";
     const supabaseClient = window.supabaseClient;
 
     if (!supabaseClient) {
