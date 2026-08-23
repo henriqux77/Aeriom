@@ -162,3 +162,45 @@
 @keyframes floatDice { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
 
 .cine-result { font-family: var(--display-font); font-size: 3.5rem; font-weight: bold; color: var(--cream); text-shadow: 0 0 20px var(--orange); }
+/* =========================================================
+   CRONÔMETRO E PAINEL DA SESSÃO (FASE B)
+========================================================= */
+.global-timer {
+    position: fixed;
+    top: 80px;
+    right: 20px;
+    background: rgba(15, 10, 8, 0.95);
+    border: 1px solid var(--fire);
+    border-radius: 12px;
+    padding: 15px 25px;
+    box-shadow: 0 5px 20px rgba(188, 48, 28, 0.3);
+    z-index: 99;
+    text-align: center;
+    backdrop-filter: blur(8px);
+    animation: fadeIn 0.3s ease;
+}
+.global-timer span.label {
+    display: block;
+    color: var(--cream-muted);
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 5px;
+}
+.global-timer strong.time {
+    font-family: var(--display-font);
+    font-size: 2rem;
+    color: var(--gold);
+    text-shadow: 0 0 10px rgba(232, 160, 93, 0.4);
+}
+
+.session-dashboard-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 15px;
+    margin-bottom: 20px;
+}
+@media(min-width: 700px) {
+    .session-dashboard-grid { grid-template-columns: 1fr 1fr; }
+}
+
