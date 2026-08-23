@@ -1,5 +1,5 @@
 /* =========================================================
-   AERION — PAINEL DA CAMPANHA (FASE 10)
+   AERION — PAINEL DA CAMPANHA (UNIFICADO - FASE 1 A FASE 11)
 ========================================================= */
 
 .campaign-dashboard { width: min(100%, 1000px); margin: 0 auto; padding: 0 1rem 4rem; min-height: 100vh; }
@@ -56,7 +56,7 @@
 .char-card-actions { display: flex; gap: 8px; }
 .char-state-badge { background: rgba(5, 3, 3, 0.8); padding: 2px 6px; border-radius: 4px; border: 1px solid rgba(200, 100, 50, 0.3); font-size: 0.7rem; color: var(--gold); margin-top: 5px; display: inline-block; }
 
-/* COMBATE - TRACKER (FASE 10) */
+/* COMBATE - TRACKER */
 .combatant-card { display: flex; align-items: center; gap: 15px; padding: 12px 15px; background: rgba(20, 15, 13, 0.8); border: 1px solid rgba(200, 100, 50, 0.3); border-radius: 8px; transition: all 0.3s ease; }
 .combatant-card.active-turn { border-color: var(--gold); background: linear-gradient(145deg, rgba(40, 30, 20, 0.9), rgba(20, 15, 10, 0.9)); box-shadow: 0 0 15px rgba(200, 100, 50, 0.2); transform: scale(1.02); }
 .combatant-init { width: 35px; height: 35px; min-width: 35px; border-radius: 50%; background: rgba(5, 3, 3, 0.8); border: 1px solid var(--gold); display: flex; align-items: center; justify-content: center; color: var(--gold); font-family: var(--display-font); font-weight: bold; }
@@ -83,13 +83,6 @@
 /* ESQUELETOS */
 .placeholder-panel { text-align: center; display: flex; flex-direction: column; justify-content: center; align-items: center; min-height: 250px; }
 .placeholder-icon { font-size: 3rem; margin-bottom: 15px; filter: grayscale(1) opacity(0.5); }
-.cooking-active-meal { border: 1px solid var(--gold); border-radius: 12px; background: linear-gradient(145deg, rgba(40, 30, 20, 0.8), rgba(20, 15, 10, 0.9)); padding: 20px; text-align: center; margin-bottom: 30px; box-shadow: 0 0 20px rgba(200, 100, 50, 0.15); }
-.cooking-active-meal h4 { font-family: var(--display-font); color: var(--gold); margin: 0 0 10px 0; font-size: 1.2rem; }
-.cooking-active-meal p { color: var(--cream); font-size: 0.9rem; margin: 0 0 15px 0; }
-.meal-bonus-box { display: inline-block; background: rgba(5, 3, 3, 0.6); padding: 8px 20px; border-radius: 20px; border: 1px solid rgba(200, 100, 50, 0.3); font-size: 0.85rem; color: var(--cream); }
-.meal-bonus-box span { color: var(--orange); font-weight: bold; }
-.cooking-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; }
-.empty-list { border: 1px dashed rgba(131, 65, 43, 0.4); border-radius: 8px; padding: 20px; text-align: center; color: var(--cream-muted); font-size: 0.85rem; }
 
 /* MODAL DE ESTADO RÁPIDO */
 .state-adj-btn { width: 40px; height: 100%; border-radius: 8px; border: 1px solid rgba(131, 65, 43, 0.5); background: rgba(20, 15, 13, 0.8); color: var(--gold); font-size: 1.2rem; cursor: pointer; transition: all 0.2s; }
@@ -112,9 +105,16 @@
 .request-icon { font-size: 24px; animation: pulse 2s infinite; }
 @keyframes slideUp { from { bottom: -100px; opacity: 0; } to { bottom: 20px; opacity: 1; } }
 @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.1); } 100% { transform: scale(1); } }
+
 /* =========================================================
-   AERION — SISTEMA DE COZINHA (FASE 11)
+   SISTEMA DE COZINHA (FASE 11)
 ========================================================= */
+.cooking-active-meal { border: 1px solid var(--gold); border-radius: 12px; background: linear-gradient(145deg, rgba(40, 30, 20, 0.8), rgba(20, 15, 10, 0.9)); padding: 20px; text-align: center; margin-bottom: 30px; box-shadow: 0 0 20px rgba(200, 100, 50, 0.15); }
+.cooking-active-meal h4 { font-family: var(--display-font); color: var(--gold); margin: 0 0 10px 0; font-size: 1.2rem; }
+.cooking-active-meal p { color: var(--cream); font-size: 0.9rem; margin: 0 0 15px 0; }
+.meal-bonus-box { display: inline-block; background: rgba(5, 3, 3, 0.6); padding: 8px 20px; border-radius: 20px; border: 1px solid rgba(200, 100, 50, 0.3); font-size: 0.85rem; color: var(--cream); }
+.meal-bonus-box span { color: var(--orange); font-weight: bold; }
+
 .cooking-layout { display: grid; grid-template-columns: 1fr; gap: 20px; }
 @media(min-width: 768px) { .cooking-layout { grid-template-columns: 1fr 1fr; } }
 
