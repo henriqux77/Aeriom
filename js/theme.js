@@ -1,22 +1,21 @@
 /* =========================================================
    AERIOM — GERENCIADOR DE TEMAS E ATMOSFERA (js/theme.js)
-   Fase 0: Correção de Race Condition e Prevenção de FOUC
+   Correção de Integração: Tokens Unificados e Prevenção FOUC
 ========================================================= */
 (function() {
     "use strict";
 
     // =========================================================
     // 1. DICIONÁRIO DE TEMAS DISPONÍVEIS
-    // (Mantidos simples por enquanto, foco na estabilidade)
     // =========================================================
     const AeriomThemes = {
         default: {
             name: "Obsidiana (Padrão)",
-            primary: "#d4af37",          // Dourado
+            primary: "#d4af37",          // Bronze/Dourado Escuro
             primaryHover: "#f1cf5b",
-            bg: "#09090b",               // Obsidiana
+            bg: "#09090b",               // Carvão
             surface: "rgba(24, 24, 27, 0.85)", 
-            backgroundImage: ""          // Sem imagem padrão
+            backgroundImage: ""          
         },
         forest: {
             name: "Floresta Antiga",
@@ -44,7 +43,7 @@
     }
 
     // =========================================================
-    // 3. LÓGICA DO GERENCIADOR DE TEMAS (À PROVA DE FALHAS)
+    // 3. LÓGICA DO GERENCIADOR DE TEMAS
     // =========================================================
     const ThemeManager = {
         
@@ -57,41 +56,38 @@
 
         applyTheme: function(themeId) {
             const theme = AeriomThemes[themeId] || AeriomThemes.default;
-            const root = document.documentElement; // :root (sempre existe, mesmo no <head>)
+            const root = document.documentElement; // :root garante injeção síncrona no <head>
 
-            // 3.1 INJEÇÃO SÍNCRONA DE CORES (Evita FOUC)
-            root.style.setProperty('--theme-primary', theme.primary);
-            root.style.setProperty('--theme-primary-hover', theme.primaryHover);
+            // Injeção usando o novo sistema arquitetural de tokens (--color-*)
+            root.style.setProperty('--color-primary', theme.primary);
+            root.style.setProperty('--color-primary-hover', theme.primaryHover);
             
             const rgbString = hexToRgbString(theme.primary);
-            root.style.setProperty('--theme-primary-soft', `rgba(${rgbString}, 0.15)`);
-            root.style.setProperty('--theme-border-focus', `rgba(${rgbString}, 0.5)`);
+            root.style.setProperty('--color-primary-muted', `rgba(${rgbString}, 0.15)`);
+            root.style.setProperty('--color-border-focus', `rgba(${rgbString}, 0.5)`);
 
-            root.style.setProperty('--theme-bg', theme.bg);
-            root.style.setProperty('--theme-surface', theme.surface);
+            root.style.setProperty('--color-bg', theme.bg);
+            root.style.setProperty('--color-surface', theme.surface);
 
             localStorage.setItem('aeriom_active_theme', themeId);
 
-            // 3.2 INJEÇÃO ASSÍNCRONA DE BACKGROUND (Protege contra erro de body == null)
+            // Injeção dinâmica da variável CSS de background, delegando o controle real ao style.css
             const applyBackground = () => {
                 if (theme.backgroundImage) {
-                    document.body.style.backgroundImage = theme.backgroundImage;
-                    document.body.style.boxShadow = "inset 0 0 0 2000px rgba(0, 0, 0, 0.7)";
+                    document.body.style.setProperty('--campaign-background-image', theme.backgroundImage);
                 } else {
-                    document.body.style.backgroundImage = 'none';
-                    document.body.style.boxShadow = 'none';
+                    document.body.style.setProperty('--campaign-background-image', 'none');
                 }
             };
 
-            // Se o body já existir (ex: chamado pelo console), aplica direto.
-            // Se não (carregamento inicial no <head>), agenda para quando o DOM estiver pronto.
+            // Proteção contra chamadas antes do DOM existir (ex: no <head>)
             if (document.body) {
                 applyBackground();
             } else {
                 document.addEventListener('DOMContentLoaded', applyBackground);
             }
             
-            // 3.3 DISPARO DE EVENTO SEGURO
+            // Disparo de Evento para módulos que precisem reagir (ex: Canvas de Dados)
             const dispatchEventSafe = () => {
                 document.dispatchEvent(new CustomEvent('aeriomThemeChanged', { detail: { themeId: themeId, theme: theme } }));
             };
@@ -106,13 +102,12 @@
         setCustomAtmosphere: function(imageUrl) {
             const apply = () => {
                 if (imageUrl) {
-                    document.body.style.backgroundImage = `url('${imageUrl}')`;
-                    document.body.style.boxShadow = "inset 0 0 0 2000px rgba(0, 0, 0, 0.7)";
+                    document.body.style.setProperty('--campaign-background-image', `url('${imageUrl}')`);
                 } else {
-                    document.body.style.backgroundImage = 'none';
-                    document.body.style.boxShadow = 'none';
+                    document.body.style.setProperty('--campaign-background-image', 'none');
                 }
             };
+            
             if (document.body) apply();
             else document.addEventListener('DOMContentLoaded', apply);
         },
@@ -124,6 +119,6 @@
     };
 
     window.AeriomThemeManager = ThemeManager;
-    ThemeManager.init(); // Inicia imediatamente, mas agora de forma segura.
+    ThemeManager.init(); // Executa imediatamente para prevenir Flash of Unstyled Content (FOUC)
 
 })();
