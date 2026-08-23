@@ -3,62 +3,97 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="theme-color" content="#09090b">
     <title>Aeriom — Minhas Fichas</title>
+    <!-- Carrega os estilos globais do Design System -->
     <link rel="stylesheet" href="css/style.css">
+    <!-- Inicia o gerenciador de temas imediatamente para evitar FOUC -->
+    <script src="js/theme.js"></script>
+    
+    <style>
+        /* Animação simples de loading para o estado vazio inicial */
+        @keyframes spin { 100% { transform: rotate(360deg); } }
+    </style>
 </head>
 <body>
 
-    <!-- TOPBAR GLOBA L-->
+    <!-- =========================================================
+         TOPBAR (Navegação Superior)
+    ========================================================= -->
     <header class="topbar">
-        <div class="container topbar-content">
-            <button class="btn-icon" id="menuButton" aria-label="Menu">
+        <div class="app-container topbar-content">
+            <button class="btn-icon" id="menuButton" aria-label="Abrir menu">
                 ☰
             </button>
-            <a href="./" class="brand-logo">
+            
+            <a href="index.html" class="brand-logo">
                 <img src="https://i.ibb.co/d0SnBLcV/Design-sem-nome-20260817-180846-0000.jpg" alt="Aeriom">
             </a>
+            
             <div style="display: flex; gap: 8px;">
                 <button class="btn-icon" id="openCommandBarBtn" title="Ações Rápidas (Ctrl+K)">
                     ⌘
                 </button>
-                <button class="btn-icon" id="profileButton" aria-label="Perfil">
+                <button class="btn-icon" id="profileButton" aria-label="Abrir Perfil">
                     ♙
                 </button>
             </div>
         </div>
     </header>
 
-    <!-- MENU LATERAL GLOBAL -->
-    <div class="sidebar-overlay" id="sidebarOverlay"></div>
-    <aside class="global-sidebar" id="globalSidebar">
-        <div class="sidebar-header">
-            <h2>Aeriom</h2>
-            <button class="btn-ghost" id="closeSidebarBtn" style="font-size: 1.5rem; padding: 0 5px;">×</button>
+    <!-- =========================================================
+         CONTEÚDO PRINCIPAL
+    ========================================================= -->
+    <main class="app-container" style="padding-top: 3rem; padding-bottom: 3rem; flex: 1;">
+        
+        <!-- Cabeçalho da Página -->
+        <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 2rem; flex-wrap: wrap; gap: 1rem; border-bottom: 1px solid var(--theme-border); padding-bottom: 1.5rem;">
+            <div>
+                <h1 style="font-size: 2.2rem; margin-bottom: 0.5rem; color: var(--theme-primary);">Minhas Fichas</h1>
+                <p style="color: var(--text-secondary); font-size: 1rem;">Visualize, edite e crie novos heróis para as suas aventuras.</p>
+            </div>
+            <button id="createCharacterButton" class="btn btn-primary" onclick="window.location.href='ficha.html'">
+                + Nova Ficha
+            </button>
         </div>
-        <nav class="sidebar-nav">
-            <div class="sidebar-category">Aventura</div>
-            <a href="./" class="sidebar-link"><span class="sidebar-icon">🏠</span> Início</a>
-            <a href="fichas.html" class="sidebar-link current"><span class="sidebar-icon">📜</span> Minhas Fichas</a>
-            <a href="campanhas.html" class="sidebar-link"><span class="sidebar-icon">⚔️</span> Campanhas</a>
-        </nav>
-    </aside>
 
-    <!-- COMMAND BAR (ACESSOS RÁPIDOS) -->
+        <!-- Mensagens de Erro/Aviso -->
+        <div id="charactersMessage" class="msg-box mb-4"></div>
+
+        <!-- Grid de Personagens (Onde fichas.js vai injetar os cards) -->
+        <div id="charactersList" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1.5rem;">
+            
+            <!-- Estado de Carregamento Inicial -->
+            <div style="grid-column: 1/-1; text-align: center; padding: 4rem 1rem; color: var(--text-muted); background: var(--theme-surface); border: 1px solid var(--theme-border); border-radius: var(--radius-md);">
+                <div style="width: 48px; height: 48px; border: 3px solid var(--theme-border); border-top-color: var(--theme-primary); border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto 1rem;"></div>
+                <p style="font-family: var(--font-heading); font-size: 1.2rem; color: var(--text-primary);">Convocando seus heróis...</p>
+                <p style="font-size: 0.85rem;">Acessando os registros de Aeriom.</p>
+            </div>
+
+        </div>
+    </main>
+
+    <!-- =========================================================
+         MODAIS GLOBAIS
+    ========================================================= -->
+    
+    <!-- COMMAND BAR (PESQUISA RÁPIDA / CTRL+K) -->
     <div id="commandBarModal" class="command-bar-modal">
-        <div class="sidebar-overlay active" id="commandBarOverlay"></div>
+        <div class="global-overlay active" id="commandBarOverlay"></div>
         <div class="command-bar-surface" style="z-index: 10006;">
             <div class="command-input-wrapper">
                 <span>🔍</span>
-                <input type="text" class="command-input" placeholder="O que você quer fazer?">
-                <div style="font-size: 0.7rem; background: var(--bg-elevated); padding: 2px 6px; border-radius: 4px; color: var(--text-muted);">ESC</div>
+                <input type="text" class="command-input" id="commandBarInput" placeholder="O que você quer fazer? (ex: 'Campanha', 'Início')">
+                <div style="font-size: 0.7rem; background: var(--theme-surface-interactive); padding: 4px 8px; border-radius: var(--radius-sm); color: var(--text-muted); font-weight: 600;">ESC</div>
             </div>
-            <div class="command-list">
-                <a href="criar-ficha.html" class="command-item">
-                    <span class="command-item-icon">✨</span> Criar novo Personagem
+            <div class="command-list" id="commandBarList">
+                <a href="index.html" class="command-item">
+                    <span class="command-item-icon">🏠</span> Voltar ao Início
                 </a>
                 <a href="campanhas.html" class="command-item">
                     <span class="command-item-icon">⚔️</span> Acessar Campanhas
+                </a>
+                <a href="ficha.html" class="command-item">
+                    <span class="command-item-icon">✨</span> Criar Novo Personagem
                 </a>
             </div>
         </div>
@@ -67,69 +102,60 @@
     <!-- PAINEL DE PERFIL -->
     <div id="profilePanel" class="modal-backdrop">
         <div class="modal-surface text-center">
-            <button id="closeProfile" class="modal-close btn-ghost" style="font-size: 1.5rem;">×</button>
-            <div style="width: 80px; height: 80px; border-radius: 50%; background: var(--bg-interactive); margin: 0 auto 1rem; border: 1px solid var(--border-light); display: grid; place-items: center; font-size: 1.5rem; font-family: var(--font-heading); color: var(--gold-primary);">♙</div>
+            <button id="closeProfile" class="modal-close">×</button>
+            <div style="width: 80px; height: 80px; border-radius: 50%; background: var(--theme-surface-interactive); margin: 0 auto 1.5rem; border: 1px solid var(--theme-border-strong); display: grid; place-items: center; font-size: 2rem; font-family: var(--font-heading); color: var(--theme-primary);">♙</div>
+            <img id="profileAvatar" src="" alt="Avatar" style="display: none; width: 80px; height: 80px; border-radius: 50%; margin: 0 auto 1.5rem; object-fit: cover; border: 1px solid var(--theme-border-strong);">
+            
             <h2 id="profileName" style="margin-bottom: 0.25rem;">Carregando...</h2>
-            <p id="profileEmail" class="text-secondary mb-4">Carregando...</p>
-            <div style="display: flex; flex-direction: column; gap: 8px;">
-                <button id="logoutButton" class="btn btn-ghost w-full" style="color: var(--danger);">Sair da Conta</button>
+            <p id="profileEmail" class="text-secondary mb-4">Aguarde...</p>
+            
+            <div class="form-group">
+                <button id="editProfileButton" class="btn btn-secondary w-full">Editar Perfil</button>
+                <button id="logoutButton" class="btn btn-ghost w-full" style="color: var(--danger); margin-top: 8px;">Sair da Conta</button>
             </div>
         </div>
     </div>
 
-    <!-- MAIN CONTENT: FICHAS -->
-    <main class="container characters-page" style="padding-top: 3rem;">
-        <div class="characters-heading">
-            <div>
-                <h1 style="font-size: 2rem; margin-bottom: 0.5rem;">Minhas Fichas</h1>
-                <p class="text-secondary">Visualize, edite e crie novos personagens para suas aventuras.</p>
-            </div>
-            <button id="createCharacterButton" class="btn btn-primary" onclick="window.location.href='criar-ficha.html'">
-                + Nova Ficha
-            </button>
-        </div>
-
-        <div id="charactersMessage" class="msg-box"></div>
-
-        <!-- O JS de fichas.js injetará os cards aqui dentro -->
-        <div id="charactersList" class="characters-grid mt-4">
-            <!-- Loading State -->
-            <div style="grid-column: 1/-1; text-align: center; padding: 3rem; color: var(--text-muted);">
-                <div class="characters-loader" style="width: 40px; height: 40px; border: 3px solid var(--border-light); border-top-color: var(--gold-primary); border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto 1rem;"></div>
-                Carregando seus heróis...
-            </div>
-        </div>
-    </main>
-
-    <!-- SCRIPTS -->
+    <!-- =========================================================
+         SCRIPTS CORE
+    ========================================================= -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="js/supabase.js?v=25"></script>
-    <script src="js/auth.js?v=25"></script>
+    <script src="js/supabase.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/main.js"></script> <!-- Carrega o controle de perfil e redirecionamentos base -->
+    <script src="js/menu.js"></script> <!-- Injeta a Sidebar dinamicamente -->
     
-    <!-- Se você já tem um fichas.js que faz o fetch e monta os cards, referencie ele aqui: -->
-    <!-- <script src="js/fichas.js?v=2"></script> -->
+    <!-- Script Específico desta página (Não alterar, mantém a lógica de listar fichas) -->
+    <script src="js/fichas.js"></script>
 
-    <!-- Lógica de Menu Global Inline para esta página -->
+    <!-- Script Estrutural da Command Bar -->
     <script>
         document.addEventListener('DOMContentLoaded', () => {
-            const sidebar = document.getElementById('globalSidebar');
-            const overlay = document.getElementById('sidebarOverlay');
-            function toggleMenu() { sidebar.classList.toggle('active'); overlay.classList.toggle('active'); }
-            document.getElementById('menuButton')?.addEventListener('click', toggleMenu);
-            document.getElementById('closeSidebarBtn')?.addEventListener('click', toggleMenu);
-            overlay?.addEventListener('click', toggleMenu);
-
             const cmdModal = document.getElementById('commandBarModal');
             const cmdOverlay = document.getElementById('commandBarOverlay');
+            const cmdInput = document.getElementById('commandBarInput');
+            
             function toggleCommandBar() {
-                if(cmdModal.classList.contains('active')) cmdModal.classList.remove('active');
-                else { cmdModal.classList.add('active'); document.querySelector('.command-input')?.focus(); }
+                if(cmdModal.classList.contains('active')) {
+                    cmdModal.classList.remove('active');
+                    cmdInput.value = '';
+                } else {
+                    cmdModal.classList.add('active');
+                    cmdInput.focus();
+                }
             }
+
             document.getElementById('openCommandBarBtn')?.addEventListener('click', toggleCommandBar);
             cmdOverlay?.addEventListener('click', toggleCommandBar);
+            
             document.addEventListener('keydown', (e) => {
-                if ((e.ctrlKey || e.metaKey) && e.key === 'k') { e.preventDefault(); toggleCommandBar(); }
-                if (e.key === 'Escape' && cmdModal.classList.contains('active')) toggleCommandBar();
+                if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+                    e.preventDefault();
+                    toggleCommandBar();
+                }
+                if (e.key === 'Escape' && cmdModal.classList.contains('active')) {
+                    toggleCommandBar();
+                }
             });
         });
     </script>
