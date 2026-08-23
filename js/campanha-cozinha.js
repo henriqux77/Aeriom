@@ -11,7 +11,7 @@
     let knownRecipes = [];
 
     // ==================================================
-    // IMAGENS DOS INGREDIENTES (Fácil customização)
+    // IMAGENS DOS INGREDIENTES
     // ==================================================
     const INGREDIENT_IMAGES = {
         "Erva Verde": "https://i.ibb.co/FqdStCX7/b108ec9f-9538-451d-8803-f0dff6f73cca-20260822-211244-0000.png",
@@ -27,7 +27,7 @@
     };
 
     // ==================================================
-    // IMAGENS DAS RECEITAS (Fácil customização)
+    // IMAGENS DAS RECEITAS
     // ==================================================
     const RECIPE_IMAGES = {
         "Sopa de Ervas": "https://i.ibb.co/s935G49f/225120ae-3307-454c-baf6-bf2209072cfc-20260822-212246-0000.png",
@@ -35,11 +35,12 @@
         "Frutas ao Mel": "https://i.ibb.co/Mkvb1X6B/34cf5093-8fec-4bce-aa6a-8e875d6fd588-20260822-212218-0000.png"
     };
 
+    // Dados Iniciais de Teste
     const DEFAULT_TEST_INGREDIENTS = [
         { name: "Erva Verde", quantity: 5, category: "Vegetal", rarity: "Comum", desc: "Erva comum com leves propriedades revigorantes." },
         { name: "Broto de Primavera", quantity: 4, category: "Vegetal", rarity: "Comum", desc: "Broto fresco colhido em matas temperadas." },
         { name: "Raiz Branca", quantity: 3, category: "Raiz", rarity: "Comum", desc: "Raiz nutritiva usada para engrossar caldos." },
-        { name: "Cogumelo Cinzento", quantity: 4, category F: "Fungo", rarity: "Comum", desc: "Fungo subterrâneo de sabor terroso." },
+        { name: "Cogumelo Cinzento", quantity: 4, category: "Fungo", rarity: "Comum", desc: "Fungo subterrâneo de sabor terroso." },
         { name: "Fruta Silvestre", quantity: 3, category: "Fruta", rarity: "Comum", desc: "Fruta doce encontrada em arbustos silvestres." },
         { name: "Bagas Vermelhas", quantity: 6, category: "Fruta", rarity: "Comum", desc: "Pequenas bagas ácidas e suculentas." },
         { name: "Carne de Coelho Selvagem", quantity: 2, category: "Carne", rarity: "Incomum", desc: "Carne magra de caça." },
@@ -98,7 +99,7 @@
                     category: i.category,
                     rarity: i.rarity,
                     description: i.desc,
-                    image_url: INGREDIENT_IMAGES[i.name] || "COLOCAR_URL_DA_IMAGEM_AQUI"
+                    image_url: INGREDIENT_IMAGES[i.name] || ""
                 }));
                 await supabase.from('campaign_ingredients').insert(rows);
             }
@@ -113,7 +114,7 @@
                     prep_time: r.prep_time,
                     description: r.desc,
                     effect_summary: r.effect,
-                    image_url: RECIPE_IMAGES[r.name] || "COLOCAR_URL_DA_IMAGEM_AQUI",
+                    image_url: RECIPE_IMAGES[r.name] || "",
                     is_discovered: true
                 }));
                 await supabase.from('campaign_recipes').insert(recRows);
@@ -124,12 +125,12 @@
     }
 
     async function loadIngredients() {
-        const { data } = await supabase.from('campaign_ingredients').select('*').eq('campaign_id', campaignId);
+        const { data } = await supabase.from('campaign_ingredients').select('*').eq('campaign_id', campaignId).order('name');
         availableIngredients = data || [];
     }
 
     async function loadRecipes() {
-        const { data } = await supabase.from('campaign_recipes').select('*').eq('campaign_id', campaignId);
+        const { data } = await supabase.from('campaign_recipes').select('*').eq('campaign_id', campaignId).order('name');
         knownRecipes = data || [];
     }
 
@@ -162,13 +163,14 @@
             </div>
 
             <div class="cooking-layout">
-                <!-- INVENTÁRIO & CALDEIRÃO -->
+                <!-- INVENTÁRIO DE INGREDIENTES -->
                 <div class="dash-panel" style="margin-bottom:0;">
                     <h3>Bolsa de Ingredientes</h3>
-                    <p style="font-size: 0.8rem; color: var(--cream-muted); margin-bottom: 10px;">Toque para adicionar ao caldeirão.</p>
+                    <p style="font-size: 0.8rem; color: var(--cream-muted); margin-bottom: 10px;">Toque ou arraste para o caldeirão.</p>
                     <div id="cookingBagGrid" class="cooking-bag-grid"></div>
                 </div>
 
+                <!-- CALDEIRÃO DE PREPARO -->
                 <div class="dash-panel" style="margin-bottom:0; display:flex; flex-direction:column;">
                     <h3>🔥 O Caldeirão</h3>
                     <p style="font-size: 0.8rem; color: var(--cream-muted); margin-bottom: 10px;">Misture os ingredientes e inicie o preparo.</p>
@@ -188,7 +190,7 @@
             <!-- LIVRO DE RECEITAS -->
             <div class="dash-panel" style="margin-top: 25px;">
                 <h3>📖 Livro de Receitas Conhecidas</h3>
-                <p style="font-size: 0.8rem; color: var(--cream-muted); margin-bottom: 15px;">Combinações descobertas pelo grupo.</p>
+                <p style="font-size: 0.8rem; color: var(--cream-muted); margin-bottom: 15px;">Combinações descobertas e testadas.</p>
                 <div id="recipeBookGrid" class="recipe-book-grid"></div>
             </div>
         `;
@@ -198,6 +200,7 @@
         renderCauldron();
         renderRecipeBook();
         attachCookingEvents();
+        setupDragAndDrop();
     }
 
     function renderBag() {
@@ -205,16 +208,64 @@
         if (!bagGrid) return;
         bagGrid.innerHTML = '';
 
-        availableIngredients.forEach(item => {
+        availableIngredients.forEach((item, index) => {
+            if (item.quantity <= 0) return;
+
             const card = document.createElement('div');
             card.className = 'ingredient-card';
+            card.draggable = true; 
+            card.dataset.index = index;
+            
             card.innerHTML = `
-                <img src="${item.image_url !== 'COLOCAR_URL_DA_IMAGEM_AQUI' ? item.image_url : ''}" class="ingredient-img" onerror="this.style.display='none'">
+                <img src="${item.image_url}" class="ingredient-img" onerror="this.style.display='none'">
                 <h5>${item.name}</h5>
                 <span>Qtd: ${item.quantity}</span>
             `;
+            
+            // Toque/Clique (Para celulares)
             card.addEventListener('click', () => addToCauldron(item));
+
+            // Início do Arrastar (Para desktop)
+            card.addEventListener('dragstart', (e) => {
+                e.dataTransfer.setData('text/plain', index);
+                e.dataTransfer.effectAllowed = 'copy';
+            });
+
             bagGrid.appendChild(card);
+        });
+
+        if (bagGrid.innerHTML === '') {
+            bagGrid.innerHTML = '<div class="empty-list">A bolsa de comida está vazia.</div>';
+        }
+    }
+
+    function setupDragAndDrop() {
+        const dropZone = document.getElementById('cauldronDropZone');
+        if (!dropZone) return;
+
+        dropZone.addEventListener('dragover', (e) => {
+            e.preventDefault(); 
+            e.dataTransfer.dropEffect = 'copy';
+            dropZone.style.borderColor = 'var(--gold)';
+            dropZone.style.background = 'rgba(40, 25, 20, 0.5)';
+        });
+
+        dropZone.addEventListener('dragleave', (e) => {
+            e.preventDefault();
+            dropZone.style.borderColor = '';
+            dropZone.style.background = '';
+        });
+
+        dropZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            dropZone.style.borderColor = '';
+            dropZone.style.background = '';
+            
+            const itemIndex = e.dataTransfer.getData('text/plain');
+            if (itemIndex !== '') {
+                const item = availableIngredients[parseInt(itemIndex)];
+                if (item) addToCauldron(item);
+            }
         });
     }
 
@@ -272,17 +323,19 @@
         bookGrid.innerHTML = '';
 
         knownRecipes.forEach(rec => {
+            if (!rec.is_discovered) return;
+
             const card = document.createElement('div');
             card.className = 'recipe-card';
             const ingsText = Object.entries(rec.ingredients_json).map(([k, v]) => `${v}x ${k}`).join(', ');
 
             card.innerHTML = `
-                <img src="${rec.image_url !== 'COLOCAR_URL_DA_IMAGEM_AQUI' ? rec.image_url : ''}" class="recipe-img" onerror="this.style.display='none'">
+                <img src="${rec.image_url}" class="recipe-img" onerror="this.style.display='none'">
                 <div class="recipe-info">
                     <h5>${rec.name}</h5>
                     <p><b>Ingredientes:</b> ${ingsText}</p>
                     <p><b>Efeito:</b> ${rec.effect_summary}</p>
-                    <p style="color:var(--gold); font-size: 0.7rem; margin-top:2px;">⏱️ ${rec.prep_time}</p>
+                    <p style="color:var(--gold); font-size: 0.7rem; margin-top:4px;">⏱️ ${rec.prep_time}</p>
                 </div>
             `;
             bookGrid.appendChild(card);
@@ -302,15 +355,17 @@
 
         document.getElementById('startCookingBtn')?.addEventListener('click', async () => {
             if (cauldronIngredients.length === 0) {
-                alert("O caldeirão está vazio!");
+                alert("O caldeirão está vazio! Adicione ingredientes primeiro.");
                 return;
             }
 
-            // Transforma o caldeirão em um mapa de contagem
+            const btn = document.getElementById('startCookingBtn');
+            btn.disabled = true;
+            btn.textContent = "Cozinhando...";
+
             const currentMix = {};
             cauldronIngredients.forEach(c => currentMix[c.name] = c.count);
 
-            // Verifica se bate com alguma receita conhecida
             let matchedRecipe = null;
             for (const rec of knownRecipes) {
                 const reqs = rec.ingredients_json;
@@ -323,9 +378,9 @@
                 }
             }
 
-            let resultName = "Preparo Experimental";
-            let resultEffect = "Efeito desconhecido ou mistureba consumida com cautela.";
-            let prepTime = "15 minutos";
+            let resultName = "Preparo Experimental Desconhecido";
+            let resultEffect = "Efeito misterioso. O Mestre definirá se isso é comestível ou tóxico.";
+            let prepTime = "30 minutos (Narrativos)";
 
             if (matchedRecipe) {
                 resultName = matchedRecipe.name;
@@ -333,32 +388,38 @@
                 prepTime = matchedRecipe.prep_time;
             }
 
-            // Atualiza os ingredientes no banco de dados (consome definitivamente)
-            for (const item of availableIngredients) {
-                await supabase.from('campaign_ingredients').update({ quantity: item.quantity }).eq('campaign_id', campaignId).eq('name', item.name);
+            try {
+                for (const item of availableIngredients) {
+                    await supabase.from('campaign_ingredients').update({ quantity: item.quantity }).eq('campaign_id', campaignId).eq('name', item.name);
+                }
+
+                await supabase.from('campaign_cooking_state').upsert({
+                    campaign_id: campaignId,
+                    active_meal_name: resultName,
+                    active_bonus: resultEffect,
+                    updated_at: new Date().toISOString()
+                });
+
+                await supabase.from('campaign_logs').insert({
+                    campaign_id: campaignId,
+                    description: `O acampamento preparou "${resultName}" (Levou ${prepTime}). Resultado: ${resultEffect}`,
+                    log_type: 'system'
+                });
+
+                alert(`Preparo Concluído!\n\nResultado: ${resultName}\nTempo Narrativo: ${prepTime}\nEfeito: ${resultEffect}`);
+                
+                cauldronIngredients = [];
+                await loadActiveMeal();
+                renderBag();
+                renderCauldron();
+
+            } catch (err) {
+                console.error("Erro ao finalizar receita:", err);
+                alert("Houve uma falha ao salvar o preparo.");
+            } finally {
+                btn.disabled = false;
+                btn.textContent = "Iniciar Preparo";
             }
-
-            // Atualiza Refeição Ativa no banco
-            await supabase.from('campaign_cooking_state').upsert({
-                campaign_id: campaignId,
-                active_meal_name: resultName,
-                active_bonus: resultEffect,
-                updated_at: new Date().toISOString()
-            });
-
-            // Registra Log no Histórico
-            await supabase.from('campaign_logs').insert({
-                campaign_id: campaignId,
-                description: `Grupo preparou "${resultName}" (${prepTime} de tempo narrativo). Efeito: ${resultEffect}`,
-                log_type: 'system'
-            });
-
-            alert(`Preparo concluído! Resultado: ${resultName}\nEfeito: ${resultEffect}\nTempo narrativo: ${prepTime}`);
-            
-            cauldronIngredients = [];
-            await loadActiveMeal();
-            renderBag();
-            renderCauldron();
         });
     }
 })();
