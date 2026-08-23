@@ -9,11 +9,7 @@
     <!-- Inicia o gerenciador de temas imediatamente para evitar FOUC -->
     <script src="js/theme.js"></script>
     
-    <style>
-        /* Animação simples de loading para o estado vazio inicial */
-        @keyframes spin { 100% { transform: rotate(360deg); } }
-    </style>
-</head>
+    </head>
 <body>
 
     <!-- =========================================================
@@ -112,6 +108,19 @@
             <div class="form-group">
                 <button id="editProfileButton" class="btn btn-secondary w-full">Editar Perfil</button>
                 <button id="logoutButton" class="btn btn-ghost w-full" style="color: var(--danger); margin-top: 8px;">Sair da Conta</button>
+            </div>
+        </div>
+    </div>
+    <!-- MODAL DE CONFIRMAÇÃO DE EXCLUSÃO -->
+    <div id="deleteConfirmModal" class="modal-backdrop">
+        <div class="modal-surface text-center">
+            <div style="font-size: 3rem; margin-bottom: 1rem;">🗡️</div>
+            <h2 style="color: var(--danger); margin-bottom: 0.5rem; font-family: var(--font-heading);">Apagar Personagem?</h2>
+            <p style="color: var(--text-secondary); margin-bottom: 2rem;">A lenda de <strong id="deleteCharName" style="color: var(--text-primary);">...</strong> será apagada dos salões de Aeriom.<br>Esta decisão não poderá ser desfeita.</p>
+            
+            <div style="display: flex; gap: 10px;">
+                <button id="cancelDeleteBtn" class="btn btn-secondary flex-1">Cancelar</button>
+                <button id="confirmDeleteBtn" class="btn btn-danger flex-1">Apagar Herói</button>
             </div>
         </div>
     </div>
