@@ -35,7 +35,7 @@
         "Frutas ao Mel": "https://i.ibb.co/Mkvb1X6B/34cf5093-8fec-4bce-aa6a-8e875d6fd588-20260822-212218-0000.png"
     };
 
-    // Dados Iniciais de Teste
+    // Dados Iniciais de Teste (Corrigido)
     const DEFAULT_TEST_INGREDIENTS = [
         { name: "Erva Verde", quantity: 5, category: "Vegetal", rarity: "Comum", desc: "Erva comum com leves propriedades revigorantes." },
         { name: "Broto de Primavera", quantity: 4, category: "Vegetal", rarity: "Comum", desc: "Broto fresco colhido em matas temperadas." },
@@ -222,10 +222,8 @@
                 <span>Qtd: ${item.quantity}</span>
             `;
             
-            // Toque/Clique (Para celulares)
             card.addEventListener('click', () => addToCauldron(item));
 
-            // Início do Arrastar (Para desktop)
             card.addEventListener('dragstart', (e) => {
                 e.dataTransfer.setData('text/plain', index);
                 e.dataTransfer.effectAllowed = 'copy';
