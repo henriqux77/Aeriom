@@ -1,195 +1,137 @@
-<!-- fichas.html -->
 <!DOCTYPE html>
 <html lang="pt-BR">
-
 <head>
-
     <meta charset="UTF-8">
-
-    <meta
-        name="viewport"
-        content="width=device-width, initial-scale=1.0"
-    >
-
-    <meta
-        name="theme-color"
-        content="#080707"
-    >
-
-    <title>Aerion — Minhas Fichas</title>
-
-    <link
-        rel="stylesheet"
-        href="css/style.css"
-    >
-
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#09090b">
+    <title>Aeriom — Minhas Fichas</title>
+    <link rel="stylesheet" href="css/style.css">
 </head>
-
-
 <body>
 
-<main class="characters-page">
-
-    <!-- =====================================================
-         CABEÇALHO
-    ====================================================== -->
-
-    <header class="creation-header">
-
-        <button
-            id="backButton"
-            class="header-button"
-            type="button"
-            aria-label="Voltar"
-        >
-            ←
-        </button>
-
-
-        <div class="creation-title">
-
-            <span>AERION</span>
-
-            <h1>Minhas Fichas</h1>
-
+    <!-- TOPBAR GLOBA L-->
+    <header class="topbar">
+        <div class="container topbar-content">
+            <button class="btn-icon" id="menuButton" aria-label="Menu">
+                ☰
+            </button>
+            <a href="./" class="brand-logo">
+                <img src="https://i.ibb.co/d0SnBLcV/Design-sem-nome-20260817-180846-0000.jpg" alt="Aeriom">
+            </a>
+            <div style="display: flex; gap: 8px;">
+                <button class="btn-icon" id="openCommandBarBtn" title="Ações Rápidas (Ctrl+K)">
+                    ⌘
+                </button>
+                <button class="btn-icon" id="profileButton" aria-label="Perfil">
+                    ♙
+                </button>
+            </div>
         </div>
-
-
-        <!--
-            O e-mail foi removido.
-            Não há mais informações da conta
-            aparecendo no cabeçalho.
-        -->
-
     </header>
 
+    <!-- MENU LATERAL GLOBAL -->
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
+    <aside class="global-sidebar" id="globalSidebar">
+        <div class="sidebar-header">
+            <h2>Aeriom</h2>
+            <button class="btn-ghost" id="closeSidebarBtn" style="font-size: 1.5rem; padding: 0 5px;">×</button>
+        </div>
+        <nav class="sidebar-nav">
+            <div class="sidebar-category">Aventura</div>
+            <a href="./" class="sidebar-link"><span class="sidebar-icon">🏠</span> Início</a>
+            <a href="fichas.html" class="sidebar-link current"><span class="sidebar-icon">📜</span> Minhas Fichas</a>
+            <a href="campanhas.html" class="sidebar-link"><span class="sidebar-icon">⚔️</span> Campanhas</a>
+        </nav>
+    </aside>
 
-    <!-- =====================================================
-         CONTEÚDO PRINCIPAL
-    ====================================================== -->
+    <!-- COMMAND BAR (ACESSOS RÁPIDOS) -->
+    <div id="commandBarModal" class="command-bar-modal">
+        <div class="sidebar-overlay active" id="commandBarOverlay"></div>
+        <div class="command-bar-surface" style="z-index: 10006;">
+            <div class="command-input-wrapper">
+                <span>🔍</span>
+                <input type="text" class="command-input" placeholder="O que você quer fazer?">
+                <div style="font-size: 0.7rem; background: var(--bg-elevated); padding: 2px 6px; border-radius: 4px; color: var(--text-muted);">ESC</div>
+            </div>
+            <div class="command-list">
+                <a href="criar-ficha.html" class="command-item">
+                    <span class="command-item-icon">✨</span> Criar novo Personagem
+                </a>
+                <a href="campanhas.html" class="command-item">
+                    <span class="command-item-icon">⚔️</span> Acessar Campanhas
+                </a>
+            </div>
+        </div>
+    </div>
 
-    <section class="characters-content">
+    <!-- PAINEL DE PERFIL -->
+    <div id="profilePanel" class="modal-backdrop">
+        <div class="modal-surface text-center">
+            <button id="closeProfile" class="modal-close btn-ghost" style="font-size: 1.5rem;">×</button>
+            <div style="width: 80px; height: 80px; border-radius: 50%; background: var(--bg-interactive); margin: 0 auto 1rem; border: 1px solid var(--border-light); display: grid; place-items: center; font-size: 1.5rem; font-family: var(--font-heading); color: var(--gold-primary);">♙</div>
+            <h2 id="profileName" style="margin-bottom: 0.25rem;">Carregando...</h2>
+            <p id="profileEmail" class="text-secondary mb-4">Carregando...</p>
+            <div style="display: flex; flex-direction: column; gap: 8px;">
+                <button id="logoutButton" class="btn btn-ghost w-full" style="color: var(--danger);">Sair da Conta</button>
+            </div>
+        </div>
+    </div>
 
-        <!-- =================================================
-             TÍTULO
-        ================================================== -->
-
+    <!-- MAIN CONTENT: FICHAS -->
+    <main class="container characters-page" style="padding-top: 3rem;">
         <div class="characters-heading">
-
-            <div class="characters-heading-text">
-
-                <span class="step-number">
-                    AERION
-                </span>
-
-                <h2>
-                    Seus personagens
-                </h2>
-
-                <p>
-                    Todas as fichas criadas nesta conta
-                    aparecem aqui.
-                </p>
-
+            <div>
+                <h1 style="font-size: 2rem; margin-bottom: 0.5rem;">Minhas Fichas</h1>
+                <p class="text-secondary">Visualize, edite e crie novos personagens para suas aventuras.</p>
             </div>
-
-
-            <button
-                id="newCharacterButton"
-                class="primary-button"
-                type="button"
-            >
-                + Nova ficha
+            <button id="createCharacterButton" class="btn btn-primary" onclick="window.location.href='criar-ficha.html'">
+                + Nova Ficha
             </button>
-
         </div>
 
+        <div id="charactersMessage" class="msg-box"></div>
 
-        <!-- =================================================
-             CARREGANDO
-        ================================================== -->
-
-        <div
-            id="loadingCharacters"
-            class="characters-message"
-        >
-            <div class="characters-loader"></div>
-
-            <p>
-                Carregando suas fichas...
-            </p>
-        </div>
-
-
-        <!-- =================================================
-             LISTA DE PERSONAGENS
-        ================================================== -->
-
-        <div
-            id="charactersList"
-            class="characters-grid"
-        ></div>
-
-
-        <!-- =================================================
-             NENHUMA FICHA
-        ================================================== -->
-
-        <div
-            id="emptyCharacters"
-            class="characters-message empty-characters"
-            hidden
-        >
-
-            <div class="empty-characters-icon">
-                +
+        <!-- O JS de fichas.js injetará os cards aqui dentro -->
+        <div id="charactersList" class="characters-grid mt-4">
+            <!-- Loading State -->
+            <div style="grid-column: 1/-1; text-align: center; padding: 3rem; color: var(--text-muted);">
+                <div class="characters-loader" style="width: 40px; height: 40px; border: 3px solid var(--border-light); border-top-color: var(--gold-primary); border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto 1rem;"></div>
+                Carregando seus heróis...
             </div>
-
-            <h3>
-                Você ainda não possui fichas.
-            </h3>
-
-            <p>
-                Crie seu primeiro personagem para
-                começar sua aventura.
-            </p>
-
-            <button
-                id="emptyNewCharacterButton"
-                class="primary-button"
-                type="button"
-            >
-                Criar primeira ficha
-            </button>
-
         </div>
+    </main>
 
+    <!-- SCRIPTS -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="js/supabase.js?v=25"></script>
+    <script src="js/auth.js?v=25"></script>
+    
+    <!-- Se você já tem um fichas.js que faz o fetch e monta os cards, referencie ele aqui: -->
+    <!-- <script src="js/fichas.js?v=2"></script> -->
 
-    </section>
+    <!-- Lógica de Menu Global Inline para esta página -->
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const sidebar = document.getElementById('globalSidebar');
+            const overlay = document.getElementById('sidebarOverlay');
+            function toggleMenu() { sidebar.classList.toggle('active'); overlay.classList.toggle('active'); }
+            document.getElementById('menuButton')?.addEventListener('click', toggleMenu);
+            document.getElementById('closeSidebarBtn')?.addEventListener('click', toggleMenu);
+            overlay?.addEventListener('click', toggleMenu);
 
-</main>
-
-
-<!-- =========================================================
-     SUPABASE
-========================================================== -->
-
-<script
-    src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"
-></script>
-
-<script
-    src="js/supabase.js?v=3"
-></script>
-
-<script
-    src="js/auth.js?v=3"
-></script>
-
-<script
-    src="js/fichas.js?v=2"
-></script>
-
+            const cmdModal = document.getElementById('commandBarModal');
+            const cmdOverlay = document.getElementById('commandBarOverlay');
+            function toggleCommandBar() {
+                if(cmdModal.classList.contains('active')) cmdModal.classList.remove('active');
+                else { cmdModal.classList.add('active'); document.querySelector('.command-input')?.focus(); }
+            }
+            document.getElementById('openCommandBarBtn')?.addEventListener('click', toggleCommandBar);
+            cmdOverlay?.addEventListener('click', toggleCommandBar);
+            document.addEventListener('keydown', (e) => {
+                if ((e.ctrlKey || e.metaKey) && e.key === 'k') { e.preventDefault(); toggleCommandBar(); }
+                if (e.key === 'Escape' && cmdModal.classList.contains('active')) toggleCommandBar();
+            });
+        });
+    </script>
 </body>
-
 </html>
