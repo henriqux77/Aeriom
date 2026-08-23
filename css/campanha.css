@@ -351,4 +351,82 @@
     transform: translate(-50%, -50%) scale(1);
 }
 
+/* =========================================================
+   MAPAS INTERATIVOS E PINS (FASE E)
+========================================================= */
+.map-view-box {
+    width: 95%;
+    max-width: 1200px;
+    height: 90vh;
+    display: flex;
+    flex-direction: column;
+    padding: 15px;
+    overflow: hidden;
+}
+.map-interactive-area {
+    position: relative;
+    flex: 1;
+    width: 100%;
+    background: #000;
+    border: 1px solid rgba(200, 100, 50, 0.3);
+    border-radius: 12px;
+    overflow: auto; /* Permite scroll se a imagem for maior */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.map-interactive-image {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain; /* Garante que a proporção X/Y fique correta */
+    cursor: crosshair; /* Indica ao mestre que pode clicar */
+}
+.map-pins-container {
+    position: absolute;
+    inset: 0;
+    pointer-events: none; /* Deixa o clique passar para a imagem */
+}
+.map-pin {
+    position: absolute;
+    transform: translate(-50%, -100%); /* Faz a "ponta" do pin ficar exata na % */
+    pointer-events: auto; /* Reativa o clique no pin em si */
+    z-index: 10;
+    cursor: pointer;
+}
+.pin-marker {
+    font-size: 24px;
+    filter: drop-shadow(0 4px 5px rgba(0,0,0,0.8));
+    transition: transform 0.2s ease;
+}
+.map-pin:hover .pin-marker {
+    transform: scale(1.2);
+}
+.pin-hidden .pin-marker {
+    opacity: 0.6;
+    filter: grayscale(1) drop-shadow(0 2px 3px rgba(0,0,0,0.8));
+}
+.pin-tooltip {
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%) translateY(-10px);
+    background: rgba(15, 10, 8, 0.95);
+    border: 1px solid var(--gold);
+    padding: 12px;
+    border-radius: 8px;
+    width: max-content;
+    max-width: 250px;
+    box-shadow: 0 10px 20px rgba(0,0,0,0.8);
+    backdrop-filter: blur(5px);
+    z-index: 11;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.2s ease;
+    cursor: default;
+}
+.pin-tooltip.active {
+    opacity: 1;
+    visibility: visible;
+    transform: translateX(-50%) translateY(0);
+}
 
