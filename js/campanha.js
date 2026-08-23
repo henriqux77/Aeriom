@@ -17,114 +17,43 @@ document.addEventListener("DOMContentLoaded", async () => {
     let currentRequestAttrName = "";
 
     const campaignId = localStorage.getItem("aeriom_active_campaign");
-
     const loadingEl = document.getElementById("loadingDash");
     const contentEl = document.getElementById("dashContent");
-    const backBtn = document.getElementById("backToCampaignsBtn");
     const roleLabel = document.getElementById("campaignRoleLabel");
     const banner = document.getElementById("campaignBanner");
     const bannerName = document.getElementById("bannerName");
     const masterPanel = document.getElementById("masterPanel");
-    
-    const generateInviteBtn = document.getElementById("generateInviteBtn");
-    const inviteCodeDisplay = document.getElementById("inviteCodeDisplay");
-    const campaignCharactersList = document.getElementById("campaignCharactersList");
-    
-    const tabs = document.querySelectorAll('.dash-tab');
-    const tabContents = document.querySelectorAll('.dash-tab-content');
-    const muralList = document.getElementById("muralList");
-    const logsList = document.getElementById("logsList");
 
-    const stateModal = document.getElementById("characterStateModal");
-    const closeStateBtn = document.getElementById("closeCharacterStateModal");
-    const stateForm = document.getElementById("characterStateForm");
-    const stateNameEl = document.getElementById("stateModalName");
-    const stateHpInput = document.getElementById("stateHp");
-    const stateManaInput = document.getElementById("stateMana");
-    const stateConditionsInput = document.getElementById("stateConditions");
-    const saveStateBtn = document.getElementById("saveStateBtn");
-
-    const playerSheetModal = document.getElementById("playerSheetModal");
-    const closePlayerSheetBtn = document.getElementById("closePlayerSheetModal");
-    const psStateForm = document.getElementById("psStateForm");
-    
-    const muralModal = document.getElementById("muralModal");
-    const openMuralBtn = document.getElementById("openMuralModalBtn");
-    const closeMuralBtn = document.getElementById("closeMuralModal");
-    const muralForm = document.getElementById("muralForm");
-    const muralTitleInput = document.getElementById("muralTitle");
-    const muralContentInput = document.getElementById("muralContent");
-    const muralImageInput = document.getElementById("muralImage");
-    const saveMuralBtn = document.getElementById("saveMuralBtn");
-
-    const masterDiceBtns = document.querySelectorAll('.master-dice-btn');
-    const requestRollSelect = document.getElementById("requestRollSelect");
-    const sendRollRequestBtn = document.getElementById("sendRollRequestBtn");
-
-    const requestToast = document.getElementById("requestToast");
-    const requestToastMsg = document.getElementById("requestToastMsg");
-    const requestToastRollBtn = document.getElementById("requestToastRollBtn");
-    const requestToastCloseBtn = document.getElementById("requestToastCloseBtn");
-
-    const settingsForm = document.getElementById("campaignSettingsForm");
-    const settingsName = document.getElementById("settingsName");
-    const settingsDesc = document.getElementById("settingsDesc");
-    const deleteCampaignBtn = document.getElementById("deleteCampaignBtn");
-
-    const addMyCharacterBtn = document.getElementById("addMyCharacterBtn");
-    const selectCharacterModal = document.getElementById("selectCharacterModal");
-    const closeSelectCharacterModal = document.getElementById("closeSelectCharacterModal");
-    const userCharactersList = document.getElementById("userCharactersList");
-
+    // Elementos Combate
     const toggleCombatBtn = document.getElementById("toggleCombatBtn");
     const combatMasterPanel = document.getElementById("combatMasterPanel");
-    const addCombatantForm = document.getElementById("addCombatantForm");
-    const combatantNameInput = document.getElementById("combatantName");
-    const combatantInitInput = document.getElementById("combatantInit");
     const combatTrackerContainer = document.getElementById("combatTrackerContainer");
     const noCombatPlaceholder = document.getElementById("noCombatPlaceholder");
-    const combatRoundDisplay = document.getElementById("combatRoundDisplay");
     const initiativeList = document.getElementById("initiativeList");
-    const nextTurnBtn = document.getElementById("nextTurnBtn");
-
-    if (backBtn) {
-        backBtn.addEventListener("click", () => {
-            localStorage.removeItem("aeriom_active_campaign");
-            window.location.href = "campanhas.html";
-        });
-    }
 
     async function init() {
-        if (!campaignId) {
-            window.location.href = "campanhas.html";
-            return;
-        }
-
+        if (!campaignId) { window.location.href = "campanhas.html"; return; }
         const { data: { session }, error } = await supabase.auth.getSession();
-        if (error || !session) {
-            window.location.href = "index.html";
-            return;
-        }
+        if (error || !session) { window.location.href = "index.html"; return; }
         currentUser = session.user;
 
         await loadCampaignData();
         setupTabs();
         setupRealtime();
 
-        // Inicializa o Sistema de Cozinha ao carregar o painel
-        if (window.initCookingSystem) {
-            window.initCookingSystem(supabase, campaignId);
-        }
+        // Inicializa Módulos Separados
+        if (window.initTimelineSystem) window.initTimelineSystem(supabase, campaignId);
+        if (window.initCookingSystem) window.initCookingSystem(supabase, campaignId);
     }
 
     function setupRealtime() {
         supabase.channel('campaign-events')
             .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'campaign_logs', filter: `campaign_id=eq.${campaignId}` }, async (payload) => {
                 const newLog = payload.new;
-                if (document.getElementById('tab-logs').classList.contains('active')) loadLogs(); 
+                if (document.getElementById('tab-logs').classList.contains('active') && window.loadTimeline) window.loadTimeline(); 
                 if (newLog.log_type === 'request_roll' && userRole !== 'master') showRollRequest(newLog.description);
             })
-            .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'campaign_mural', filter: `campaign_id=eq.${campaignId}` }, (payload) => {
+            .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'campaign_mural', filter: `campaign_id=eq.${campaignId}` }, () => {
                 if (document.getElementById('tab-mural').classList.contains('active')) loadMural(); 
             })
             .on('postgres_changes', { event: '*', schema: 'public', table: 'campaign_combat', filter: `campaign_id=eq.${campaignId}` }, (payload) => {
@@ -135,6 +64,8 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
 
     function setupTabs() {
+        const tabs = document.querySelectorAll('.dash-tab');
+        const tabContents = document.querySelectorAll('.dash-tab-content');
         tabs.forEach(tab => {
             tab.addEventListener('click', () => {
                 tabs.forEach(t => t.classList.remove('active'));
@@ -144,34 +75,20 @@ document.addEventListener("DOMContentLoaded", async () => {
                 document.getElementById(targetId).classList.add('active');
 
                 if (targetId === 'tab-mural') loadMural();
-                if (targetId === 'tab-logs') loadLogs();
+                if (targetId === 'tab-logs' && window.loadTimeline) window.loadTimeline();
                 if (targetId === 'tab-overview') loadCampaignCharacters();
                 if (targetId === 'tab-combate') loadCombatState();
-                if (targetId === 'tab-cozinha' && window.initCookingSystem) {
-                    window.initCookingSystem(supabase, campaignId);
-                }
             });
         });
     }
 
     async function loadCampaignData() {
-        try {
-            const { data: memberData, error: memberError } = await supabase.from('campaign_members').select('role').eq('campaign_id', campaignId).eq('user_id', currentUser.id).single();
-            if (memberError || !memberData) throw new Error("Acesso negado.");
-            userRole = memberData.role;
+        const { data: memberData } = await supabase.from('campaign_members').select('role').eq('campaign_id', campaignId).eq('user_id', currentUser.id).single();
+        userRole = memberData ? memberData.role : 'player';
 
-            const { data: campData, error: campError } = await supabase.from('campaigns').select('*').eq('id', campaignId).single();
-            if (campError) throw campError;
-            currentCampaign = campData;
+        const { data: campData } = await supabase.from('campaigns').select('*').eq('id', campaignId).single();
+        currentCampaign = campData;
 
-            renderDashboard();
-            await loadCampaignCharacters();
-        } catch (error) {
-            window.location.href = "campanhas.html";
-        }
-    }
-
-    function renderDashboard() {
         loadingEl.style.display = "none";
         contentEl.hidden = false;
         roleLabel.textContent = userRole === 'master' ? 'Mestre da Campanha' : 'Jogador';
@@ -185,569 +102,219 @@ document.addEventListener("DOMContentLoaded", async () => {
                 el.hidden = false;
                 el.style.display = el.tagName === 'BUTTON' && el.classList.contains('dash-tab') ? 'inline-block' : 'flex';
             });
-            settingsName.value = currentCampaign.name;
-            settingsDesc.value = currentCampaign.description || "";
         }
+        await loadCampaignCharacters();
     }
 
-    async function loadCombatState() {
-        try {
-            const { data, error } = await supabase.from('campaign_combat').select('*').eq('campaign_id', campaignId).maybeSingle();
-            if (error) throw error;
-            if (data) {
-                combatState = data;
-            } else {
-                combatState = { is_active: false, round_number: 1, turn_index: 0, combatants: [] };
+    async function loadCampaignCharacters() {
+        const list = document.getElementById("campaignCharactersList");
+        if (!list) return;
+        const { data } = await supabase.from('campaign_characters').select(`id, user_id, character_id, current_hp, current_mana, conditions, characters(id, name, race, class, avatar_url)`).eq('campaign_id', campaignId);
+        
+        list.innerHTML = '';
+        if (!data || data.length === 0) { list.innerHTML = '<p style="color: var(--cream-muted);">Nenhum aventureiro presente.</p>'; return; }
+
+        data.forEach(link => {
+            const char = link.characters;
+            if (!char) return;
+            const isOwnCharacter = link.user_id === currentUser.id;
+            const card = document.createElement('div');
+            card.className = `campaign-char-card ${isOwnCharacter ? 'own-character' : ''}`;
+            
+            const avatarHtml = char.avatar_url ? `<img src="${char.avatar_url}" class="char-card-avatar" onerror="this.outerHTML='<div class=\\'char-card-fallback\\'>${char.name.charAt(0)}</div>'">` : `<div class="char-card-fallback">${char.name.charAt(0)}</div>`;
+            const conds = link.conditions ? `<div class="char-state-badge" style="border-color:var(--fire); color:#ff9d85;">⚠️ Condições</div>` : '';
+            const actionHtml = userRole === 'master' ? `<button class="secondary-button" style="min-height:30px; padding:5px 12px; font-size:10px;" data-action="gerenciar">Gerenciar</button>` : 
+                              (isOwnCharacter ? `<button class="primary-button" style="min-height:30px; padding:5px 12px; font-size:10px;" data-action="acessar">Minha Ficha</button>` : '');
+
+            card.innerHTML = `${avatarHtml}<div class="char-card-info"><h4>${char.name}</h4><span>${char.race || '?'} • ${char.class || '?'}</span><div style="font-size: 0.75rem; color: var(--gold); margin-top: 4px;">PV: ${link.current_hp || 0} | Mana: ${link.current_mana || 0}</div>${conds}</div><div class="char-card-actions">${actionHtml}</div>`;
+            
+            const btn = card.querySelector('button');
+            if (btn) {
+                btn.addEventListener('click', () => {
+                    if (btn.getAttribute('data-action') === 'gerenciar') {
+                        activeStateLinkId = link.id;
+                        document.getElementById("stateHp").value = link.current_hp;
+                        document.getElementById("stateMana").value = link.current_mana;
+                        document.getElementById("stateConditions").value = link.conditions;
+                        document.getElementById("characterStateModal").style.display = "flex";
+                    } else openPlayerSheet(link.character_id, link.id, link.current_hp, link.current_mana, link.conditions);
+                });
             }
-            renderCombat();
-        } catch(e) { console.error("Erro load combat", e); }
+            list.appendChild(card);
+        });
+    }
+
+    async function openPlayerSheet(characterId, linkId, currentHp, currentMana, conditions) {
+        playerSheetLinkId = linkId;
+        const { data: char } = await supabase.from('characters').select('*').eq('id', characterId).single();
+        if (!char) return;
+        playerSheetCharName = char.name;
+
+        document.getElementById("psName").textContent = char.name;
+        document.getElementById("psSubinfo").textContent = `${char.race || '?'} • ${char.class || '?'}`;
+        document.getElementById("psHpView").textContent = currentHp || 0;
+        document.getElementById("psManaView").textContent = currentMana || 0;
+        document.getElementById("psConditionsView").textContent = conditions || "Nenhuma";
+        document.getElementById("psHp").value = currentHp || 0;
+        document.getElementById("psMana").value = currentMana || 0;
+        document.getElementById("psConditions").value = conditions || "";
+
+        const attrGrid = document.getElementById("psAttributesGrid");
+        attrGrid.innerHTML = '';
+        const standardAttributes = [{ key: 'forca', label: 'Força' }, { key: 'agilidade', label: 'Agilidade' }, { key: 'vigor', label: 'Vigor' }, { key: 'intelecto', label: 'Intelecto' }, { key: 'percepcao', label: 'Percepção' }, { key: 'presenca', label: 'Presença' }, { key: 'precisao', label: 'Precisão' }, { key: 'controle', label: 'Controle' }];
+        
+        standardAttributes.forEach(attr => {
+            let val = char[attr.key] !== undefined ? parseInt(char[attr.key]) : (char.attributes && char.attributes[attr.key] !== undefined ? parseInt(char.attributes[attr.key]) : 0);
+            const btn = document.createElement('button');
+            btn.className = 'ps-roll-btn';
+            btn.innerHTML = `${attr.label} <span class="attr-val">${val}</span>`;
+            
+            btn.addEventListener('click', () => {
+                const d20 = Math.floor(Math.random() * 20) + 1;
+                const total = d20 + val;
+                if(window.showCinematicRoll) window.showCinematicRoll(`Teste de ${attr.label}`, char.name, total);
+                if(window.generateLog) window.generateLog(`${char.name} rolou ${attr.label}: 1d20 (${d20}) + ${val} = ${total}`, 'roll');
+            });
+            attrGrid.appendChild(btn);
+        });
+
+        document.getElementById("psInventory").textContent = char.inventory || "Vazio";
+        document.getElementById("psSkills").textContent = char.skills || "Nenhuma habilidade";
+        document.getElementById("playerSheetModal").style.display = "flex";
+    }
+
+    // Toggle Formulário da Ficha
+    document.getElementById('psToggleEditStateBtn')?.addEventListener('click', () => {
+        const form = document.getElementById('psStateForm');
+        form.style.display = form.style.display === 'none' ? 'grid' : 'none';
+    });
+
+    document.getElementById('psStateForm')?.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const hp = parseInt(document.getElementById("psHp").value) || 0;
+        const mana = parseInt(document.getElementById("psMana").value) || 0;
+        const cond = document.getElementById("psConditions").value.trim();
+        await supabase.from('campaign_characters').update({ current_hp: hp, current_mana: mana, conditions: cond }).eq('id', playerSheetLinkId);
+        if(window.generateLog) window.generateLog(`${playerSheetCharName} atualizou seu estado (PV: ${hp}, Mana: ${mana}).`, 'system');
+        await loadCampaignCharacters();
+        document.getElementById("playerSheetModal").style.display = "none";
+    });
+
+    // Mural
+    async function loadMural() {
+        const { data } = await supabase.from('campaign_mural').select('*').eq('campaign_id', campaignId).order('created_at', { ascending: false });
+        const list = document.getElementById("muralList");
+        list.innerHTML = '';
+        if(data) data.forEach(item => {
+            const div = document.createElement('div');
+            div.className = 'mural-card';
+            div.innerHTML = (item.image_url ? `<img src="${item.image_url}" class="mural-image">` : '') + `<div class="mural-content-box"><h4>${item.title}</h4><p>${item.content}</p></div>`;
+            list.appendChild(div);
+        });
+    }
+
+    // Modal Events Simples
+    document.getElementById("closePlayerSheetModal")?.addEventListener("click", () => document.getElementById("playerSheetModal").style.display = "none");
+    document.getElementById("closeCharacterStateModal")?.addEventListener("click", () => document.getElementById("characterStateModal").style.display = "none");
+
+    // Rolagens do Mestre
+    document.querySelectorAll('.master-dice-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const sides = parseInt(btn.getAttribute('data-dice'));
+            const result = Math.floor(Math.random() * sides) + 1;
+            if(window.showCinematicRoll) window.showCinematicRoll('Rolagem do Mestre', `1d${sides}`, result);
+            if(window.generateLog) window.generateLog(`O Mestre rolou 1d${sides}. Resultado: ${result}`, 'combat');
+        });
+    });
+
+    // Combate
+    async function loadCombatState() {
+        const { data } = await supabase.from('campaign_combat').select('*').eq('campaign_id', campaignId).maybeSingle();
+        combatState = data || { is_active: false, round_number: 1, turn_index: 0, combatants: [] };
+        renderCombat();
     }
 
     function renderCombat() {
         if (!combatState || !combatState.is_active) {
             combatTrackerContainer.style.display = "none";
             noCombatPlaceholder.style.display = "flex";
-            if (userRole === 'master') {
-                toggleCombatBtn.textContent = "Iniciar Combate";
-                toggleCombatBtn.style.background = "";
-                combatMasterPanel.hidden = true;
-            }
+            if (userRole === 'master') { toggleCombatBtn.textContent = "Iniciar Combate"; toggleCombatBtn.style.background = ""; combatMasterPanel.hidden = true; }
         } else {
             noCombatPlaceholder.style.display = "none";
             combatTrackerContainer.style.display = "block";
-            combatRoundDisplay.textContent = combatState.round_number;
+            document.getElementById("combatRoundDisplay").textContent = combatState.round_number;
+            if (userRole === 'master') { toggleCombatBtn.textContent = "Encerrar Combate"; toggleCombatBtn.style.background = "#8b2518"; combatMasterPanel.hidden = false; }
             
-            if (userRole === 'master') {
-                toggleCombatBtn.textContent = "Encerrar Combate";
-                toggleCombatBtn.style.background = "#8b2518";
-                combatMasterPanel.hidden = false;
-            }
-
             initiativeList.innerHTML = '';
-            if (!combatState.combatants || combatState.combatants.length === 0) {
-                initiativeList.innerHTML = '<p style="color: var(--cream-muted); text-align: center; font-size: 0.9rem;">O campo de batalha está vazio.</p>';
-            } else {
-                combatState.combatants.forEach((c, index) => {
-                    const isActiveTurn = index === combatState.turn_index;
-                    const card = document.createElement('div');
-                    card.className = `combatant-card ${isActiveTurn ? 'active-turn' : ''}`;
-                    const removeBtnHtml = userRole === 'master' ? `<button class="remove-combatant-btn" data-index="${index}">×</button>` : '';
-
-                    card.innerHTML = `
-                        <div class="combatant-init">${c.init}</div>
-                        <div class="combatant-name" style="flex: 1;">${c.name}</div>
-                        ${removeBtnHtml}
-                    `;
-                    initiativeList.appendChild(card);
-                });
-
-                if (userRole === 'master') {
-                    document.querySelectorAll('.remove-combatant-btn').forEach(btn => {
-                        btn.addEventListener('click', async (e) => {
-                            const idx = parseInt(e.target.getAttribute('data-index'));
-                            await removeCombatant(idx);
-                        });
-                    });
-                }
-            }
-        }
-    }
-
-    async function saveCombatState() {
-        try {
-            const { error } = await supabase.from('campaign_combat').upsert({
-                campaign_id: campaignId,
-                is_active: combatState.is_active,
-                round_number: combatState.round_number,
-                turn_index: combatState.turn_index,
-                combatants: combatState.combatants,
-                updated_at: new Date().toISOString()
-            });
-            if (error) throw error;
-        } catch (e) {
-            alert("Erro ao sincronizar combate com o servidor.");
-        }
-    }
-
-    if (toggleCombatBtn) {
-        toggleCombatBtn.addEventListener('click', async () => {
-            if (!combatState) combatState = { is_active: false, round_number: 1, turn_index: 0, combatants: [] };
-            if (combatState.is_active) {
-                const conf = confirm("Deseja encerrar o combate e limpar a lista de iniciativa?");
-                if (!conf) return;
-                combatState.is_active = false;
-                combatState.combatants = [];
-                combatState.turn_index = 0;
-                combatState.round_number = 1;
-                await generateLog("O Mestre encerrou o combate.", "system");
-            } else {
-                combatState.is_active = true;
-                await generateLog("O Mestre iniciou um novo combate!", "system");
-            }
-            renderCombat();
-            await saveCombatState();
-        });
-    }
-
-    if (addCombatantForm) {
-        addCombatantForm.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const name = combatantNameInput.value.trim();
-            const init = parseInt(combatantInitInput.value) || 0;
-            if (!combatState.combatants) combatState.combatants = [];
-            combatState.combatants.push({ name: name, init: init });
-            combatState.combatants.sort((a, b) => b.init - a.init);
-            combatState.turn_index = 0; 
-            combatantNameInput.value = '';
-            combatantInitInput.value = '';
-            renderCombat();
-            await saveCombatState();
-        });
-    }
-
-    if (nextTurnBtn) {
-        nextTurnBtn.addEventListener('click', async () => {
-            if (!combatState.combatants || combatState.combatants.length === 0) return;
-            combatState.turn_index++;
-            if (combatState.turn_index >= combatState.combatants.length) {
-                combatState.turn_index = 0;
-                combatState.round_number++;
-            }
-            renderCombat();
-            await saveCombatState();
-        });
-    }
-
-    async function removeCombatant(index) {
-        if (!combatState.combatants) return;
-        combatState.combatants.splice(index, 1);
-        if (index < combatState.turn_index) {
-            combatState.turn_index--;
-        } else if (combatState.turn_index >= combatState.combatants.length) {
-            combatState.turn_index = 0;
-        }
-        renderCombat();
-        await saveCombatState();
-    }
-
-    if (addMyCharacterBtn) {
-        addMyCharacterBtn.addEventListener('click', async () => {
-            selectCharacterModal.style.display = 'flex';
-            userCharactersList.innerHTML = '<p style="text-align: center; color: var(--cream-muted);">Carregando suas fichas...</p>';
-            try {
-                const { data: allChars, error: charError } = await supabase.from('characters').select('id, name, race, class, avatar_url').eq('user_id', currentUser.id);
-                if (charError) throw charError;
-
-                const { data: linkedChars, error: linkedError } = await supabase.from('campaign_characters').select('character_id').eq('campaign_id', campaignId);
-                if (linkedError) throw linkedError;
-                
-                const linkedIds = linkedChars.map(lc => lc.character_id);
-                if (!allChars || allChars.length === 0) {
-                    userCharactersList.innerHTML = `<p style="text-align: center; color: var(--cream-muted);">Você não possui nenhuma ficha criada.</p>`;
-                    return;
-                }
-
-                userCharactersList.innerHTML = '';
-                allChars.forEach(char => {
-                    const isLinked = linkedIds.includes(char.id);
-                    const charEl = document.createElement('div');
-                    charEl.style.display = 'flex';
-                    charEl.style.alignItems = 'center';
-                    charEl.style.gap = '15px';
-                    charEl.style.padding = '12px';
-                    charEl.style.border = '1px solid rgba(200, 100, 50, 0.3)';
-                    charEl.style.borderRadius = '10px';
-                    charEl.style.background = isLinked ? 'rgba(5, 3, 3, 0.6)' : 'rgba(25, 17, 15, 0.6)';
-                    charEl.style.opacity = isLinked ? '0.5' : '1';
-                    charEl.style.cursor = isLinked ? 'not-allowed' : 'pointer';
-
-                    const avatar = char.avatar_url ? `<img src="${char.avatar_url}" style="width:40px; height:40px; border-radius:50%; object-fit:cover;">` : `<div style="width:40px; height:40px; border-radius:50%; background:#222; display:grid; place-items:center; color:var(--gold); border:1px solid var(--gold);">${char.name.charAt(0)}</div>`;
-
-                    charEl.innerHTML = `${avatar}<div style="flex:1;"><h4 style="margin:0; color:var(--cream); font-family:var(--display-font);">${char.name}</h4><span style="font-size:11px; color:var(--cream-muted);">${char.race || '?'} • ${char.class || '?'}</span></div><button class="secondary-button" style="min-height:30px; padding:5px 15px; font-size:10px;" ${isLinked ? 'disabled' : ''}>${isLinked ? 'Já Adicionado' : 'Selecionar'}</button>`;
-
-                    if (!isLinked) {
-                        charEl.addEventListener('click', async () => {
-                            try {
-                                const { error: insertError } = await supabase.from('campaign_characters').insert({ campaign_id: campaignId, user_id: currentUser.id, character_id: char.id });
-                                if (insertError) throw insertError;
-                                await generateLog(`Um novo aventureiro entrou no mundo: ${char.name}.`, 'system');
-                                selectCharacterModal.style.display = 'none';
-                                await loadCampaignCharacters();
-                                alert(`${char.name} adicionado!`);
-                            } catch (err) { alert("Falha ao vincular."); }
-                        });
-                    }
-                    userCharactersList.appendChild(charEl);
-                });
-            } catch (error) { userCharactersList.innerHTML = '<p style="color:#d46a4a;">Erro.</p>'; }
-        });
-    }
-
-    if (closeSelectCharacterModal) closeSelectCharacterModal.addEventListener('click', () => { selectCharacterModal.style.display = 'none'; });
-    selectCharacterModal.addEventListener('click', (e) => { if(e.target === selectCharacterModal) selectCharacterModal.style.display = 'none'; });
-
-    async function loadCampaignCharacters() {
-        if (!campaignCharactersList) return;
-        try {
-            const { data, error } = await supabase.from('campaign_characters').select(`id, user_id, character_id, current_hp, current_mana, conditions, characters(id, name, race, class, avatar_url)`).eq('campaign_id', campaignId);
-            if (error) throw error;
-            if (!data || data.length === 0) {
-                campaignCharactersList.innerHTML = '<p style="color: var(--cream-muted);">Nenhum aventureiro entrou neste mundo ainda.</p>';
-                return;
-            }
-
-            campaignCharactersList.innerHTML = '';
-            data.forEach(link => {
-                const char = link.characters;
-                if (!char) return;
-
-                const isOwnCharacter = link.user_id === currentUser.id;
+            combatState.combatants.forEach((c, index) => {
+                const isActive = index === combatState.turn_index;
                 const card = document.createElement('div');
-                card.className = `campaign-char-card ${isOwnCharacter ? 'own-character' : ''}`;
-                
-                const avatarHtml = char.avatar_url ? `<img src="${char.avatar_url}" class="char-card-avatar" onerror="this.outerHTML='<div class=\\'char-card-fallback\\'>${char.name.charAt(0)}</div>'">` : `<div class="char-card-fallback">${char.name.charAt(0)}</div>`;
-                const conds = link.conditions ? `<div class="char-state-badge" style="border-color:var(--fire); color:#ff9d85;">⚠️ Condições</div>` : '';
-                const statsInfo = `<div style="font-size: 0.75rem; color: var(--gold); margin-top: 4px;">PV: ${link.current_hp || 0} | Mana: ${link.current_mana || 0}</div>`;
-
-                let actionHtml = '';
-                if (userRole === 'master') {
-                    actionHtml = `<button class="secondary-button" style="min-height:30px; padding:5px 12px; font-size:10px;" data-action="gerenciar">Gerenciar</button>`;
-                } else if (isOwnCharacter) {
-                    actionHtml = `<button class="primary-button" style="min-height:30px; padding:5px 12px; font-size:10px;" data-action="acessar">Minha Ficha</button>`;
-                }
-
-                card.innerHTML = `${avatarHtml}<div class="char-card-info"><h4>${char.name}</h4><span>${char.race || '?'} • ${char.class || '?'}</span>${statsInfo}${conds}</div><div class="char-card-actions">${actionHtml}</div>`;
-
-                const btn = card.querySelector('button');
-                if (btn) {
-                    btn.addEventListener('click', () => {
-                        if (btn.getAttribute('data-action') === 'gerenciar') openStateModal(link.id, char.name, link.current_hp, link.current_mana, link.conditions);
-                        else openPlayerSheet(link.character_id, link.id, link.current_hp, link.current_mana, link.conditions);
-                    });
-                }
-                campaignCharactersList.appendChild(card);
+                card.className = `combatant-card ${isActive ? 'active-turn' : ''}`;
+                card.innerHTML = `<div class="combatant-init">${c.init}</div><div class="combatant-name" style="flex: 1;">${c.name}</div>${userRole === 'master' ? `<button class="remove-combatant-btn" data-index="${index}">×</button>` : ''}`;
+                initiativeList.appendChild(card);
             });
-        } catch (error) { campaignCharactersList.innerHTML = '<p style="color: #d46a4a;">Erro.</p>'; }
-    }
-
-    function openStateModal(linkId, charName, hp, mana, conditions) {
-        activeStateLinkId = linkId;
-        activeStateCharName = charName;
-        stateNameEl.textContent = charName;
-        stateHpInput.value = hp || 0;
-        stateManaInput.value = mana || 0;
-        stateConditionsInput.value = conditions || "";
-        stateModal.style.display = "flex";
-    }
-
-    function closeStateModal() { stateModal.style.display = "none"; }
-    if (closeStateBtn) closeStateBtn.addEventListener("click", closeStateModal);
-    stateModal.addEventListener('click', (e) => { if(e.target === stateModal) closeStateModal(); });
-
-    if (stateForm) {
-        stateForm.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            if (!activeStateLinkId) return;
-            saveStateBtn.disabled = true;
-            saveStateBtn.textContent = "Salvando...";
-            try {
-                const hp = parseInt(stateHpInput.value) || 0;
-                const mana = parseInt(stateManaInput.value) || 0;
-                const cond = stateConditionsInput.value.trim();
-                const { error: updateError } = await supabase.from('campaign_characters').update({ current_hp: hp, current_mana: mana, conditions: cond }).eq('id', activeStateLinkId);
-                if (updateError) throw updateError;
-                const actionUser = userRole === 'master' ? 'O Mestre' : activeStateCharName;
-                await generateLog(`${actionUser} atualizou o estado de ${activeStateCharName} (PV: ${hp}, Mana: ${mana}).`, 'combat');
-                closeStateModal();
-                await loadCampaignCharacters();
-            } catch (error) { alert("Falha ao salvar."); } 
-            finally { saveStateBtn.disabled = false; saveStateBtn.textContent = "Salvar Estado"; }
-        });
-    }
-
-    async function openPlayerSheet(characterId, linkId, currentHp, currentMana, conditions) {
-        playerSheetLinkId = linkId;
-        try {
-            const { data: char, error } = await supabase.from('characters').select('*').eq('id', characterId).single();
-            if (error || !char) throw new Error("Ficha não encontrada.");
-            playerSheetCharName = char.name;
-
-            document.getElementById("psName").textContent = char.name || "Sem Nome";
-            document.getElementById("psSubinfo").textContent = `${char.race || '?'} • ${char.class || '?'} • ${char.origin || '?'}`;
-            
-            const avatarContainer = document.getElementById("psAvatarContainer");
-            avatarContainer.innerHTML = char.avatar_url ? `<img src="${char.avatar_url}" style="width:70px; height:70px; border-radius:50%; object-fit:cover; border: 2px solid var(--gold);">` : `<div style="width:70px; height:70px; border-radius:50%; background:#222; display:grid; place-items:center; color:var(--gold); border:2px solid var(--gold); font-size:24px; font-family:var(--display-font);">${char.name.charAt(0)}</div>`;
-
-            document.getElementById("psHp").value = currentHp || 0;
-            document.getElementById("psMana").value = currentMana || 0;
-            document.getElementById("psConditions").value = conditions || "";
-
-            const attrGrid = document.getElementById("psAttributesGrid");
-            attrGrid.innerHTML = '';
-            
-            const standardAttributes = [
-                { key: 'forca', label: 'Força' }, { key: 'agilidade', label: 'Agilidade' }, { key: 'vigor', label: 'Vigor' },
-                { key: 'intelecto', label: 'Intelecto' }, { key: 'percepcao', label: 'Percepção' }, { key: 'presenca', label: 'Presença' },
-                { key: 'precisao', label: 'Precisão' }, { key: 'controle', label: 'Controle' }
-            ];
-
-            let hasAttributes = false;
-            standardAttributes.forEach(attr => {
-                let val = 0;
-                if (char[attr.key] !== undefined) val = parseInt(char[attr.key]) || 0;
-                else if (char.attributes && char.attributes[attr.key] !== undefined) val = parseInt(char.attributes[attr.key]) || 0;
-                
-                const btn = document.createElement('button');
-                btn.className = 'ps-roll-btn';
-                btn.innerHTML = `${attr.label} <span class="attr-val">${val}</span>`;
-                
-                btn.addEventListener('click', async () => {
-                    const d20 = Math.floor(Math.random() * 20) + 1;
-                    const total = d20 + val;
-                    btn.style.borderColor = "var(--fire)";
-                    setTimeout(() => btn.style.borderColor = "", 400);
-                    await generateLog(`${char.name} rolou ${attr.label}: 1d20 (${d20}) + ${val} = ${total}`, 'roll');
-                    alert(`Rolagem enviada!`);
-                });
-
-                attrGrid.appendChild(btn);
-                hasAttributes = true;
-            });
-            if (!hasAttributes) attrGrid.innerHTML = '<p style="color: var(--cream-muted); grid-column: 1/-1;">Sem atributos definidos.</p>';
-
-            document.getElementById("psInventory").textContent = char.inventory || char.equipments || "Nenhum equipamento.";
-            document.getElementById("psSkills").textContent = char.skills || char.techniques || char.abilities || "Nenhuma habilidade.";
-            playerSheetModal.style.display = "flex";
-        } catch (error) { alert("Não foi possível carregar a ficha."); }
-    }
-
-    if (closePlayerSheetBtn) closePlayerSheetBtn.addEventListener("click", () => { playerSheetModal.style.display = "none"; });
-    playerSheetModal.addEventListener('click', (e) => { if(e.target === playerSheetModal) playerSheetModal.style.display = 'none'; });
-
-    if (psStateForm) {
-        psStateForm.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            if (!playerSheetLinkId) return;
-            const btn = document.getElementById("psSaveStateBtn");
-            btn.disabled = true;
-            btn.textContent = "Atualizando...";
-            try {
-                const hp = parseInt(document.getElementById("psHp").value) || 0;
-                const mana = parseInt(document.getElementById("psMana").value) || 0;
-                const cond = document.getElementById("psConditions").value.trim();
-                const { error: updateError } = await supabase.from('campaign_characters').update({ current_hp: hp, current_mana: mana, conditions: cond }).eq('id', playerSheetLinkId);
-                if (updateError) throw updateError;
-                await generateLog(`${playerSheetCharName} atualizou seu próprio estado (PV: ${hp}, Mana: ${mana}).`, 'system');
-                await loadCampaignCharacters();
-                alert("Estado atualizado!");
-            } catch (error) { alert("Falha ao salvar estado."); } 
-            finally { btn.disabled = false; btn.textContent = "Atualizar Estado"; }
-        });
-    }
-
-    async function loadMural() {
-        try {
-            const { data, error } = await supabase.from('campaign_mural').select('*').eq('campaign_id', campaignId).order('created_at', { ascending: false });
-            if (error) throw error;
-            if (!data || data.length === 0) {
-                muralList.innerHTML = '<p style="color: var(--cream-muted);">O mural está vazio.</p>';
-                return;
+            if(userRole === 'master') {
+                document.querySelectorAll('.remove-combatant-btn').forEach(b => b.addEventListener('click', async (e) => {
+                    combatState.combatants.splice(parseInt(e.target.getAttribute('data-index')), 1);
+                    await supabase.from('campaign_combat').upsert({ campaign_id: campaignId, ...combatState });
+                }));
             }
-            muralList.innerHTML = '';
-            data.forEach(item => {
-                const div = document.createElement('div');
-                div.className = 'mural-card';
-                let imgHtml = item.image_url ? `<img src="${item.image_url}" class="mural-image" loading="lazy">` : '';
-                div.innerHTML = `${imgHtml}<div class="mural-content-box"><h4>${item.title}</h4><p>${item.content}</p></div>`;
-                muralList.appendChild(div);
-            });
-        } catch (e) { muralList.innerHTML = '<p style="color: #d46a4a;">Erro ao carregar o mural.</p>'; }
-    }
-
-    if (openMuralBtn) openMuralBtn.addEventListener('click', () => { muralForm.reset(); muralModal.style.display = 'flex'; });
-    if (closeMuralBtn) closeMuralBtn.addEventListener('click', () => muralModal.style.display = 'none');
-    muralModal.addEventListener('click', (e) => { if(e.target === muralModal) muralModal.style.display = 'none'; });
-
-    if (muralForm) {
-        muralForm.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            saveMuralBtn.disabled = true;
-            saveMuralBtn.textContent = "Fixando...";
-
-            try {
-                const title = muralTitleInput.value.trim();
-                const content = muralContentInput.value.trim();
-                const file = muralImageInput.files[0];
-                let publicUrl = null;
-
-                if (file) {
-                    saveMuralBtn.textContent = "Enviando Imagem...";
-                    const fileExt = file.name.split('.').pop();
-                    const filePath = `${campaignId}/${Date.now()}.${fileExt}`;
-                    const { error: uploadError } = await supabase.storage.from('campaign_mural').upload(filePath, file);
-                    if (uploadError) throw uploadError;
-                    const { data: urlData } = supabase.storage.from('campaign_mural').getPublicUrl(filePath);
-                    publicUrl = urlData.publicUrl;
-                }
-
-                saveMuralBtn.textContent = "Salvando Banco...";
-                const { error } = await supabase.from('campaign_mural').insert({ 
-                    campaign_id: campaignId, title: title, content: content, type: 'cartaz', image_url: publicUrl 
-                });
-                if (error) throw error;
-                await generateLog(`O Mestre fixou um novo cartaz no Mural: "${title}"`, 'system');
-                muralModal.style.display = 'none';
-                await loadMural(); 
-            } catch (error) { alert("Falha ao criar cartaz."); } 
-            finally { saveMuralBtn.disabled = false; saveMuralBtn.textContent = "Fixar no Mural"; }
-        });
-    }
-
-    async function loadLogs() {
-        try {
-            const { data, error } = await supabase.from('campaign_logs').select('*').eq('campaign_id', campaignId).order('created_at', { ascending: false });
-            if (error) throw error;
-            if (!data || data.length === 0) {
-                logsList.innerHTML = '<p style="color: var(--cream-muted);">Nenhum registro encontrado.</p>';
-                return;
-            }
-            logsList.innerHTML = '';
-            data.forEach(log => {
-                const date = new Date(log.created_at).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
-                const div = document.createElement('div');
-                
-                let extraClass = '';
-                if(log.log_type === 'request_roll') extraClass = 'log-request';
-                else if(log.log_type === 'roll') extraClass = 'log-roll';
-                
-                div.className = `log-item ${extraClass}`;
-                div.innerHTML = `<span class="log-time">[${date}]</span> <span>${log.description}</span>`;
-                logsList.appendChild(div);
-            });
-        } catch (e) { logsList.innerHTML = '<p style="color: #d46a4a;">Erro histórico.</p>'; }
-    }
-
-    async function generateLog(description, type = 'system') {
-        try {
-            await supabase.from('campaign_logs').insert({ campaign_id: campaignId, description: description, log_type: type });
-        } catch (e) {}
-    }
-
-    if (sendRollRequestBtn) {
-        sendRollRequestBtn.addEventListener('click', async () => {
-            const attr = requestRollSelect.value;
-            sendRollRequestBtn.disabled = true;
-            try {
-                await generateLog(`Teste Solicitado: ${attr}`, 'request_roll');
-                alert("Teste solicitado aos jogadores!");
-            } catch (error) { alert("Erro ao solicitar."); }
-            finally { sendRollRequestBtn.disabled = false; }
-        });
-    }
-
-    function showRollRequest(requestStr) {
-        const parts = requestStr.split(': ');
-        if(parts.length < 2) return;
-        currentRequestAttrName = parts[1].trim();
-        requestToastMsg.textContent = `Teste de ${currentRequestAttrName}`;
-        requestToast.hidden = false;
-        
-        currentRequestAttrValue = 0; 
-        if (playerSheetCharName && currentRequestAttrName !== 'Puro (1d20)') {
-            const btns = document.querySelectorAll('.ps-roll-btn');
-            btns.forEach(b => {
-                if(b.textContent.includes(currentRequestAttrName)) {
-                    const span = b.querySelector('.attr-val');
-                    if(span) currentRequestAttrValue = parseInt(span.textContent) || 0;
-                }
-            });
         }
     }
 
-    if (requestToastRollBtn) {
-        requestToastRollBtn.addEventListener('click', async () => {
-            requestToast.hidden = true;
-            const d20 = Math.floor(Math.random() * 20) + 1;
-            
-            if (currentRequestAttrName === 'Puro (1d20)') {
-                await generateLog(`Rolagem solicitada (Puro): 1d20 = ${d20}`, 'roll');
-            } else {
-                const total = d20 + currentRequestAttrValue;
-                const charName = playerSheetCharName || 'Um jogador';
-                await generateLog(`${charName} respondeu ao teste de ${currentRequestAttrName}: 1d20 (${d20}) + ${currentRequestAttrValue} = ${total}`, 'roll');
-            }
-        });
-    }
-
-    if (requestToastCloseBtn) {
-        requestToastCloseBtn.addEventListener('click', () => { requestToast.hidden = true; });
-    }
-
-    masterDiceBtns.forEach(btn => {
-        btn.addEventListener('click', async () => {
-            const sides = parseInt(btn.getAttribute('data-dice'));
-            const result = Math.floor(Math.random() * sides) + 1;
-            const originalText = btn.textContent;
-            btn.textContent = `[ ${result} ]`;
-            btn.style.borderColor = "var(--fire)";
-            btn.style.color = "var(--cream)";
-            setTimeout(() => { btn.textContent = originalText; btn.style.borderColor = ""; btn.style.color = ""; }, 1000);
-            await generateLog(`O Mestre rolou 1d${sides}. Resultado: ${result}`, 'combat');
-        });
+    document.getElementById("toggleCombatBtn")?.addEventListener('click', async () => {
+        combatState.is_active = !combatState.is_active;
+        if(!combatState.is_active) { combatState.combatants = []; combatState.turn_index = 0; combatState.round_number = 1; }
+        await supabase.from('campaign_combat').upsert({ campaign_id: campaignId, ...combatState });
+        if(window.generateLog) window.generateLog(combatState.is_active ? "O Mestre iniciou um combate!" : "Combate encerrado.", "combat");
     });
 
-    if (settingsForm) {
-        settingsForm.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const btn = document.getElementById("saveSettingsBtn");
-            btn.disabled = true;
-            btn.textContent = "Salvando...";
-            try {
-                const { error } = await supabase.from('campaigns').update({ name: settingsName.value, description: settingsDesc.value }).eq('id', campaignId);
-                if (error) throw error;
-                bannerName.textContent = settingsName.value;
-                alert("Configurações atualizadas!");
-            } catch (err) { alert("Erro ao atualizar campanha."); } 
-            finally { btn.disabled = false; btn.textContent = "Salvar Alterações"; }
-        });
+    document.getElementById("nextTurnBtn")?.addEventListener('click', async () => {
+        if (!combatState.combatants.length) return;
+        combatState.turn_index++;
+        if (combatState.turn_index >= combatState.combatants.length) { combatState.turn_index = 0; combatState.round_number++; }
+        await supabase.from('campaign_combat').upsert({ campaign_id: campaignId, ...combatState });
+    });
+
+    document.getElementById("addCombatantForm")?.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        combatState.combatants.push({ name: document.getElementById("combatantName").value, init: parseInt(document.getElementById("combatantInit").value)||0 });
+        combatState.combatants.sort((a, b) => b.init - a.init);
+        combatState.turn_index = 0;
+        await supabase.from('campaign_combat').upsert({ campaign_id: campaignId, ...combatState });
+        e.target.reset();
+    });
+
+    // Request Rolls
+    document.getElementById("sendRollRequestBtn")?.addEventListener('click', async () => {
+        if(window.generateLog) await window.generateLog(`Teste Solicitado: ${document.getElementById("requestRollSelect").value}`, 'request_roll');
+    });
+
+    function showRollRequest(requestStr) {
+        currentRequestAttrName = requestStr.split(': ')[1]?.trim();
+        if(!currentRequestAttrName) return;
+        document.getElementById("requestToastMsg").textContent = `Teste de ${currentRequestAttrName}`;
+        document.getElementById("requestToast").hidden = false;
+        
+        currentRequestAttrValue = 0;
+        if (playerSheetCharName && currentRequestAttrName !== 'Puro (1d20)') {
+            document.querySelectorAll('.ps-roll-btn').forEach(b => {
+                if(b.textContent.includes(currentRequestAttrName)) currentRequestAttrValue = parseInt(b.querySelector('.attr-val')?.textContent) || 0;
+            });
+        }
     }
 
-    if (deleteCampaignBtn) {
-        deleteCampaignBtn.addEventListener('click', async () => {
-            const conf = confirm("ATENÇÃO: Deseja mesmo EXCLUIR a campanha?");
-            if (!conf) return;
-            try {
-                const { error } = await supabase.from('campaigns').delete().eq('id', campaignId);
-                if (error) throw error;
-                localStorage.removeItem("aeriom_active_campaign");
-                window.location.href = "campanhas.html";
-            } catch (err) { alert("Erro ao excluir campanha."); }
-        });
-    }
-
-    if (generateInviteBtn) {
-        generateInviteBtn.addEventListener('click', async () => {
-            generateInviteBtn.disabled = true;
-            generateInviteBtn.textContent = "Gerando...";
-            const code = 'AERION-' + Math.random().toString(36).substring(2, 8).toUpperCase();
-            try {
-                const { error } = await supabase.from('campaign_invites').insert({ campaign_id: campaignId, code: code, created_by: currentUser.id });
-                if (error) throw error;
-                inviteCodeDisplay.textContent = code;
-                inviteCodeDisplay.hidden = false;
-                generateInviteBtn.textContent = "Gerar Novo Convite";
-            } catch (error) { alert("Falha ao gerar o código."); } 
-            finally { generateInviteBtn.disabled = false; }
-        });
-    }
+    document.getElementById("requestToastRollBtn")?.addEventListener('click', () => {
+        document.getElementById("requestToast").hidden = true;
+        const d20 = Math.floor(Math.random() * 20) + 1;
+        const total = d20 + currentRequestAttrValue;
+        const charName = playerSheetCharName || 'Um jogador';
+        
+        if(window.showCinematicRoll) window.showCinematicRoll(`Teste de ${currentRequestAttrName}`, charName, total);
+        if(window.generateLog) window.generateLog(`${charName} respondeu ao teste de ${currentRequestAttrName}: 1d20 (${d20}) + ${currentRequestAttrValue} = ${total}`, 'roll');
+    });
+    
+    document.getElementById("requestToastCloseBtn")?.addEventListener('click', () => document.getElementById("requestToast").hidden = true);
 
     init();
 });
-// Adicione isso no final do init ou no bloco de eventos do Modal da Ficha:
-const psToggleBtn = document.getElementById('psToggleEditStateBtn');
-const psStateForm = document.getElementById('psStateForm');
-if (psToggleBtn && psStateForm) {
-    psToggleBtn.addEventListener('click', () => {
-        psStateForm.style.display = psStateForm.style.display === 'none' ? 'grid' : 'none';
-    });
-}
