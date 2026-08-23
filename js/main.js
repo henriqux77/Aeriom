@@ -1,4 +1,9 @@
+/* =========================================================
+   AERIOM — MAIN.JS (Controle da Home, Auth UI e Perfil)
+   Atualizado para o Novo Design System (Modais .active)
+========================================================= */
 document.addEventListener("DOMContentLoaded", async () => {
+    "use strict";
 
     const AERION_URL = "https://henriqux77.github.io/Aeriom/";
     const supabaseClient = window.supabaseClient;
@@ -33,19 +38,18 @@ document.addEventListener("DOMContentLoaded", async () => {
     const showLoginButton = document.getElementById("showLoginButton");
     const authMessage = document.getElementById("authMessage");
 
-    if (profilePanel) profilePanel.style.display = "none";
-    if (authModal) authModal.style.display = "none";
+    // Removemos os style.display iniciais. O CSS agora cuida de ocultar modais.
 
     function showAuthMessage(message) {
         if (authMessage) authMessage.textContent = message;
     }
 
     function openAuth() {
-        if (authModal) authModal.style.display = "flex";
+        if (authModal) authModal.classList.add("active");
     }
 
     function closeAuthModal() {
-        if (authModal) authModal.style.display = "none";
+        if (authModal) authModal.classList.remove("active");
     }
 
     function showLoginForm() {
@@ -80,6 +84,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     if (authModal) {
         authModal.addEventListener("click", (event) => {
+            // Se clicar no fundo escuro, fecha o modal
             if (event.target === authModal) closeAuthModal();
         });
     }
@@ -92,8 +97,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         showLoginButton.addEventListener("click", showLoginForm);
     }
 
-    // DISCORD LOGIN/REGISTER (Omitidos para encurtar a visualização, MAS NO ARQUIVO COMPLETO DEVEM SER MANTIDOS IGUAIS AO ORIGINAL. Para facilitar sua cópia direta e não quebrar a regra de arquivo completo, eis a versão sem cortes:)
-    
+    // DISCORD LOGIN/REGISTER
     if (discordLoginButton) {
         discordLoginButton.addEventListener("click", async () => {
             showAuthMessage("Conectando ao Discord...");
@@ -118,6 +122,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         });
     }
 
+    // EMAIL LOGIN
     if (emailLoginButton) {
         emailLoginButton.addEventListener("click", async () => {
             const emailInput = document.getElementById("loginEmail");
@@ -138,6 +143,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         });
     }
 
+    // EMAIL REGISTER
     if (registerButton) {
         registerButton.addEventListener("click", async () => {
             const emailInput = document.getElementById("registerEmail");
@@ -167,6 +173,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         });
     }
 
+    // CARREGAMENTO DE PERFIL
     async function loadUserProfile(user) {
         if (!user) return null;
         try {
@@ -179,6 +186,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         }
     }
 
+    // ABRIR PERFIL (NOVO MODAL .ACTIVE)
     if (profileButton) {
         profileButton.addEventListener("click", async () => {
             try {
@@ -191,18 +199,22 @@ document.addEventListener("DOMContentLoaded", async () => {
                 }
                 const profile = await loadUserProfile(session.user);
                 if (!profile) return;
+                
                 if (profileName) profileName.textContent = profile.name;
                 if (profileEmail) profileEmail.textContent = profile.email;
                 if (profileAvatar) {
                     if (profile.avatar) {
                         profileAvatar.src = profile.avatar;
                         profileAvatar.style.display = "block";
+                        profileAvatar.previousElementSibling.style.display = "none"; // Oculta o placeholder
                     } else {
                         profileAvatar.removeAttribute("src");
                         profileAvatar.style.display = "none";
+                        profileAvatar.previousElementSibling.style.display = "grid"; // Mostra o placeholder
                     }
                 }
-                if (profilePanel) profilePanel.style.display = "flex";
+                
+                if (profilePanel) profilePanel.classList.add("active");
             } catch (error) {
                 console.error("Erro ao abrir perfil:", error);
             }
@@ -211,21 +223,30 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     if (closeProfile) {
         closeProfile.addEventListener("click", () => {
-            if (profilePanel) profilePanel.style.display = "none";
+            if (profilePanel) profilePanel.classList.remove("active");
+        });
+    }
+    
+    // Fecha o modal de perfil se clicar fora da caixa
+    if (profilePanel) {
+        profilePanel.addEventListener("click", (event) => {
+            if (event.target === profilePanel) profilePanel.classList.remove("active");
         });
     }
 
+    // LOGOUT
     if (logoutButton) {
         logoutButton.addEventListener("click", async () => {
             try {
                 await supabaseClient.auth.signOut();
-                if (profilePanel) profilePanel.style.display = "none";
+                if (profilePanel) profilePanel.classList.remove("active");
             } catch (error) {
                 console.error("Erro ao sair:", error);
             }
         });
     }
 
+    // ESCUTA DE MUDANÇAS NA SESSÃO
     supabaseClient.auth.onAuthStateChange(async (event, session) => {
         updateHomeActions(session);
     });
@@ -235,17 +256,20 @@ document.addEventListener("DOMContentLoaded", async () => {
     const createCharacterButton = document.getElementById("createCharacterButton");
     const campaignButton = document.getElementById("campaignButton");
 
+    // ATUALIZAÇÃO DA HOME (TROCA DE LANDING PARA DASHBOARD)
     function updateHomeActions(session) {
         if (!loggedOutActions || !loggedInActions) return;
         if (session) {
             loggedOutActions.style.display = "none";
-            loggedInActions.style.display = "flex";
+            // O Dashboard precisa ser "block" e não "flex" para a grid do CSS funcionar perfeitamente
+            loggedInActions.style.display = "block";
         } else {
-            loggedOutActions.style.display = "flex";
+            loggedOutActions.style.display = "block";
             loggedInActions.style.display = "none";
         }
     }
 
+    // VERIFICAÇÃO INICIAL
     try {
         const { data: { session } } = await supabaseClient.auth.getSession();
         updateHomeActions(session);
@@ -253,17 +277,19 @@ document.addEventListener("DOMContentLoaded", async () => {
         updateHomeActions(null);
     }
 
+    // AÇÕES DOS BOTÕES RÁPIDOS DA HOME
     if (createCharacterButton) {
-        createCharacterButton.addEventListener("click", () => {
+        createCharacterButton.addEventListener("click", (e) => {
+            e.preventDefault(); // Evita conflito com o href nativo do <a>
             localStorage.removeItem("aerion_character_id");
             localStorage.removeItem("aerion_character_draft");
-            window.location.href = "ficha.html";
+            window.location.href = "fichas.html"; // Atualizado para redirecionar para o painel correto de fichas
         });
     }
 
-    // A ÚNICA ALTERAÇÃO REAL DAQUI:
     if (campaignButton) {
-        campaignButton.addEventListener("click", () => {
+        campaignButton.addEventListener("click", (e) => {
+            e.preventDefault();
             console.log("⚔ Redirecionando para as Campanhas...");
             window.location.href = "campanhas.html";
         });
