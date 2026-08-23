@@ -1,92 +1,94 @@
 /* =========================================================
    AERIOM — MENU GLOBAL (js/menu.js)
-   Fase 1: Fonte Única da Verdade (Injeção Dinâmica)
+   Correção de Integração: Z-Index, Overlay, Lock Scroll e Links Ativos
 ========================================================= */
 document.addEventListener("DOMContentLoaded", () => {
     "use strict";
 
-    // 1. Limpeza de Menus Duplicados (Remove hardcoded dos HTMLs)
-    const oldSidebars = document.querySelectorAll('.global-sidebar, .sidebar');
-    const oldOverlays = document.querySelectorAll('.global-overlay, .sidebar-overlay');
-    
-    oldSidebars.forEach(el => el.remove());
-    oldOverlays.forEach(el => el.remove());
+    // Previne a criação duplicada do menu caso o script seja chamado mais de uma vez
+    if (document.getElementById("aeriomGlobalSidebar")) return;
 
-    // 2. Identificar a página atual para destacar a navegação
-    const currentPath = window.location.pathname.split('/').pop() || 'index.html';
-    
-    const isHome = currentPath === 'index.html' || currentPath === '';
-    const isFichas = currentPath.includes('ficha');
-    const isCampanhas = currentPath.includes('campanha');
+    // Identifica a página atual para destacar o link ativo de forma automática
+    const currentPage = window.location.pathname.split('/').pop() || 'index.html';
 
-    // 3. Criar o Overlay Global
+    // =========================================================
+    // 1. CRIAÇÃO DO OVERLAY E SIDEBAR
+    // =========================================================
     const overlay = document.createElement('div');
     overlay.className = 'global-overlay';
-    overlay.id = 'sidebarOverlay';
-    document.body.appendChild(overlay);
-
-    // 4. Criar a Sidebar Global
+    overlay.id = 'aeriomGlobalOverlay';
+    
     const sidebar = document.createElement('aside');
     sidebar.className = 'global-sidebar';
-    sidebar.id = 'globalSidebar';
+    sidebar.id = 'aeriomGlobalSidebar';
 
+    // A estrutura do menu é puramente estática e de navegação (seguro usar innerHTML aqui)
     sidebar.innerHTML = `
         <div class="sidebar-header">
             <h2>Aeriom</h2>
-            <button class="btn-ghost" id="closeSidebarBtn" style="font-size: 1.5rem; padding: 0 8px; line-height: 1;" title="Fechar Menu">&times;</button>
+            <button class="modal-close" id="closeSidebarBtn" title="Fechar Menu">×</button>
         </div>
         <nav class="sidebar-nav">
-            <div class="sidebar-category">Aventura</div>
-            <a href="index.html" class="sidebar-link ${isHome ? 'active current' : ''}">
+            <div class="sidebar-category">Mundo de Aventura</div>
+            
+            <a href="index.html" class="sidebar-link ${currentPage === 'index.html' ? 'active' : ''}">
                 <span class="sidebar-icon">🏠</span> Início
             </a>
-            <a href="fichas.html" class="sidebar-link ${isFichas ? 'active current' : ''}">
-                <span class="sidebar-icon">📜</span> Fichas
-            </a>
-            <a href="campanhas.html" class="sidebar-link ${isCampanhas ? 'active current' : ''}">
-                <span class="sidebar-icon">⚔️</span> Campanhas
+            
+            <a href="fichas.html" class="sidebar-link ${['fichas.html', 'ficha.html', 'ficha-view.html'].includes(currentPage) ? 'active' : ''}">
+                <span class="sidebar-icon">📜</span> Fichas de Herói
             </a>
             
-            <div class="sidebar-category">Ferramentas</div>
-            <a href="#" class="sidebar-link" id="globalDiceRollerBtn">
-                <span class="sidebar-icon">🎲</span> Rolador
+            <a href="campanhas.html" class="sidebar-link ${['campanhas.html', 'campanha.html'].includes(currentPage) ? 'active' : ''}">
+                <span class="sidebar-icon">🗺️</span> Campanhas
             </a>
-            <a href="#" class="sidebar-link" onclick="alert('Em breve!')">
-                <span class="sidebar-icon">📚</span> Biblioteca
-            </a>
+
+            <div class="sidebar-category">Sistema</div>
             
-            <div class="sidebar-category">Mestre</div>
-            <a href="#" class="sidebar-link" onclick="alert('Em breve!')">
-                <span class="sidebar-icon">🐉</span> Bestiário
+            <a href="#" class="sidebar-link" onclick="alert('O Compêndio de Regras e Itens chegará numa atualização futura.'); return false;">
+                <span class="sidebar-icon">📚</span> Compêndio
             </a>
         </nav>
     `;
+
+    // A ordem de injeção no DOM garante o comportamento estrutural
+    document.body.appendChild(overlay);
     document.body.appendChild(sidebar);
 
-    // 5. Lógica de Interação (Abrir/Fechar)
-    function toggleMenu() {
-        sidebar.classList.toggle('active');
-        overlay.classList.toggle('active');
+    // =========================================================
+    // 2. SELEÇÃO DE ELEMENTOS INTERNOS E EVENTOS
+    // =========================================================
+    const closeBtn = document.getElementById("closeSidebarBtn");
+    const openBtn = document.getElementById("menuButton"); // Botão localizado na topbar do HTML
+
+    function openMenu() {
+        sidebar.classList.add('active');
+        overlay.classList.add('active');
+        document.body.style.overflow = 'hidden'; // Bloqueia o scroll do fundo no mobile/desktop
     }
 
-    // Fechar ao clicar no X ou no fundo escuro
-    const closeBtn = document.getElementById('closeSidebarBtn');
-    if (closeBtn) closeBtn.addEventListener('click', toggleMenu);
-    if (overlay) overlay.addEventListener('click', toggleMenu);
+    function closeMenu() {
+        sidebar.classList.remove('active');
+        overlay.classList.remove('active');
+        document.body.style.overflow = ''; // Restaura o scroll do fundo
+    }
 
-    // Abrir menu ao clicar em qualquer botão designado para isso na interface
-    const menuOpenButtons = document.querySelectorAll('#menuButton, #menuButtonMob, .menu-btn');
-    menuOpenButtons.forEach(btn => {
-        btn.addEventListener('click', (e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            toggleMenu();
-        });
-    });
+    // Liga os Eventos
+    if (openBtn) {
+        openBtn.addEventListener("click", openMenu);
+    } else {
+        console.warn("Aviso Aeriom: Botão '#menuButton' não encontrado no DOM desta página.");
+    }
 
-    // Feedback temporário para botões em desenvolvimento
-    document.getElementById('globalDiceRollerBtn')?.addEventListener('click', (e) => {
-        e.preventDefault();
-        alert("O Rolador de Dados Físico chegará na Fase 6!");
+    closeBtn?.addEventListener("click", closeMenu);
+    
+    // O clique fora do menu (no overlay) fecha a navegação, respeitando a nova hierarquia do z-index
+    overlay.addEventListener("click", closeMenu);
+
+    // Fechamento via Teclado (Acessibilidade)
+    document.addEventListener("keydown", (e) => {
+        if (e.key === "Escape" && sidebar.classList.contains('active')) {
+            closeMenu();
+        }
     });
 });
