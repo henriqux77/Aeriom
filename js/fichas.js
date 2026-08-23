@@ -1,6 +1,6 @@
 /* =========================================================
    AERIOM — GERENCIADOR DE FICHAS (js/fichas.js)
-   Fase 4: Sistema de Fichas (Listagem Premium)
+   Fase 4: Listagem Premium, Segura e Desacoplada
 ========================================================= */
 document.addEventListener("DOMContentLoaded", async () => {
     "use strict";
@@ -13,20 +13,36 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     const charactersList = document.getElementById("charactersList");
     const charactersMessage = document.getElementById("charactersMessage");
+    
+    // Modal de Exclusão
+    const deleteModal = document.getElementById("deleteConfirmModal");
+    const confirmDeleteBtn = document.getElementById("confirmDeleteBtn");
+    const cancelDeleteBtn = document.getElementById("cancelDeleteBtn");
+    let characterToDelete = null;
 
     // =========================================================
-    // 1. UTILITÁRIOS
+    // 1. UTILITÁRIOS E FEEDBACK
     // =========================================================
     function showMessage(msg, isError = false) {
         if (!charactersMessage) return;
         charactersMessage.textContent = msg;
         charactersMessage.className = `msg-box mb-4 ${isError ? 'msg-error' : 'msg-success'}`;
-        charactersMessage.style.display = 'flex';
-        setTimeout(() => { charactersMessage.style.display = 'none'; }, 4000);
+        charactersMessage.classList.add('active'); // Usando active em vez de display: flex
+        
+        setTimeout(() => { 
+            charactersMessage.classList.remove('active'); 
+        }, 4000);
+    }
+
+    function createSafeElement(tag, className, text) {
+        const el = document.createElement(tag);
+        if (className) el.className = className;
+        if (text) el.textContent = text;
+        return el;
     }
 
     // =========================================================
-    // 2. BUSCA E RENDERIZAÇÃO DE FICHAS
+    // 2. BUSCA DE DADOS
     // =========================================================
     async function loadCharacters() {
         try {
@@ -49,75 +65,97 @@ document.addEventListener("DOMContentLoaded", async () => {
         } catch (error) {
             console.error("Erro ao carregar fichas:", error);
             showMessage("Falha ao se conectar aos registros de Aeriom.", true);
-            charactersList.innerHTML = '';
+            renderEmptyState(true);
         }
+    }
+
+    // =========================================================
+    // 3. RENDERIZAÇÃO SEGURA (DOM Puro)
+    // =========================================================
+    function renderEmptyState(isError = false) {
+        charactersList.innerHTML = "";
+        const emptyState = document.createElement('div');
+        emptyState.className = 'empty-state-panel';
+
+        emptyState.innerHTML = `
+            <div class="empty-state-icon">📜</div>
+            <p class="empty-state-title">${isError ? 'Conexão Perdida' : 'Nenhum Herói Encontrado'}</p>
+            <p class="empty-state-desc">${isError ? 'Tente atualizar a página.' : 'Os salões de Aeriom aguardam a sua primeira lenda.'}</p>
+        `;
+
+        if (!isError) {
+            const createBtn = document.createElement('button');
+            createBtn.className = 'btn btn-primary mt-4';
+            createBtn.textContent = 'Forjar Novo Personagem';
+            createBtn.addEventListener('click', () => {
+                localStorage.removeItem("aeriom_character_id");
+                window.location.href = 'ficha.html';
+            });
+            emptyState.appendChild(createBtn);
+        }
+
+        charactersList.appendChild(emptyState);
     }
 
     function renderCharacters(characters) {
         charactersList.innerHTML = "";
 
         if (!characters || characters.length === 0) {
-            charactersList.innerHTML = `
-                <div style="grid-column: 1/-1; text-align: center; padding: 4rem 1rem; color: var(--text-muted); background: var(--theme-surface-interactive); border: 2px dashed var(--theme-border-strong); border-radius: var(--radius-md);">
-                    <div style="font-size: 3rem; margin-bottom: 1rem; opacity: 0.5;">📜</div>
-                    <p style="font-family: var(--font-heading); font-size: 1.5rem; color: var(--text-primary); margin-bottom: 0.5rem;">Nenhum Herói Encontrado</p>
-                    <p style="font-size: 0.95rem; margin-bottom: 1.5rem;">Os salões de Aeriom aguardam a sua primeira lenda.</p>
-                    <button class="btn btn-primary" onclick="window.location.href='ficha.html'">Forjar Novo Personagem</button>
-                </div>
-            `;
+            renderEmptyState();
             return;
         }
 
         characters.forEach(char => {
             const card = document.createElement("div");
-            // Estilização do Card Premium
-            card.style.cssText = `
-                background: linear-gradient(145deg, var(--theme-surface-elevated), var(--theme-surface));
-                border: 1px solid var(--theme-border-strong);
-                border-radius: var(--radius-md);
-                padding: 1.5rem;
-                display: flex;
-                flex-direction: column;
-                gap: 1rem;
-                box-shadow: var(--shadow-soft);
-                transition: var(--transition-fast);
-            `;
+            card.className = "character-card";
+
+            // Header do Card (Avatar + Info)
+            const cardHeader = document.createElement("div");
+            cardHeader.className = "char-card-header";
+
+            // Container do Avatar com Fallback Seguro
+            const avatarContainer = document.createElement("div");
+            avatarContainer.className = "char-avatar-container";
             
-            card.onmouseenter = () => {
-                card.style.borderColor = "var(--theme-primary-soft)";
-                card.style.transform = "translateY(-4px)";
-                card.style.boxShadow = "var(--shadow-hard)";
-            };
-            card.onmouseleave = () => {
-                card.style.borderColor = "var(--theme-border-strong)";
-                card.style.transform = "translateY(0)";
-                card.style.boxShadow = "var(--shadow-soft)";
-            };
+            const initial = char.name ? char.name.charAt(0).toUpperCase() : '?';
 
-            const avatarHtml = char.avatar_url 
-                ? `<img src="${char.avatar_url}" style="width: 64px; height: 64px; border-radius: 50%; object-fit: cover; border: 2px solid var(--theme-primary-soft); background: var(--theme-bg);">` 
-                : `<div style="width: 64px; height: 64px; border-radius: 50%; background: var(--theme-bg); border: 2px solid var(--theme-border-strong); display: grid; place-items: center; font-size: 1.5rem; color: var(--theme-primary); font-family: var(--font-heading);">${char.name.charAt(0).toUpperCase()}</div>`;
+            if (char.avatar_url && char.avatar_url.trim() !== '') {
+                const img = document.createElement("img");
+                img.src = char.avatar_url;
+                img.className = "char-avatar-img";
+                img.alt = `Avatar de ${char.name}`;
+                // Fallback em caso de URL quebrada
+                img.onerror = () => {
+                    avatarContainer.innerHTML = `<div class="char-avatar-fallback">${initial}</div>`;
+                };
+                avatarContainer.appendChild(img);
+            } else {
+                avatarContainer.innerHTML = `<div class="char-avatar-fallback">${initial}</div>`;
+            }
 
-            card.innerHTML = `
-                <div style="display: flex; gap: 1rem; align-items: center; border-bottom: 1px solid var(--theme-border); padding-bottom: 1rem;">
-                    ${avatarHtml}
-                    <div style="flex: 1; min-width: 0;">
-                        <h3 style="font-size: 1.25rem; color: var(--text-primary); margin-bottom: 0.2rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${char.name}</h3>
-                        <p style="font-size: 0.85rem; color: var(--text-secondary);">${char.race || 'Desconhecido'} • ${char.class || 'Aventureiro'} • Nv. ${char.level || 1}</p>
-                    </div>
-                </div>
-                <div style="display: flex; gap: 8px; margin-top: auto;">
-                    <button class="btn btn-primary" style="flex: 1; padding: 0.6rem;" data-action="view" data-id="${char.id}">Inspecionar</button>
-                    <button class="btn btn-secondary" style="padding: 0.6rem;" data-action="edit" data-id="${char.id}" title="Editar Ficha">✏️</button>
-                    <button class="btn btn-secondary" style="padding: 0.6rem; color: var(--danger); border-color: rgba(239,68,68,0.3);" data-action="delete" data-id="${char.id}" title="Excluir Herói">🗑️</button>
-                </div>
-            `;
+            // Info de Texto Segura contra XSS
+            const infoContainer = document.createElement("div");
+            infoContainer.className = "char-info";
+            
+            infoContainer.appendChild(createSafeElement("h3", "char-name", char.name || "Sem Nome"));
+            
+            const subtitle = `${char.race || 'Desconhecido'} • ${char.class || 'Aventureiro'} • Nv. ${char.level || 1}`;
+            infoContainer.appendChild(createSafeElement("p", "char-subtitle", subtitle));
 
-            // Ações dos Botões
-            const btnView = card.querySelector('[data-action="view"]');
-            const btnEdit = card.querySelector('[data-action="edit"]');
-            const btnDelete = card.querySelector('[data-action="delete"]');
+            cardHeader.appendChild(avatarContainer);
+            cardHeader.appendChild(infoContainer);
 
+            // Container de Ações
+            const actionsContainer = document.createElement("div");
+            actionsContainer.className = "char-card-actions";
+
+            const btnView = createSafeElement("button", "btn btn-primary flex-1", "Inspecionar");
+            const btnEdit = createSafeElement("button", "btn btn-secondary", "✏️");
+            btnEdit.title = "Editar Ficha";
+            const btnDelete = createSafeElement("button", "btn btn-danger", "🗑️");
+            btnDelete.title = "Excluir Herói";
+
+            // Eventos
             btnView.addEventListener("click", () => {
                 localStorage.setItem("aeriom_character_id", char.id);
                 window.location.href = "ficha-view.html";
@@ -128,46 +166,68 @@ document.addEventListener("DOMContentLoaded", async () => {
                 window.location.href = "ficha.html";
             });
 
-            btnDelete.addEventListener("click", async () => {
-                if (confirm(`A fogueira apagará a lenda de ${char.name} para sempre. Tem certeza que deseja excluir este herói?`)) {
-                    await deleteCharacter(char.id);
-                }
+            btnDelete.addEventListener("click", () => {
+                characterToDelete = char.id;
+                document.getElementById('deleteCharName').textContent = char.name;
+                deleteModal.classList.add('active');
             });
+
+            actionsContainer.appendChild(btnView);
+            actionsContainer.appendChild(btnEdit);
+            actionsContainer.appendChild(btnDelete);
+
+            card.appendChild(cardHeader);
+            card.appendChild(actionsContainer);
 
             charactersList.appendChild(card);
         });
     }
 
     // =========================================================
-    // 3. EXCLUSÃO E NAVEGAÇÃO
+    // 4. LÓGICA DE EXCLUSÃO (MODAL)
     // =========================================================
-    async function deleteCharacter(id) {
+    cancelDeleteBtn?.addEventListener("click", () => {
+        characterToDelete = null;
+        deleteModal.classList.remove('active');
+    });
+
+    confirmDeleteBtn?.addEventListener("click", async () => {
+        if (!characterToDelete) return;
+
+        confirmDeleteBtn.disabled = true;
+        confirmDeleteBtn.textContent = "Apagando...";
+
         try {
-            const { error } = await supabase.from('characters').delete().eq('id', id);
+            const { error } = await supabase.from('characters').delete().eq('id', characterToDelete);
             if (error) throw error;
             
-            showMessage("Herói apagado dos registros.");
+            showMessage("Lenda apagada dos registros.");
             
-            // Se a ficha deletada estiver no storage, limpa
-            if (localStorage.getItem("aeriom_character_id") === id) {
+            if (localStorage.getItem("aeriom_character_id") === characterToDelete) {
                 localStorage.removeItem("aeriom_character_id");
             }
             
-            loadCharacters(); // Atualiza a grid
+            await loadCharacters(); 
         } catch (error) {
             console.error("Erro ao deletar:", error);
             showMessage("Erro ao excluir o herói.", true);
+        } finally {
+            deleteModal.classList.remove('active');
+            confirmDeleteBtn.disabled = false;
+            confirmDeleteBtn.textContent = "Apagar Herói";
+            characterToDelete = null;
         }
-    }
+    });
 
-    // Garante que o botão "+ Nova Ficha" (No HTML) zere o storage para não puxar dados velhos
+    // =========================================================
+    // 5. NOVA FICHA
+    // =========================================================
     document.getElementById("createCharacterButton")?.addEventListener("click", (e) => {
         e.preventDefault();
         localStorage.removeItem("aeriom_character_id");
-        localStorage.removeItem("aeriom_character_draft");
         window.location.href = "ficha.html";
     });
 
-    // Inicia a busca assim que carrega a página
+    // Inicia a busca
     loadCharacters();
 });
