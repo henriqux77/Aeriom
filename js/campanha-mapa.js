@@ -1,5 +1,6 @@
 /* =========================================================
-   AERION — MAPAS INTERATIVOS E PINS (FASE E)
+   AERIOM — MAPAS INTERATIVOS E PINS (js/campanha-mapa.js)
+   Gerenciamento de Pins, Coordenadas e Tooltips Imersivos
 ========================================================= */
 (function() {
     "use strict";
@@ -26,7 +27,7 @@
         document.getElementById('mapViewTitle').textContent = title;
         
         imgEl.src = imageUrl;
-        modal.style.display = 'flex';
+        modal.classList.add('active'); // Novo padrão de modal
 
         await loadPins();
         setupMapRealtime();
@@ -66,26 +67,27 @@
             
             let masterActions = '';
             if (userRole === 'master') {
-                const toggleText = pin.is_hidden ? '👁️ Revelar aos Jogadores' : '🔒 Ocultar';
+                const toggleText = pin.is_hidden ? '👁️ Revelar aos Jogadores' : '🔒 Ocultar do Grupo';
                 masterActions = `
-                    <hr style="border-color: rgba(200,100,50,0.3); margin: 8px 0;">
-                    <button class="secondary-button" style="width: 100%; padding: 4px; font-size: 10px; margin-bottom: 5px;" onclick="window.togglePinVisibility('${pin.id}', ${!pin.is_hidden})">${toggleText}</button>
-                    <button class="secondary-button" style="width: 100%; padding: 4px; font-size: 10px; border-color: rgba(188,48,28,0.5); color: #d46a4a;" onclick="window.deletePin('${pin.id}')">Excluir Pin</button>
+                    <div style="margin-top: 12px; display: flex; flex-direction: column; gap: 6px;">
+                        <button class="btn btn-secondary w-full" style="padding: 6px; font-size: 0.75rem;" onclick="window.togglePinVisibility('${pin.id}', ${!pin.is_hidden})">${toggleText}</button>
+                        <button class="btn btn-ghost w-full" style="padding: 6px; font-size: 0.75rem; color: var(--danger);" onclick="window.deletePin('${pin.id}')">Excluir Pin</button>
+                    </div>
                 `;
             }
 
             tooltip.innerHTML = `
-                <strong style="color:var(--gold); display:block; margin-bottom:4px; font-family:var(--display-font);">${pin.title}</strong>
-                <span style="color:var(--cream); font-size:0.8rem; display:block; white-space: pre-wrap;">${pin.description || ''}</span>
-                ${pin.is_hidden ? '<span style="color:#d46a4a; font-size:0.7rem; display:block; margin-top:5px;">(Oculto dos jogadores)</span>' : ''}
+                <strong style="color: var(--theme-primary); font-family: var(--font-heading); display: block; margin-bottom: 4px; font-size: 1.1rem;">${pin.title}</strong>
+                <span style="color: var(--text-primary); font-size: 0.85rem; display: block; white-space: pre-wrap; line-height: 1.4;">${pin.description || ''}</span>
+                ${pin.is_hidden ? '<span style="color: var(--danger); font-size: 0.7rem; display: block; margin-top: 8px; text-transform: uppercase; font-weight: 600;">(Oculto)</span>' : ''}
                 ${masterActions}
             `;
 
             pinEl.appendChild(tooltip);
             
-            // Lógica para abrir/fechar tooltip no clique (melhor para mobile)
+            // Lógica para abrir/fechar tooltip no clique
             pinEl.addEventListener('click', (e) => {
-                e.stopPropagation(); // Impede de clicar no mapa atrás do pin
+                e.stopPropagation(); // Impede de criar um novo pin atrás do atual
                 document.querySelectorAll('.pin-tooltip.active').forEach(t => {
                     if (t !== tooltip) t.classList.remove('active');
                 });
@@ -103,15 +105,15 @@
         
         // Fechar Modal do Mapa
         document.getElementById('closeMapViewBtn')?.addEventListener('click', () => {
-            modal.style.display = 'none';
-            supabase.removeAllChannels(); // Para de ouvir quando fecha
+            modal.classList.remove('active');
+            supabase.removeAllChannels(); // Para de ouvir o realtime quando fecha
         });
 
-        // Fechar qualquer tooltip se clicar no mapa vazio
+        // Fechar qualquer tooltip se clicar no mapa vazio ou abrir form de novo pin
         mapArea?.addEventListener('click', (e) => {
             document.querySelectorAll('.pin-tooltip.active').forEach(t => t.classList.remove('active'));
             
-            // Se for mestre e clicou no mapa em si (não no pin), abre o form de criar pin
+            // Se for mestre e clicou na imagem do mapa em si
             if (userRole === 'master' && e.target === document.getElementById('mapInteractiveImage')) {
                 const rect = mapArea.getBoundingClientRect();
                 // Calcula % exata do clique baseada no tamanho renderizado
@@ -124,7 +126,7 @@
 
         // Form de Criar Pin
         document.getElementById('closeCreatePinBtn')?.addEventListener('click', () => {
-            pinFormModal.style.display = 'none';
+            pinFormModal.classList.remove('active');
         });
 
         document.getElementById('createPinForm')?.addEventListener('submit', async (e) => {
@@ -152,7 +154,7 @@
                 
                 if(!isHidden && window.generateLog) window.generateLog(`Um novo ponto foi marcado no mapa: "${title}".`, 'system');
                 
-                pinFormModal.style.display = 'none';
+                pinFormModal.classList.remove('active');
                 e.target.reset();
             } catch (err) {
                 console.error("Erro ao salvar pin:", err);
@@ -166,7 +168,7 @@
     function openPinForm(x, y) {
         document.getElementById('pinPosX').value = x.toFixed(2);
         document.getElementById('pinPosY').value = y.toFixed(2);
-        document.getElementById('createPinModal').style.display = 'flex';
+        document.getElementById('createPinModal').classList.add('active');
     }
 
     // Funções globais atreladas aos botões dos tooltips
