@@ -410,6 +410,41 @@
 <div id="activeSceneIndicator" class="active-scene-indicator" hidden>
     <span>🎭 Cena Ativa</span>
 </div>
+<!-- MODAL DE CRIAR SEGREDO (MESTRE) -->
+<div id="createSecretModal" class="auth-modal" style="display: none; align-items: center; justify-content: center;">
+    <div class="auth-box" style="max-width: 500px;">
+        <button id="closeCreateSecretModal" class="auth-close">×</button>
+        <h2 style="color: #dfb2f2;">Revelar Segredo</h2>
+        <p>Escolha quem poderá ler esta informação.</p>
+        <form id="createSecretForm">
+            <label class="sheet-field" style="display: block; margin-bottom: 15px;">
+                <span style="display: block; color: #dfb2f2; font-size: 10px; margin-bottom: 5px;">Título da Mensagem</span>
+                <input type="text" id="secretTitleInput" placeholder="Ex: Símbolo da Guilda" required style="width: 100%; padding: 10px; background: rgba(20, 15, 13, 0.8); border: 1px solid rgba(157, 91, 181, 0.3); color: var(--cream); border-radius: 8px;">
+            </label>
+            <label class="sheet-field" style="display: block; margin-bottom: 15px;">
+                <span style="display: block; color: #dfb2f2; font-size: 10px; margin-bottom: 5px;">Conteúdo Secreto</span>
+                <textarea id="secretContentInput" placeholder="Apenas os alvos poderão ler isso..." required style="width: 100%; padding: 10px; background: rgba(20, 15, 13, 0.8); border: 1px solid rgba(157, 91, 181, 0.3); color: var(--cream); border-radius: 8px; min-height: 80px;"></textarea>
+            </label>
+            
+            <div style="margin-bottom: 20px;">
+                <span style="display: block; color: #dfb2f2; font-size: 10px; margin-bottom: 5px;">Quem pode ler?</span>
+                <div id="secretTargetsContainer" style="display: flex; flex-direction: column; gap: 5px; background: rgba(0,0,0,0.3); padding: 10px; border-radius: 6px; border: 1px solid rgba(157, 91, 181, 0.2); max-height: 120px; overflow-y: auto;">
+                    <!-- Checkboxes de jogadores carregam aqui -->
+                </div>
+            </div>
+
+            <button type="submit" id="saveSecretBtn" class="primary-button" style="width: 100%; background: linear-gradient(180deg, #6c2d82 0%, #3e164f 100%); border-color: #9d5bb5;">Revelar Segredo</button>
+        </form>
+    </div>
+</div>
+
+<!-- TOAST DE CARTÃO PRIVADO (JOGADOR) -->
+<div id="privateCardToast" class="private-card-toast">
+    <div style="font-size: 40px; margin-bottom: 10px;">🔐</div>
+    <h3 id="privateCardTitle" style="color: #dfb2f2; font-family: var(--display-font); font-size: 1.3rem; margin-bottom: 10px;">Nova Mensagem Privada</h3>
+    <p id="privateCardContent" style="color: var(--cream); font-size: 0.95rem; line-height: 1.5; font-family: 'Georgia', serif; margin-bottom: 25px;"></p>
+    <button id="closePrivateCardBtn" class="secondary-button" style="width: 100%;">Entendido</button>
+</div>
 
 <!-- Scripts -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -422,6 +457,8 @@
 <script src="js/campanha-cozinha.js?v=3"></script>
 <script src="js/campanha-sessao.js?v=1"></script>
 <script src="js/campanha-cena.js?v=1"></script>
+<script src="js/campanha-segredos.js?v=1"></script>
+
 <script src="js/campanha.js?v=14"></script>
 
 </body>
