@@ -45,6 +45,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         if (window.initTimelineSystem) window.initTimelineSystem(supabase, campaignId);
         if (window.initCookingSystem) window.initCookingSystem(supabase, campaignId);
         if (window.initSessionSystem) window.initSessionSystem(supabase, campaignId);
+        if (window.initSceneSystem) window.initSceneSystem(supabase, campaignId);
     }
 
     function setupRealtime() {
@@ -318,6 +319,5 @@ document.addEventListener("DOMContentLoaded", async () => {
     document.getElementById("requestToastCloseBtn")?.addEventListener('click', () => document.getElementById("requestToast").hidden = true);
 
     init(); // Chama a função principal de inicialização
-        if (window.initSceneSystem) window.initSceneSystem(supabase, campaignId);
 
 });
