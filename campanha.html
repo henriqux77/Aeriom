@@ -105,7 +105,7 @@
             </div>
         </div>
 
-        <!-- ABA 2: COMBATE (FASE 10) -->
+        <!-- ABA 2: COMBATE -->
         <div id="tab-combate" class="dash-tab-content" hidden>
             <div class="section-header" style="display: flex; justify-content: space-between; align-items: center;">
                 <div>
@@ -137,10 +137,7 @@
                     <span style="color: var(--gold); font-family: var(--display-font); font-size: 1.1rem;">Rodada: <span id="combatRoundDisplay">1</span></span>
                     <button id="nextTurnBtn" class="primary-button master-only" style="width: auto; min-height: 30px; font-size: 11px; padding: 5px 15px;" hidden>Próximo Turno ➔</button>
                 </div>
-                
-                <div id="initiativeList" style="display: flex; flex-direction: column; gap: 10px;">
-                    <!-- Preenchido via JS -->
-                </div>
+                <div id="initiativeList" style="display: flex; flex-direction: column; gap: 10px;"></div>
             </div>
 
             <!-- Placeholder sem Combate -->
@@ -177,28 +174,11 @@
             </div>
         </div>
 
-        <!-- ABA 5: COZINHA -->
+        <!-- ABA 5: COZINHA (FASE 11 - Renderizada via JS) -->
         <div id="tab-cozinha" class="dash-tab-content" hidden>
-            <div class="section-header">
-                <h3>Acampamento & Culinária</h3>
-                <p>Cozinhe ingredientes raros para obter bônus e recuperar energias.</p>
-            </div>
-            <div class="cooking-active-meal">
-                <h4>🍲 Refeição Ativa</h4>
-                <p>Nenhum efeito alimentar ativo no momento.</p>
-                <div class="meal-bonus-box"><span>Bônus:</span> N/A</div>
-            </div>
-            <div class="cooking-grid">
-                <div class="dash-panel" style="margin-bottom: 0;">
-                    <h3>Bolsa de Ingredientes</h3>
-                    <p style="font-size: 0.8rem; color: var(--cream-muted); margin-bottom: 15px;">Itens coletados durante a aventura.</p>
-                    <div class="empty-list">Inventário de comida vazio.</div>
-                </div>
-                <div class="dash-panel" style="margin-bottom: 0;">
-                    <h3>Caderno de Receitas</h3>
-                    <p style="font-size: 0.8rem; color: var(--cream-muted); margin-bottom: 15px;">Combinações que deram certo.</p>
-                    <div class="empty-list">Nenhuma receita descoberta.</div>
-                </div>
+            <div class="dash-panel placeholder-panel">
+                <div class="characters-loader"></div>
+                <p>Preparando a cozinha...</p>
             </div>
         </div>
 
@@ -391,11 +371,13 @@
     </div>
 </div>
 
+<!-- Scripts -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="js/supabase.js?v=16"></script>
-<script src="js/auth.js?v=16"></script>
-<script src="js/campanha.js?v=10"></script>
+<script src="js/supabase.js?v=17"></script>
+<script src="js/auth.js?v=17"></script>
+<!-- Novo Módulo: Sistema de Cozinha (FASE 11) -->
 <script src="js/campanha-cozinha.js?v=1"></script>
+<script src="js/campanha.js?v=11"></script>
 
 </body>
 </html>
