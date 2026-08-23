@@ -2486,3 +2486,33 @@ CSS para "fichas.html"
     }
 
 }
+/* =========================================================
+   MENU GLOBAL (SIDEBAR) - FASE 12
+========================================================= */
+.menu-btn { background: transparent; border: none; color: var(--gold); font-size: 1.8rem; cursor: pointer; padding: 5px; line-height: 1; }
+.menu-btn:hover { color: var(--cream); }
+
+.global-sidebar { position: fixed; top: 0; left: -300px; width: 280px; height: 100vh; background: rgba(10, 8, 7, 0.98); border-right: 1px solid rgba(200, 100, 50, 0.3); z-index: 9999; transition: left 0.3s ease; box-shadow: 10px 0 30px rgba(0,0,0,0.8); display: flex; flex-direction: column; backdrop-filter: blur(10px); }
+.global-sidebar.open { left: 0; }
+
+.sidebar-header { padding: 20px; border-bottom: 1px solid rgba(131, 65, 43, 0.3); display: flex; justify-content: space-between; align-items: center; }
+.sidebar-header h2 { font-family: var(--display-font); color: var(--gold); margin: 0; font-size: 1.2rem; letter-spacing: 2px; }
+.close-sidebar-btn { background: transparent; border: none; color: var(--cream-muted); font-size: 2rem; cursor: pointer; line-height: 1; }
+
+.sidebar-nav { padding: 20px 0; display: flex; flex-direction: column; flex: 1; overflow-y: auto; }
+.sidebar-link { padding: 15px 25px; color: var(--cream-muted); text-decoration: none; font-family: var(--display-font); font-size: 1.1rem; display: flex; align-items: center; gap: 15px; border-left: 3px solid transparent; transition: all 0.2s; }
+.sidebar-link:hover { background: rgba(200, 100, 50, 0.1); color: var(--cream); border-left-color: rgba(200, 100, 50, 0.5); }
+.sidebar-link.active { color: var(--gold); border-left-color: var(--gold); background: rgba(25, 17, 15, 0.8); }
+
+.sidebar-divider { height: 1px; background: rgba(131, 65, 43, 0.3); margin: 15px 25px; }
+.sidebar-overlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.6); z-index: 9998; opacity: 0; visibility: hidden; transition: opacity 0.3s; }
+.sidebar-overlay.open { opacity: 1; visibility: visible; }
+
+/* LAYOUT HOME - FASE 12 */
+.home-menu-grid { display: grid; grid-template-columns: 1fr; gap: 20px; max-width: 600px; margin: 40px auto; }
+@media(min-width: 600px) { .home-menu-grid { grid-template-columns: 1fr 1fr; } }
+.home-menu-card { background: linear-gradient(145deg, rgba(25, 17, 15, 0.8), rgba(10, 8, 7, 0.9)); border: 1px solid rgba(200, 100, 50, 0.3); border-radius: 12px; padding: 30px; text-align: center; text-decoration: none; display: flex; flex-direction: column; align-items: center; transition: all 0.3s ease; box-shadow: 0 10px 20px rgba(0,0,0,0.5); }
+.home-menu-card:hover { transform: translateY(-5px); border-color: var(--gold); box-shadow: 0 15px 25px rgba(200, 100, 50, 0.15); }
+.home-menu-card .icon { font-size: 3rem; margin-bottom: 15px; }
+.home-menu-card h3 { font-family: var(--display-font); color: var(--gold); margin: 0 0 10px 0; font-size: 1.5rem; }
+.home-menu-card p { color: var(--cream-muted); font-size: 0.9rem; margin: 0; line-height: 1.4; }
