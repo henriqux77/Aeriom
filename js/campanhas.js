@@ -1,6 +1,6 @@
 /* =========================================================
    AERIOM — GERENCIADOR DE CAMPANHAS (js/campanhas.js)
-   Correção de Integração: Estados UI, Anti-XSS e Capas via URL
+   Correção de Integração: Remoção do sort por created_at inexistente
 ========================================================= */
 document.addEventListener("DOMContentLoaded", async () => {
     "use strict";
@@ -37,15 +37,13 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
 
     function showState(state) {
-        // Esconde tudo primeiro (Proteção contra null)
         if (loadingCampaigns) loadingCampaigns.style.display = "none";
         if (emptyCampaigns) emptyCampaigns.style.display = "none";
         if (campaignsList) campaignsList.style.display = "none";
 
-        // Exibe o estado correto
         if (state === 'loading' && loadingCampaigns) loadingCampaigns.style.display = "flex";
         if (state === 'empty' && emptyCampaigns) emptyCampaigns.style.display = "flex";
-        if (state === 'list' && campaignsList) campaignsList.style.display = "grid"; // Usa Grid para os cards
+        if (state === 'list' && campaignsList) campaignsList.style.display = "grid"; 
     }
 
     // =========================================================
@@ -64,12 +62,11 @@ document.addEventListener("DOMContentLoaded", async () => {
             
             currentUser = session.user;
 
-            // Busca as mesas nas quais o jogador é membro
+            // Busca as mesas nas quais o jogador é membro (Removido o .order('created_at') para evitar o erro 42703)
             const { data: memberships, error: dbError } = await supabase
                 .from('campaign_members')
                 .select('role, campaigns(id, name, description, cover_url)')
-                .eq('user_id', currentUser.id)
-                .order('created_at', { ascending: false });
+                .eq('user_id', currentUser.id);
 
             if (dbError) throw dbError;
 
@@ -83,7 +80,6 @@ document.addEventListener("DOMContentLoaded", async () => {
 
         } catch (error) {
             console.error("Erro ao consultar campanhas:", error);
-            // Mostra o estado vazio por segurança visual, mas avisa do erro real
             showState('empty'); 
             showMessage("Erro de comunicação com os servidores. Tente atualizar a página.", true);
         }
@@ -100,15 +96,13 @@ document.addEventListener("DOMContentLoaded", async () => {
             const camp = member.campaigns;
             if (!camp) return;
 
-            // Card Principal
             const card = document.createElement("div");
             card.className = "aeriom-card-interactive";
-            card.style.padding = "0"; // Sobrescreve para a imagem ocupar o topo
+            card.style.padding = "0"; 
             card.style.display = "flex";
             card.style.flexDirection = "column";
             card.style.overflow = "hidden";
 
-            // Capa da Campanha
             const cover = document.createElement("div");
             cover.style.height = "140px";
             cover.style.width = "100%";
@@ -130,7 +124,6 @@ document.addEventListener("DOMContentLoaded", async () => {
                 cover.appendChild(initial);
             }
 
-            // Conteúdo Interno
             const content = document.createElement("div");
             content.style.padding = "var(--space-lg)";
             content.style.display = "flex";
@@ -154,7 +147,6 @@ document.addEventListener("DOMContentLoaded", async () => {
             desc.style.overflow = "hidden";
             desc.textContent = camp.description || "Sem descrição registada.";
 
-            // Role Badge (Selo de Mestre ou Jogador)
             const roleBadge = document.createElement("div");
             roleBadge.style.marginTop = "var(--space-md)";
             roleBadge.style.fontSize = "0.75rem";
@@ -177,7 +169,6 @@ document.addEventListener("DOMContentLoaded", async () => {
             card.appendChild(cover);
             card.appendChild(content);
 
-            // Ação de clique para entrar na VTT
             card.addEventListener("click", () => {
                 localStorage.setItem("aeriom_active_campaign", camp.id);
                 window.location.href = "campanha.html";
@@ -210,10 +201,9 @@ document.addEventListener("DOMContentLoaded", async () => {
 
         const name = document.getElementById("campaignName").value.trim();
         const desc = document.getElementById("campaignDesc").value.trim();
-        const cover = document.getElementById("campaignCover").value.trim(); // URL Direta
+        const cover = document.getElementById("campaignCover").value.trim(); 
 
         try {
-            // 1. Cria a campanha
             const { data: newCampaign, error: campError } = await supabase
                 .from('campaigns')
                 .insert([{ name: name, description: desc, cover_url: cover }])
@@ -222,7 +212,6 @@ document.addEventListener("DOMContentLoaded", async () => {
 
             if (campError) throw campError;
 
-            // 2. Associa o utilizador como Mestre
             const { error: memberError } = await supabase
                 .from('campaign_members')
                 .insert([{ campaign_id: newCampaign.id, user_id: currentUser.id, role: 'master' }]);
@@ -233,7 +222,6 @@ document.addEventListener("DOMContentLoaded", async () => {
             createCampaignForm.reset();
             if (createCampaignModal) createCampaignModal.classList.remove("active");
             
-            // Recarrega a lista
             await loadCampaigns();
 
         } catch (error) {
@@ -247,6 +235,5 @@ document.addEventListener("DOMContentLoaded", async () => {
         }
     });
 
-    // Início
     loadCampaigns();
 });
