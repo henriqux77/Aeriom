@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="theme-color" content="#080707">
     <title>Aeriom — Sistema de RPG</title>
-    <!-- CSS global (receberá os novos estilos da Fase 12) -->
+
     <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
@@ -14,31 +14,32 @@
          PAINEL DE PERFIL LATERAL
     ========================== -->
     <div id="profilePanel" class="profile-panel">
-        <button id="closeProfile" class="profile-close" aria-label="Fechar Perfil">×</button>
+        <button id="closeProfile" class="profile-close" aria-label="Fechar perfil">×</button>
         <div class="profile-content">
             <img id="profileAvatar" class="profile-avatar" src="" alt="Avatar">
-            <h2 id="profileName" style="color: var(--gold); font-family: var(--display-font);">Carregando...</h2>
-            <p id="profileEmail" style="color: var(--cream-muted); font-size: 0.85rem; margin-bottom: 30px;">Carregando...</p>
-            
-            <button id="editProfileButton" class="secondary-button" style="width: 100%; margin-bottom: 15px;">
-                Editar perfil
-            </button>
-            <button id="logoutButton" class="primary-button" style="width: 100%; background: rgba(188, 48, 28, 0.2); border-color: rgba(188, 48, 28, 0.5); color: #ff9d85;">
-                Sair da conta
-            </button>
+            <h2 id="profileName">Carregando...</h2>
+            <p id="profileEmail">Carregando...</p>
+            <button id="editProfileButton">Editar perfil</button>
+            <button id="logoutButton">Sair da conta</button>
         </div>
     </div>
 
     <main class="home">
+
         <!-- =========================
-             CABEÇALHO GERAL
+             CABEÇALHO (RESTAURADO PARA ORIGINAL)
         ========================== -->
-        <header class="dash-header" style="justify-content: space-between;">
-            <button class="menu-btn" id="menuButton" aria-label="Abrir menu">☰</button>
-            <a href="./" class="header-logo" style="display: flex; align-items: center; justify-content: center;">
-                <img src="https://i.ibb.co/d0SnBLcV/Design-sem-nome-20260817-180846-0000.jpg" alt="Aeriom" style="height: 40px; border-radius: 4px;">
+        <header class="header">
+            <!-- Adicionado 'menu-btn' para o JS do menu global funcionar sem quebrar a classe original -->
+            <button class="header-button menu-button menu-btn" id="menuButton" aria-label="Abrir menu">
+                ☰
+            </button>
+
+            <a href="./" class="header-logo">
+                <img src="https://i.ibb.co/d0SnBLcV/Design-sem-nome-20260817-180846-0000.jpg" alt="Aeriom">
             </a>
-            <button class="header-button profile-button" id="profileButton" aria-label="Abrir perfil" style="font-size: 1.5rem; color: var(--gold); background: transparent; border: none; cursor: pointer;">
+
+            <button class="header-button profile-button" id="profileButton" aria-label="Abrir perfil">
                 ♙
             </button>
         </header>
@@ -46,28 +47,24 @@
         <!-- =========================
              HERO / IMAGEM PRINCIPAL
         ========================== -->
-        <section class="hero" style="text-align: center; margin-top: 20px; position: relative;">
-            <div style="position: relative; display: inline-block; max-width: 600px; width: 100%; padding: 0 15px;">
-                <img src="https://i.ibb.co/WN2Zh92G/1786964360186.png" alt="Mundo de Aeriom" class="hero-image" style="width: 100%; border-radius: 16px; border: 1px solid rgba(200, 100, 50, 0.3); box-shadow: 0 10px 40px rgba(0,0,0,0.8);">
-                <div style="position: absolute; inset: 0 15px; background: linear-gradient(to top, rgba(5,3,3,1) 0%, rgba(5,3,3,0) 50%); border-radius: 16px; pointer-events: none;"></div>
-            </div>
+        <section class="hero">
+            <img src="https://i.ibb.co/WN2Zh92G/1786964360186.png" alt="Mundo de Aeriom" class="hero-image">
         </section>
 
         <!-- =========================
-             IDENTIDADE E TÍTULO
+             IDENTIDADE
         ========================== -->
-        <section class="intro" style="text-align: center; margin-top: -50px; position: relative; z-index: 2;">
-            <img src="https://i.ibb.co/qFVJFfQb/Design-sem-nome-20260817-180527-0000.png" alt="Aeriom Logo" class="main-logo" style="width: 220px; filter: drop-shadow(0 10px 20px rgba(0,0,0,0.9)); margin-bottom: 20px;">
+        <section class="intro">
+            <img src="https://i.ibb.co/qFVJFfQb/Design-sem-nome-20260817-180527-0000.png" alt="Aeriom" class="main-logo">
         </section>
 
         <!-- =========================
              AÇÕES PRINCIPAIS
         ========================== -->
-        <section class="auth-actions" style="padding: 0 20px; text-align: center; margin-top: 10px;">
+        <section class="auth-actions" style="width: 100%;">
 
             <!-- VISÍVEL QUANDO NÃO ESTÁ LOGADO -->
-            <div id="loggedOutActions" style="max-width: 320px; margin: 0 auto; display: flex; flex-direction: column; gap: 15px;">
-                <p style="color: var(--cream-muted); font-size: 0.95rem; margin-bottom: 10px;">Entre ou crie uma conta para forjar sua lenda.</p>
+            <div id="loggedOutActions" style="display: flex; flex-direction: column; gap: 15px; width: 100%; align-items: center;">
                 <button class="primary-button" id="createAccountButton">
                     <span class="button-icon">◇</span>
                     <span>Criar Conta</span>
@@ -78,31 +75,56 @@
                 </button>
             </div>
 
-            <!-- VISÍVEL QUANDO ESTÁ LOGADO (NOVO LAYOUT FASE 12) -->
-            <div id="loggedInActions" style="display: none;">
-                <h2 style="font-family: var(--display-font); color: var(--gold); font-size: 1.8rem; margin-bottom: 5px;">Bem-vindo de volta</h2>
-                <p style="color: var(--cream-muted); font-size: 0.9rem; margin-bottom: 30px;">O seu mundo de aventuras o aguarda.</p>
+            <!-- VISÍVEL QUANDO ESTÁ LOGADO (ATUALIZADO PARA FASE 12) -->
+            <div id="loggedInActions" style="display: none; width: 100%;">
+                
+                <!-- Wrapper interno: Impede que o auth.js esmague os elementos ao aplicar 'display: flex' -->
+                <div style="display: flex; flex-direction: column; align-items: center; width: 100%;">
+                    
+                    <h2 style="font-family: var(--display-font); color: var(--gold); font-size: 1.8rem; margin-bottom: 5px; text-align: center;">Bem-vindo de volta</h2>
+                    <p style="color: var(--cream-muted); font-size: 0.9rem; margin-bottom: 30px; text-align: center;">O seu mundo de aventuras o aguarda.</p>
 
-                <!-- NOVO GRID DE MENUS (FASE 12) -->
-                <div class="home-menu-grid">
-                    <a href="fichas.html" class="home-menu-card">
-                        <span class="icon">📜</span>
-                        <h3>Minhas Fichas</h3>
-                        <p>Visualize, edite e crie novos personagens para entrar em aventuras.</p>
-                    </a>
+                    <!-- Novo Menu Grid Integrado -->
+                    <div class="home-menu-grid" style="width: 100%;">
+                        <a href="fichas.html" class="home-menu-card" id="createCharacterButton">
+                            <span class="icon">📜</span>
+                            <h3>Minhas Fichas</h3>
+                            <p>Visualize, edite e crie personagens.</p>
+                        </a>
 
-                    <a href="campanhas.html" class="home-menu-card">
-                        <span class="icon">⚔️</span>
-                        <h3>Campanhas</h3>
-                        <p>Acesse o painel como Jogador ou administre seu mundo como Mestre.</p>
-                    </a>
+                        <a href="campanhas.html" class="home-menu-card" id="campaignButton">
+                            <span class="icon">⚔️</span>
+                            <h3>Campanhas</h3>
+                            <p>Acesse sessões como Jogador ou Mestre.</p>
+                        </a>
+                    </div>
                 </div>
+
             </div>
+
         </section>
+
+        <!-- =========================
+             FUNCIONALIDADES (Abaixo dos botões)
+        ========================== -->
+        <section class="features" id="homeFeatures">
+            <article class="feature-card">
+                <div class="feature-icon">♟</div>
+                <h2>Mesas</h2>
+                <p>Crie e gerencie suas mesas</p>
+            </article>
+
+            <article class="feature-card">
+                <div class="feature-icon">◈</div>
+                <h2>Fichas</h2>
+                <p>Crie personagens únicos</p>
+            </article>
+        </section>
+
     </main>
 
     <!-- =========================
-         MODAL DE AUTENTICAÇÃO (MANTIDO INTACTO)
+         MODAL DE AUTENTICAÇÃO
     ========================== -->
     <div id="authModal" class="auth-modal">
         <div class="auth-box">
@@ -110,49 +132,47 @@
 
             <!-- LOGIN -->
             <div id="loginForm">
-                <h2 style="font-family: var(--display-font); color: var(--gold);">Entrar no Aeriom</h2>
-                <p style="color: var(--cream-muted); font-size: 0.85rem; margin-bottom: 20px;">Escolha como deseja entrar.</p>
-                
-                <button id="discordLoginButton" class="auth-discord" style="width: 100%; padding: 12px; background: #5865F2; color: white; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; margin-bottom: 15px;">
+                <h2>Entrar no Aeriom</h2>
+                <p>Escolha como deseja entrar.</p>
+
+                <button id="discordLoginButton" class="auth-discord">
                     🎮 Entrar com Discord
                 </button>
-                
-                <div class="auth-divider" style="text-align: center; margin: 15px 0; position: relative;">
-                    <span style="background: var(--bg-dark); padding: 0 10px; color: var(--cream-muted); font-size: 0.8rem; position: relative; z-index: 2;">ou</span>
-                    <div style="position: absolute; top: 50%; left: 0; width: 100%; height: 1px; background: rgba(200,100,50,0.3); z-index: 1;"></div>
+
+                <div class="auth-divider">
+                    <span>ou</span>
                 </div>
 
-                <input type="email" id="loginEmail" placeholder="E-mail" autocomplete="email" class="sheet-field" style="width: 100%; padding: 12px; margin-bottom: 15px; background: rgba(20, 15, 13, 0.8); border: 1px solid rgba(200, 100, 50, 0.3); color: var(--cream); border-radius: 8px;">
-                <input type="password" id="loginPassword" placeholder="Senha" autocomplete="current-password" class="sheet-field" style="width: 100%; padding: 12px; margin-bottom: 20px; background: rgba(20, 15, 13, 0.8); border: 1px solid rgba(200, 100, 50, 0.3); color: var(--cream); border-radius: 8px;">
-                
-                <button id="emailLoginButton" class="primary-button" style="width: 100%; margin-bottom: 15px;">Entrar</button>
-                <button id="showRegisterButton" class="secondary-button" style="width: 100%; border: none;">Criar uma conta</button>
+                <input type="email" id="loginEmail" placeholder="E-mail" autocomplete="email">
+                <input type="password" id="loginPassword" placeholder="Senha" autocomplete="current-password">
+
+                <button id="emailLoginButton">Entrar</button>
+                <button id="showRegisterButton">Criar uma conta</button>
             </div>
 
             <!-- CADASTRO -->
             <div id="registerForm" style="display: none;">
-                <h2 style="font-family: var(--display-font); color: var(--gold);">Criar conta</h2>
-                <p style="color: var(--cream-muted); font-size: 0.85rem; margin-bottom: 20px;">Crie sua conta no Aeriom.</p>
+                <h2>Criar conta</h2>
+                <p>Crie sua conta no Aeriom.</p>
 
-                <button id="discordRegisterButton" class="auth-discord" style="width: 100%; padding: 12px; background: #5865F2; color: white; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; margin-bottom: 15px;">
+                <button id="discordRegisterButton" class="auth-discord">
                     🎮 Criar conta com Discord
                 </button>
 
-                <div class="auth-divider" style="text-align: center; margin: 15px 0; position: relative;">
-                    <span style="background: var(--bg-dark); padding: 0 10px; color: var(--cream-muted); font-size: 0.8rem; position: relative; z-index: 2;">ou</span>
-                    <div style="position: absolute; top: 50%; left: 0; width: 100%; height: 1px; background: rgba(200,100,50,0.3); z-index: 1;"></div>
+                <div class="auth-divider">
+                    <span>ou</span>
                 </div>
 
-                <input type="email" id="registerEmail" placeholder="E-mail" autocomplete="email" class="sheet-field" style="width: 100%; padding: 12px; margin-bottom: 15px; background: rgba(20, 15, 13, 0.8); border: 1px solid rgba(200, 100, 50, 0.3); color: var(--cream); border-radius: 8px;">
-                <input type="password" id="registerPassword" placeholder="Senha" autocomplete="new-password" class="sheet-field" style="width: 100%; padding: 12px; margin-bottom: 15px; background: rgba(20, 15, 13, 0.8); border: 1px solid rgba(200, 100, 50, 0.3); color: var(--cream); border-radius: 8px;">
-                <input type="password" id="registerPasswordConfirm" placeholder="Confirmar senha" autocomplete="new-password" class="sheet-field" style="width: 100%; padding: 12px; margin-bottom: 20px; background: rgba(20, 15, 13, 0.8); border: 1px solid rgba(200, 100, 50, 0.3); color: var(--cream); border-radius: 8px;">
+                <input type="email" id="registerEmail" placeholder="E-mail" autocomplete="email">
+                <input type="password" id="registerPassword" placeholder="Senha" autocomplete="new-password">
+                <input type="password" id="registerPasswordConfirm" placeholder="Confirmar senha" autocomplete="new-password">
 
-                <button id="registerButton" class="primary-button" style="width: 100%; margin-bottom: 15px;">Criar conta</button>
-                <button id="showLoginButton" class="secondary-button" style="width: 100%; border: none;">Já tenho uma conta</button>
+                <button id="registerButton">Criar conta</button>
+                <button id="showLoginButton">Já tenho uma conta</button>
             </div>
 
-            <!-- MENSAGEM -->
-            <p id="authMessage" style="margin-top: 15px; font-size: 0.85rem; color: #ff9d85; text-align: center;"></p>
+            <!-- MENSAGEM DE ERRO/SUCESSO -->
+            <p id="authMessage"></p>
         </div>
     </div>
 
@@ -160,12 +180,30 @@
          JAVASCRIPT
     ========================== -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="js/supabase.js?v=5"></script>
-    <script src="js/auth.js?v=5"></script>
-    <script src="js/main.js?v=5"></script>
+    <script src="js/supabase.js?v=6"></script>
+    <script src="js/auth.js?v=6"></script>
+    <script src="js/main.js?v=6"></script>
     
     <!-- MÓDULO DO MENU GLOBAL (FASE 12) -->
-    <script src="js/menu.js?v=2"></script>
+    <script src="js/menu.js?v=1"></script>
 
+    <script>
+        // Pequeno ajuste para esconder as "Features" quando o usuário estiver logado 
+        // e exibir o Grid de Fichas/Campanhas mais limpo.
+        document.addEventListener("DOMContentLoaded", () => {
+            const observer = new MutationObserver(() => {
+                const loggedIn = document.getElementById('loggedInActions');
+                const features = document.getElementById('homeFeatures');
+                if (loggedIn && features) {
+                    if (loggedIn.style.display !== 'none') {
+                        features.style.display = 'none';
+                    } else {
+                        features.style.display = 'grid';
+                    }
+                }
+            });
+            observer.observe(document.getElementById('loggedInActions'), { attributes: true, attributeFilter: ['style'] });
+        });
+    </script>
 </body>
 </html>
