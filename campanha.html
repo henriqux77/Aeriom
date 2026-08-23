@@ -67,6 +67,19 @@
                             </div>
                         </div>
                     </div>
+                    <!-- MODO CENA (FASE C) -->
+                    <div class="tool-section" style="grid-column: 1 / -1;">
+                        <span class="tool-label">🎭 Iniciar Cena</span>
+                        <div style="display: flex; flex-direction: column; gap: 10px; margin-top: 8px;">
+                            <input type="text" id="sceneTitleInput" placeholder="Título (ex: Floresta de Eldoria)" style="width: 100%; padding: 10px; background: rgba(20, 15, 13, 0.8); border: 1px solid rgba(200, 100, 50, 0.3); color: var(--cream); border-radius: 6px; font-size: 12px;">
+                            <textarea id="sceneDescInput" placeholder="Descreva a cena para os jogadores..." style="width: 100%; padding: 10px; background: rgba(20, 15, 13, 0.8); border: 1px solid rgba(200, 100, 50, 0.3); color: var(--cream); border-radius: 6px; font-size: 12px; min-height: 60px;"></textarea>
+                            <input type="text" id="sceneImageInput" placeholder="URL da Imagem (opcional)" style="width: 100%; padding: 10px; background: rgba(20, 15, 13, 0.8); border: 1px dashed rgba(200, 100, 50, 0.3); color: var(--cream); border-radius: 6px; font-size: 12px;">
+                            <div style="display: flex; gap: 10px;">
+                                <button id="startSceneBtn" class="primary-button" style="flex: 2; min-height: 35px; font-size: 11px;">Apresentar Cena</button>
+                                <button id="stopSceneBtn" class="secondary-button" style="flex: 1; min-height: 35px; font-size: 11px; border-color: rgba(188,48,28,0.5); color: #d46a4a;">Encerrar Cena</button>
+                            </div>
+                        </div>
+                    </div>
 
                         <span class="tool-label">Solicitar Teste aos Jogadores</span>
                         <div style="display: flex; gap: 10px; align-items: center; margin-top: 8px;">
