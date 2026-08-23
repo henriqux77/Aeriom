@@ -15,7 +15,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 <a href="index.html" class="sidebar-link" data-page="index">🏠 Início</a>
                 <a href="fichas.html" class="sidebar-link" data-page="fichas">📜 Minhas Fichas</a>
                 <a href="campanhas.html" class="sidebar-link" data-page="campanhas">⚔️ Campanhas</a>
-                <a href="criar-ficha.html" class="sidebar-link" data-page="criar-ficha">➕ Criar Ficha</a>
+                <a href="ficha.html" class="sidebar-link" data-page="criar-ficha">➕ Criar Ficha</a>
                 <div class="sidebar-divider"></div>
                 <a href="#" class="sidebar-link" style="opacity: 0.5; pointer-events: none;">⚙️ Configurações</a>
                 <a href="#" id="sidebarLogoutBtn" class="sidebar-link" style="color: #d46a4a;">🚪 Sair</a>
