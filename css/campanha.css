@@ -474,3 +474,23 @@
         animation: slideUp 0.3s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
     }
 }
+/* =========================================================
+   MICROINTERAÇÕES: NÚMEROS FLUTUANTES (DANO/CURA)
+========================================================= */
+.floating-number {
+    position: absolute;
+    font-family: var(--font-heading);
+    font-size: 2rem;
+    font-weight: 700;
+    pointer-events: none;
+    z-index: 10000;
+    animation: floatUpAndFade 1.2s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+}
+@keyframes floatUpAndFade {
+    0% { transform: translateY(0) scale(0.8); opacity: 0; }
+    15% { transform: translateY(-10px) scale(1.1); opacity: 1; }
+    100% { transform: translateY(-40px) scale(1); opacity: 0; }
+}
+.float-damage { color: #ff8a8a; text-shadow: 0 0 15px rgba(239, 68, 68, 0.8), 0 2px 4px #000; }
+.float-heal { color: #4ade80; text-shadow: 0 0 15px rgba(34, 197, 94, 0.8), 0 2px 4px #000; }
+.float-mana-loss { color: #60a5fa; text-shadow: 0 0 15px rgba(96, 165, 250, 0.8), 0 2px 4px #000; }
