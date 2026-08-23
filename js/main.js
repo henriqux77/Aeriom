@@ -1,6 +1,6 @@
 /* =========================================================
-   AERIOM — MAIN.JS (Controle da Home, Auth UI e Perfil)
-   Atualizado para o Novo Design System (Modais .active)
+   AERIOM — MAIN.JS (Controle da Home, Auth UI e Dashboard)
+   Fase 3: Dashboard Real (Integração com Supabase)
 ========================================================= */
 document.addEventListener("DOMContentLoaded", async () => {
     "use strict";
@@ -13,33 +13,24 @@ document.addEventListener("DOMContentLoaded", async () => {
         return;
     }
 
-    const menuButton = document.getElementById("menuButton");
-    const profileButton = document.getElementById("profileButton");
-    const createAccountButton = document.getElementById("createAccountButton");
+    // Elementos da Interface
     const loginButton = document.getElementById("loginButton");
-
-    const profilePanel = document.getElementById("profilePanel");
-    const closeProfile = document.getElementById("closeProfile");
-    const profileName = document.getElementById("profileName");
-    const profileEmail = document.getElementById("profileEmail");
-    const profileAvatar = document.getElementById("profileAvatar");
-    const logoutButton = document.getElementById("logoutButton");
-    const editProfileButton = document.getElementById("editProfileButton");
+    const createAccountButton = document.getElementById("createAccountButton");
+    const profileButton = document.getElementById("profileButton");
 
     const authModal = document.getElementById("authModal");
     const closeAuth = document.getElementById("closeAuth");
     const loginForm = document.getElementById("loginForm");
     const registerForm = document.getElementById("registerForm");
-    const discordLoginButton = document.getElementById("discordLoginButton");
-    const discordRegisterButton = document.getElementById("discordRegisterButton");
-    const emailLoginButton = document.getElementById("emailLoginButton");
-    const registerButton = document.getElementById("registerButton");
-    const showRegisterButton = document.getElementById("showRegisterButton");
-    const showLoginButton = document.getElementById("showLoginButton");
     const authMessage = document.getElementById("authMessage");
 
-    // Removemos os style.display iniciais. O CSS agora cuida de ocultar modais.
+    const profilePanel = document.getElementById("profilePanel");
+    const closeProfile = document.getElementById("closeProfile");
+    const logoutButton = document.getElementById("logoutButton");
 
+    // =========================================================
+    // 1. FUNÇÕES DE MODAL E UI BÁSICA
+    // =========================================================
     function showAuthMessage(message) {
         if (authMessage) authMessage.textContent = message;
     }
@@ -50,6 +41,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     function closeAuthModal() {
         if (authModal) authModal.classList.remove("active");
+        showAuthMessage("");
     }
 
     function showLoginForm() {
@@ -64,116 +56,72 @@ document.addEventListener("DOMContentLoaded", async () => {
         showAuthMessage("");
     }
 
-    if (loginButton) {
-        loginButton.addEventListener("click", () => {
-            showLoginForm();
-            openAuth();
-        });
-    }
+    // Listeners de Abertura/Fechamento
+    loginButton?.addEventListener("click", () => { showLoginForm(); openAuth(); });
+    createAccountButton?.addEventListener("click", () => { showRegisterForm(); openAuth(); });
+    closeAuth?.addEventListener("click", closeAuthModal);
+    
+    authModal?.addEventListener("click", (event) => {
+        if (event.target === authModal) closeAuthModal();
+    });
 
-    if (createAccountButton) {
-        createAccountButton.addEventListener("click", () => {
-            showRegisterForm();
-            openAuth();
-        });
-    }
+    document.getElementById("showRegisterButton")?.addEventListener("click", showRegisterForm);
+    document.getElementById("showLoginButton")?.addEventListener("click", showLoginForm);
 
-    if (closeAuth) {
-        closeAuth.addEventListener("click", closeAuthModal);
-    }
+    // =========================================================
+    // 2. AUTENTICAÇÃO (LOGIN E CADASTRO)
+    // =========================================================
+    
+    // Discord OAuth
+    document.getElementById("discordLoginButton")?.addEventListener("click", async () => {
+        showAuthMessage("Conectando ao Discord...");
+        const { error } = await supabaseClient.auth.signInWithOAuth({ provider: "discord", options: { redirectTo: AERION_URL } });
+        if (error) showAuthMessage("Não foi possível entrar com o Discord.");
+    });
 
-    if (authModal) {
-        authModal.addEventListener("click", (event) => {
-            // Se clicar no fundo escuro, fecha o modal
-            if (event.target === authModal) closeAuthModal();
-        });
-    }
+    document.getElementById("discordRegisterButton")?.addEventListener("click", async () => {
+        showAuthMessage("Conectando ao Discord...");
+        const { error } = await supabaseClient.auth.signInWithOAuth({ provider: "discord", options: { redirectTo: AERION_URL } });
+        if (error) showAuthMessage("Não foi possível criar a conta com o Discord.");
+    });
 
-    if (showRegisterButton) {
-        showRegisterButton.addEventListener("click", showRegisterForm);
-    }
+    // Email/Senha
+    document.getElementById("emailLoginButton")?.addEventListener("click", async () => {
+        const email = document.getElementById("loginEmail")?.value.trim();
+        const password = document.getElementById("loginPassword")?.value;
 
-    if (showLoginButton) {
-        showLoginButton.addEventListener("click", showLoginForm);
-    }
+        if (!email || !password) return showAuthMessage("Preencha o e-mail e a senha.");
+        showAuthMessage("Entrando...");
+        
+        const { error } = await supabaseClient.auth.signInWithPassword({ email, password });
+        if (error) return showAuthMessage(error.message || "E-mail ou senha incorretos.");
+        
+        closeAuthModal();
+    });
 
-    // DISCORD LOGIN/REGISTER
-    if (discordLoginButton) {
-        discordLoginButton.addEventListener("click", async () => {
-            showAuthMessage("Conectando ao Discord...");
-            try {
-                const { error } = await supabaseClient.auth.signInWithOAuth({ provider: "discord", options: { redirectTo: AERION_URL } });
-                if (error) showAuthMessage("Não foi possível entrar com o Discord.");
-            } catch (error) {
-                showAuthMessage("Ocorreu um erro ao conectar ao Discord.");
-            }
-        });
-    }
+    document.getElementById("registerButton")?.addEventListener("click", async () => {
+        const email = document.getElementById("registerEmail")?.value.trim();
+        const password = document.getElementById("registerPassword")?.value;
+        const confirmPassword = document.getElementById("registerPasswordConfirm")?.value;
 
-    if (discordRegisterButton) {
-        discordRegisterButton.addEventListener("click", async () => {
-            showAuthMessage("Conectando ao Discord...");
-            try {
-                const { error } = await supabaseClient.auth.signInWithOAuth({ provider: "discord", options: { redirectTo: AERION_URL } });
-                if (error) showAuthMessage("Não foi possível criar a conta com o Discord.");
-            } catch (error) {
-                showAuthMessage("Ocorreu um erro ao conectar ao Discord.");
-            }
-        });
-    }
+        if (!email || !password || !confirmPassword) return showAuthMessage("Preencha todos os campos.");
+        if (password !== confirmPassword) return showAuthMessage("As senhas não são iguais.");
+        if (password.length < 6) return showAuthMessage("A senha precisa ter pelo menos 6 caracteres.");
 
-    // EMAIL LOGIN
-    if (emailLoginButton) {
-        emailLoginButton.addEventListener("click", async () => {
-            const emailInput = document.getElementById("loginEmail");
-            const passwordInput = document.getElementById("loginPassword");
-            const email = emailInput ? emailInput.value.trim() : "";
-            const password = passwordInput ? passwordInput.value : "";
+        showAuthMessage("Criando sua conta...");
+        const { data, error } = await supabaseClient.auth.signUp({ email, password, options: { emailRedirectTo: AERION_URL } });
+        
+        if (error) return showAuthMessage(error.message);
+        if (data.session) {
+            closeAuthModal();
+        } else {
+            showAuthMessage("Conta criada! Verifique seu e-mail para confirmar.");
+        }
+    });
 
-            if (!email || !password) return showAuthMessage("Preencha o e-mail e a senha.");
-            showAuthMessage("Entrando...");
-            try {
-                const { error } = await supabaseClient.auth.signInWithPassword({ email, password });
-                if (error) return showAuthMessage(error.message || "E-mail ou senha incorretos.");
-                showAuthMessage("Login realizado com sucesso!");
-                closeAuthModal();
-            } catch (error) {
-                showAuthMessage("Ocorreu um erro ao entrar.");
-            }
-        });
-    }
-
-    // EMAIL REGISTER
-    if (registerButton) {
-        registerButton.addEventListener("click", async () => {
-            const emailInput = document.getElementById("registerEmail");
-            const passwordInput = document.getElementById("registerPassword");
-            const confirmPasswordInput = document.getElementById("registerPasswordConfirm");
-            const email = emailInput ? emailInput.value.trim() : "";
-            const password = passwordInput ? passwordInput.value : "";
-            const confirmPassword = confirmPasswordInput ? confirmPasswordInput.value : "";
-
-            if (!email || !password || !confirmPassword) return showAuthMessage("Preencha todos os campos.");
-            if (password !== confirmPassword) return showAuthMessage("As senhas não são iguais.");
-            if (password.length < 6) return showAuthMessage("A senha precisa ter pelo menos 6 caracteres.");
-
-            showAuthMessage("Criando sua conta...");
-            try {
-                const { data, error } = await supabaseClient.auth.signUp({ email, password, options: { emailRedirectTo: AERION_URL } });
-                if (error) return showAuthMessage(error.message);
-                if (data.session) {
-                    showAuthMessage("Conta criada com sucesso!");
-                    closeAuthModal();
-                } else {
-                    showAuthMessage("Conta criada! Verifique seu e-mail para confirmar a conta.");
-                }
-            } catch (error) {
-                showAuthMessage("Ocorreu um erro ao criar sua conta.");
-            }
-        });
-    }
-
-    // CARREGAMENTO DE PERFIL
+    // =========================================================
+    // 3. PERFIL DO USUÁRIO
+    // =========================================================
     async function loadUserProfile(user) {
         if (!user) return null;
         try {
@@ -186,113 +134,131 @@ document.addEventListener("DOMContentLoaded", async () => {
         }
     }
 
-    // ABRIR PERFIL (NOVO MODAL .ACTIVE)
-    if (profileButton) {
-        profileButton.addEventListener("click", async () => {
-            try {
-                const { data: { session }, error } = await supabaseClient.auth.getSession();
-                if (error || !session) {
-                    showLoginForm();
-                    showAuthMessage("Você precisa entrar em uma conta primeiro.");
-                    openAuth();
-                    return;
-                }
-                const profile = await loadUserProfile(session.user);
-                if (!profile) return;
-                
-                if (profileName) profileName.textContent = profile.name;
-                if (profileEmail) profileEmail.textContent = profile.email;
-                if (profileAvatar) {
-                    if (profile.avatar) {
-                        profileAvatar.src = profile.avatar;
-                        profileAvatar.style.display = "block";
-                        profileAvatar.previousElementSibling.style.display = "none"; // Oculta o placeholder
-                    } else {
-                        profileAvatar.removeAttribute("src");
-                        profileAvatar.style.display = "none";
-                        profileAvatar.previousElementSibling.style.display = "grid"; // Mostra o placeholder
-                    }
-                }
-                
-                if (profilePanel) profilePanel.classList.add("active");
-            } catch (error) {
-                console.error("Erro ao abrir perfil:", error);
-            }
-        });
-    }
+    profileButton?.addEventListener("click", async () => {
+        const { data: { session } } = await supabaseClient.auth.getSession();
+        if (!session) {
+            showLoginForm();
+            showAuthMessage("Você precisa entrar em uma conta primeiro.");
+            openAuth();
+            return;
+        }
 
-    if (closeProfile) {
-        closeProfile.addEventListener("click", () => {
-            if (profilePanel) profilePanel.classList.remove("active");
-        });
-    }
-    
-    // Fecha o modal de perfil se clicar fora da caixa
-    if (profilePanel) {
-        profilePanel.addEventListener("click", (event) => {
-            if (event.target === profilePanel) profilePanel.classList.remove("active");
-        });
-    }
-
-    // LOGOUT
-    if (logoutButton) {
-        logoutButton.addEventListener("click", async () => {
-            try {
-                await supabaseClient.auth.signOut();
-                if (profilePanel) profilePanel.classList.remove("active");
-            } catch (error) {
-                console.error("Erro ao sair:", error);
-            }
-        });
-    }
-
-    // ESCUTA DE MUDANÇAS NA SESSÃO
-    supabaseClient.auth.onAuthStateChange(async (event, session) => {
-        updateHomeActions(session);
+        const profile = await loadUserProfile(session.user);
+        if (!profile) return;
+        
+        document.getElementById("profileName").textContent = profile.name;
+        document.getElementById("profileEmail").textContent = profile.email;
+        
+        const avatarImg = document.getElementById("profileAvatar");
+        const fallback = avatarImg.previousElementSibling;
+        
+        if (profile.avatar) {
+            avatarImg.src = profile.avatar;
+            avatarImg.style.display = "block";
+            fallback.style.display = "none";
+        } else {
+            avatarImg.removeAttribute("src");
+            avatarImg.style.display = "none";
+            fallback.style.display = "grid";
+            fallback.textContent = profile.name.charAt(0).toUpperCase();
+        }
+        
+        profilePanel?.classList.add("active");
     });
 
+    closeProfile?.addEventListener("click", () => profilePanel?.classList.remove("active"));
+    profilePanel?.addEventListener("click", (e) => { if (e.target === profilePanel) profilePanel.classList.remove("active"); });
+    logoutButton?.addEventListener("click", async () => {
+        await supabaseClient.auth.signOut();
+        profilePanel?.classList.remove("active");
+    });
+
+    // =========================================================
+    // 4. INTEGRAÇÃO DO DASHBOARD (HOME)
+    // =========================================================
     const loggedOutActions = document.getElementById("loggedOutActions");
     const loggedInActions = document.getElementById("loggedInActions");
-    const createCharacterButton = document.getElementById("createCharacterButton");
-    const campaignButton = document.getElementById("campaignButton");
 
-    // ATUALIZAÇÃO DA HOME (TROCA DE LANDING PARA DASHBOARD)
+    async function loadDashboardData(user) {
+        // 4.1 Saudação Personalizada
+        const profile = await loadUserProfile(user);
+        const welcomeText = document.getElementById("welcomeUserText");
+        if (welcomeText && profile) {
+            welcomeText.textContent = `Saudações, ${profile.name.split(' ')[0]}.`;
+        }
+
+        // 4.2 Localizar o container da "Sessão Recente" via querySelector (2º div dentro do loggedInActions)
+        const recentCard = document.querySelector('#loggedInActions > div:nth-child(2)');
+        if (!recentCard) return;
+
+        try {
+            // Busca a última mesa do usuário
+            const { data: memberships, error } = await supabaseClient
+                .from('campaign_members')
+                .select('campaign_id, role, campaigns(id, name, cover_url)')
+                .eq('user_id', user.id)
+                .order('created_at', { ascending: false })
+                .limit(1);
+
+            if (memberships && memberships.length > 0) {
+                const camp = memberships[0].campaigns;
+                const role = memberships[0].role === 'master' ? 'Mestre da Mesa' : 'Aventureiro';
+                const initial = camp.name.charAt(0).toUpperCase();
+                
+                const bgStyle = camp.cover_url ? `background-image: url('${camp.cover_url}'); background-size: cover; background-position: center; border: none;` : `border: 2px solid var(--theme-primary-soft);`;
+
+                recentCard.innerHTML = `
+                    <div style="width: 64px; height: 64px; border-radius: 50%; background-color: var(--theme-surface-interactive); display: grid; place-items: center; font-size: 1.5rem; font-family: var(--font-heading); color: var(--theme-primary); ${bgStyle}">
+                        ${camp.cover_url ? '' : initial}
+                    </div>
+                    <div style="flex: 1; min-width: 200px;">
+                        <p style="color: var(--text-muted); font-size: 0.75rem; text-transform: uppercase; font-weight: 600; letter-spacing: 1px; margin-bottom: 4px;">Sua Última Aventura</p>
+                        <h3 style="font-size: 1.5rem; margin-bottom: 0.5rem; color: var(--text-primary); font-family: var(--font-heading);">${camp.name}</h3>
+                        <div style="display: flex; gap: 8px;">
+                            <span style="background: var(--theme-surface-elevated); color: var(--text-secondary); border: 1px solid var(--theme-border); display: inline-flex; align-items: center; gap: 8px; font-size: 0.8rem; padding: 4px 10px; border-radius: 20px;">
+                                ${role === 'master' ? '👑' : '⚔️'} ${role}
+                            </span>
+                        </div>
+                    </div>
+                    <button class="btn btn-primary" onclick="localStorage.setItem('aeriom_active_campaign', '${camp.id}'); window.location.href='campanha.html'" style="white-space: nowrap;">Continuar Aventura</button>
+                `;
+            } else {
+                // Estado Vazio: O usuário ainda não tem campanhas
+                recentCard.innerHTML = `
+                    <div style="width: 64px; height: 64px; border-radius: 50%; background: var(--theme-surface-interactive); border: 2px dashed var(--theme-border-strong); display: grid; place-items: center; font-size: 1.5rem; color: var(--text-muted);">🏕️</div>
+                    <div style="flex: 1; min-width: 200px;">
+                        <p style="color: var(--text-muted); font-size: 0.75rem; text-transform: uppercase; font-weight: 600; letter-spacing: 1px; margin-bottom: 4px;">O Início da Jornada</p>
+                        <h3 style="font-size: 1.5rem; margin-bottom: 0.5rem; color: var(--text-primary); font-family: var(--font-heading);">Nenhuma Mesa Ativa</h3>
+                        <p style="color: var(--text-secondary); font-size: 0.9rem;">Você ainda não faz parte de nenhuma campanha.</p>
+                    </div>
+                    <button class="btn btn-primary" onclick="window.location.href='campanhas.html'" style="white-space: nowrap;">Encontrar uma Mesa</button>
+                `;
+            }
+        } catch (err) {
+            console.error("Erro ao carregar dashboard:", err);
+        }
+    }
+
     function updateHomeActions(session) {
         if (!loggedOutActions || !loggedInActions) return;
         if (session) {
             loggedOutActions.style.display = "none";
-            // O Dashboard precisa ser "block" e não "flex" para a grid do CSS funcionar perfeitamente
             loggedInActions.style.display = "block";
+            loadDashboardData(session.user);
         } else {
             loggedOutActions.style.display = "block";
             loggedInActions.style.display = "none";
         }
     }
 
-    // VERIFICAÇÃO INICIAL
+    supabaseClient.auth.onAuthStateChange((event, session) => updateHomeActions(session));
+
+    // Carregamento Inicial
     try {
         const { data: { session } } = await supabaseClient.auth.getSession();
         updateHomeActions(session);
     } catch (error) {
         updateHomeActions(null);
-    }
-
-    // AÇÕES DOS BOTÕES RÁPIDOS DA HOME
-    if (createCharacterButton) {
-        createCharacterButton.addEventListener("click", (e) => {
-            e.preventDefault(); // Evita conflito com o href nativo do <a>
-            localStorage.removeItem("aerion_character_id");
-            localStorage.removeItem("aerion_character_draft");
-            window.location.href = "fichas.html"; // Atualizado para redirecionar para o painel correto de fichas
-        });
-    }
-
-    if (campaignButton) {
-        campaignButton.addEventListener("click", (e) => {
-            e.preventDefault();
-            console.log("⚔ Redirecionando para as Campanhas...");
-            window.location.href = "campanhas.html";
-        });
     }
 
 });
