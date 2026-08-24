@@ -1,6 +1,6 @@
 /* =========================================================
    AERIOM — GERENCIADOR DE FICHAS (js/fichas.js)
-   Fase 2: Diagnóstico Avançado, Limpeza de ID e Anti-XSS
+   Fase 2: Diagnóstico, Limpeza de ID e SELECT Blindado (*)
 ========================================================= */
 document.addEventListener("DOMContentLoaded", async () => {
     "use strict";
@@ -24,7 +24,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     const createFirstCharacterBtn = document.getElementById("createFirstCharacterBtn");
 
     // =========================================================
-    // DIAGNÓSTICO E LOGS SUPABASE (Conforme Especificação)
+    // DIAGNÓSTICO E LOGS SUPABASE
     // =========================================================
     function logSupabaseError(arquivo, funcao, tabela, operacao, error) {
         console.error(`
@@ -47,7 +47,7 @@ Hint: ${error.hint || 'N/A'}
         if (!charactersMessage) return;
         charactersMessage.textContent = msg;
         charactersMessage.className = `msg-box mb-4 ${isError ? 'msg-error' : 'msg-success'} active`;
-        setTimeout(() => { charactersMessage.classList.remove('active'); }, 6000); // Aumentado para o dev ter tempo de ler
+        setTimeout(() => { charactersMessage.classList.remove('active'); }, 6000); 
     }
 
     function showState(state) {
@@ -83,10 +83,11 @@ Hint: ${error.hint || 'N/A'}
             
             currentUser = session.user;
 
-            // Consulta blindada usando a Fonte da Verdade do Schema
+            // BLINDAGEM: Usamos select('*') para que o Supabase envie apenas as colunas que 
+            // realmente existem na tabela, impedindo o Erro 42703 (Bad Request) caso o Schema mude.
             const { data: characters, error: dbError } = await supabase
                 .from('characters')
-                .select('id, name, race, class, level, avatar_url, hp_max, mana_max')
+                .select('*')
                 .eq('user_id', currentUser.id)
                 .order('name', { ascending: true }); 
 
@@ -178,6 +179,7 @@ Hint: ${error.hint || 'N/A'}
             name.style.fontFamily = "var(--font-heading)";
             name.style.fontSize = "1.2rem";
 
+            // Se 'level' for null (porque a coluna ainda não existia e recebeu o alter table), mostramos "1"
             const details = createSafeElement("p", "text-muted", `${char.race || "Sem Raça"} • ${char.class || "Sem Classe"} (Nv.${char.level || 1})`);
             details.style.margin = "0 0 8px 0";
             details.style.fontSize = "0.85rem";
@@ -206,7 +208,7 @@ Hint: ${error.hint || 'N/A'}
             card.appendChild(avatarContainer);
             card.appendChild(infoContainer);
 
-            // Evento de Clique Seguro: Abrir Ficha (Modo Leitura)
+            // Evento de Clique Seguro: Abrir Ficha
             card.addEventListener("click", () => {
                 localStorage.setItem("aeriom_character_id", char.id);
                 window.location.href = "ficha-view.html";
@@ -220,8 +222,6 @@ Hint: ${error.hint || 'N/A'}
     // NAVEGAÇÃO DE CRIAÇÃO (CREATE MODE)
     // =========================================================
     const goToCreator = () => {
-        // PROBLEMA 4 RESOLVIDO: Limpeza de ID Residual
-        // Garante explícitamente a separação entre CREATE MODE e EDIT MODE
         localStorage.removeItem("aeriom_character_id");
         window.location.href = "ficha.html";
     };
