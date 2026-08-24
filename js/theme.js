@@ -1,120 +1,154 @@
 /* =========================================================
-   AERIOM — GERENCIADOR DE TEMAS E ATMOSFERA (js/theme.js)
-   Fase 2: Prevenção de FOUC, Correção de null body e Tokens
+   AERIOM — SISTEMA CENTRAL DE TEMAS (js/theme.js)
+   Fase de Refatoração: Atmosferas de Campanha (VTT)
 ========================================================= */
 (function() {
     "use strict";
 
-    // =========================================================
-    // 1. DICIONÁRIO DE TEMAS DISPONÍVEIS
-    // =========================================================
+    // Dicionário Oficial de Temas da Campanha
     const AeriomThemes = {
         default: {
             name: "Obsidiana (Padrão)",
-            primary: "#d4af37",          // Dourado Envelhecido / Bronze
-            primaryHover: "#f1cf5b",
-            bg: "#09090b",               // Obsidiana
-            surface: "rgba(24, 24, 27, 0.85)", 
-            backgroundImage: ""          
+            backgroundUrl: "none",
+            primary: "#d4af37", // Dourado Envelhecido
+            accent: "#f26b1d",  // Laranja Fogo
+            bg: "#09090b",      // Obsidiana
+            surface: "rgba(24, 24, 27, 0.85)",
+            surfaceRaised: "#1c1c21",
+            surfaceHover: "#27272a",
+            border: "rgba(255, 255, 255, 0.08)",
+            borderStrong: "rgba(255, 255, 255, 0.15)",
+            text: "#f4f4f5",
+            muted: "#a1a1aa",
+            overlay: "rgba(9, 9, 11, 0.75)"
         },
         forest: {
-            name: "Floresta Antiga",
-            primary: "#4ade80",
-            primaryHover: "#86efac",
-            bg: "#051006",
-            surface: "rgba(10, 20, 12, 0.85)",
-            backgroundImage: "url('https://images.unsplash.com/photo-1542273917363-3b1817f69a2d?auto=format&fit=crop&q=80&w=2000')"
+            name: "Floresta Profunda",
+            backgroundUrl: "url('BACKGROUND_URL_AQUI')", // Para ser substituído com URL real
+            primary: "#4ade80", // Verde vibrante
+            accent: "#facc15",  // Amarelo sol
+            bg: "#052e16",      // Verde muito escuro
+            surface: "rgba(6, 78, 59, 0.75)",
+            surfaceRaised: "#065f46",
+            surfaceHover: "#047857",
+            border: "rgba(110, 231, 183, 0.15)",
+            borderStrong: "rgba(110, 231, 183, 0.3)",
+            text: "#ecfdf5",
+            muted: "#a7f3d0",
+            overlay: "rgba(2, 44, 34, 0.8)"
+        },
+        cave: {
+            name: "Caverna Escura",
+            backgroundUrl: "url('BACKGROUND_URL_AQUI')",
+            primary: "#94a3b8", // Prata/Cinza
+            accent: "#38bdf8",  // Azul cristalino
+            bg: "#0f172a",      // Ardósia escuro
+            surface: "rgba(30, 41, 59, 0.85)",
+            surfaceRaised: "#334155",
+            surfaceHover: "#475569",
+            border: "rgba(148, 163, 184, 0.15)",
+            borderStrong: "rgba(148, 163, 184, 0.3)",
+            text: "#f8fafc",
+            muted: "#cbd5e1",
+            overlay: "rgba(15, 23, 42, 0.85)"
+        },
+        volcano: {
+            name: "Vulcão Ativo",
+            backgroundUrl: "url('BACKGROUND_URL_AQUI')",
+            primary: "#fb923c", // Laranja
+            accent: "#ef4444",  // Vermelho incandescente
+            bg: "#450a0a",      // Vermelho super escuro (carvão/brasa)
+            surface: "rgba(127, 29, 29, 0.7)",
+            surfaceRaised: "#991b1b",
+            surfaceHover: "#b91c1c",
+            border: "rgba(252, 165, 165, 0.15)",
+            borderStrong: "rgba(252, 165, 165, 0.3)",
+            text: "#fef2f2",
+            muted: "#fecaca",
+            overlay: "rgba(69, 10, 10, 0.8)"
+        },
+        castle: {
+            name: "Castelo Antigo",
+            backgroundUrl: "url('BACKGROUND_URL_AQUI')",
+            primary: "#fcd34d", // Dourado claro
+            accent: "#9f1239",  // Vinho profundo
+            bg: "#1c1917",      // Pedra escura
+            surface: "rgba(41, 37, 36, 0.85)",
+            surfaceRaised: "#44403c",
+            surfaceHover: "#57534e",
+            border: "rgba(214, 211, 209, 0.1)",
+            borderStrong: "rgba(214, 211, 209, 0.25)",
+            text: "#fafaf9",
+            muted: "#d6d3d1",
+            overlay: "rgba(28, 25, 23, 0.85)"
+        },
+        coast: {
+            name: "Costa Sombria",
+            backgroundUrl: "url('BACKGROUND_URL_AQUI')",
+            primary: "#67e8f9", // Ciano fantasmagórico
+            accent: "#fde047",  // Areia
+            bg: "#083344",      // Petróleo escuro
+            surface: "rgba(22, 78, 99, 0.75)",
+            surfaceRaised: "#155e75",
+            surfaceHover: "#0e7490",
+            border: "rgba(165, 243, 252, 0.15)",
+            borderStrong: "rgba(165, 243, 252, 0.3)",
+            text: "#ecfeff",
+            muted: "#cffafe",
+            overlay: "rgba(8, 51, 68, 0.75)"
+        },
+        ruins: {
+            name: "Ruínas Esquecidas",
+            backgroundUrl: "url('BACKGROUND_URL_AQUI')",
+            primary: "#a3e635", // Verde musgo claro
+            accent: "#d97706",  // Bronze oxidado
+            bg: "#171717",      // Cinza neutro escuro
+            surface: "rgba(38, 38, 38, 0.85)",
+            surfaceRaised: "#404040",
+            surfaceHover: "#525252",
+            border: "rgba(163, 163, 163, 0.15)",
+            borderStrong: "rgba(163, 163, 163, 0.3)",
+            text: "#f5f5f5",
+            muted: "#d4d4d4",
+            overlay: "rgba(23, 23, 23, 0.85)"
         }
     };
 
-    // =========================================================
-    // 2. FUNÇÕES UTILITÁRIAS
-    // =========================================================
-    function hexToRgbString(hex) {
-        let shorthandRegex = /^#?([a-f\d])([a-f\d])([a-f\d])$/i;
-        hex = hex.replace(shorthandRegex, function(m, r, g, b) {
-            return r + r + g + g + b + b;
-        });
-
-        let result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
-        return result ? 
-            `${parseInt(result[1], 16)}, ${parseInt(result[2], 16)}, ${parseInt(result[3], 16)}` : 
-            "212, 175, 55"; 
-    }
-
-    // =========================================================
-    // 3. LÓGICA DO GERENCIADOR DE TEMAS
-    // =========================================================
     const ThemeManager = {
+        themes: AeriomThemes,
         
-        getAvailableThemes: function() {
-            return Object.keys(AeriomThemes).map(key => ({
+        applyTheme: function(themeId, customBackgroundUrl = null) {
+            const root = document.documentElement;
+            // Fallback silencioso para o tema padrão se o ID não existir
+            const theme = this.themes[themeId] || this.themes['default'];
+
+            // Atualiza as variáveis CSS que alimentam o UI (Layer 2)
+            root.style.setProperty('--theme-primary', theme.primary);
+            root.style.setProperty('--theme-accent', theme.accent);
+            root.style.setProperty('--theme-bg', theme.bg);
+            root.style.setProperty('--theme-surface', theme.surface);
+            root.style.setProperty('--theme-surface-raised', theme.surfaceRaised);
+            root.style.setProperty('--theme-surface-hover', theme.surfaceHover);
+            root.style.setProperty('--theme-border', theme.border);
+            root.style.setProperty('--theme-border-strong', theme.borderStrong);
+            root.style.setProperty('--theme-text', theme.text);
+            root.style.setProperty('--theme-muted', theme.muted);
+            
+            // Atualiza o background e o overlay (Layers 0 e 1)
+            const finalBg = customBackgroundUrl ? `url('${customBackgroundUrl}')` : theme.backgroundUrl;
+            root.style.setProperty('--theme-background-image', finalBg);
+            root.style.setProperty('--theme-overlay', theme.overlay);
+        },
+
+        // Utilidade para preencher o Select do Mestre na Interface (campanha.html)
+        getThemeOptions: function() {
+            return Object.keys(this.themes).map(key => ({
                 id: key,
-                name: AeriomThemes[key].name
+                name: this.themes[key].name
             }));
-        },
-
-        applyTheme: function(themeId) {
-            const theme = AeriomThemes[themeId] || AeriomThemes.default;
-            const root = document.documentElement; // Aplicação síncrona no :root para evitar FOUC
-
-            // Injeção utilizando exclusivamente o novo sistema de tokens (--color-*)
-            root.style.setProperty('--color-primary', theme.primary);
-            root.style.setProperty('--color-primary-hover', theme.primaryHover);
-            
-            const rgbString = hexToRgbString(theme.primary);
-            root.style.setProperty('--color-primary-muted', `rgba(${rgbString}, 0.15)`);
-            root.style.setProperty('--color-border-focus', `rgba(${rgbString}, 0.5)`);
-
-            root.style.setProperty('--color-bg', theme.bg);
-            root.style.setProperty('--color-surface', theme.surface);
-
-            localStorage.setItem('aeriom_active_theme', themeId);
-
-            // A manipulação da imagem de fundo exige o document.body
-            const applyBackground = () => {
-                if (theme.backgroundImage) {
-                    document.body.style.setProperty('--campaign-background-image', theme.backgroundImage);
-                } else {
-                    document.body.style.setProperty('--campaign-background-image', 'none');
-                }
-                
-                // Dispara o evento para módulos dependentes (ex: Motor de dados, se houver)
-                document.dispatchEvent(new CustomEvent('aeriomThemeChanged', { detail: { themeId: themeId, theme: theme } }));
-            };
-
-            // Proteção crírica: se o body já existe aplica direto, senão aguarda o DOMContentLoaded
-            if (document.body) {
-                applyBackground();
-            } else {
-                document.addEventListener('DOMContentLoaded', applyBackground);
-            }
-        },
-
-        setCustomAtmosphere: function(imageUrl) {
-            const apply = () => {
-                if (imageUrl) {
-                    document.body.style.setProperty('--campaign-background-image', `url('${imageUrl}')`);
-                } else {
-                    document.body.style.setProperty('--campaign-background-image', 'none');
-                }
-            };
-            
-            if (document.body) apply();
-            else document.addEventListener('DOMContentLoaded', apply);
-        },
-
-        init: function() {
-            const savedTheme = localStorage.getItem('aeriom_active_theme') || 'default';
-            this.applyTheme(savedTheme);
         }
     };
 
     window.AeriomThemeManager = ThemeManager;
-    
-    // Executa a inicialização imediatamente (no <head>). 
-    // Como implementámos a proteção, as variáveis no :root são aplicadas e previnem FOUC, 
-    // mas o body.style só é alterado quando o body existir.
-    ThemeManager.init();
 
 })();
