@@ -1,13 +1,13 @@
 /* =========================================================
    AERIOM — GERENCIADOR DE FICHAS (js/fichas.js)
-   Fase 2: Remoção de Estilos Inline, Anti-XSS e Refatoração
+   Fase 2: Diagnóstico Avançado, Limpeza de ID e Anti-XSS
 ========================================================= */
 document.addEventListener("DOMContentLoaded", async () => {
     "use strict";
 
     const supabase = window.supabaseClient;
     if (!supabase) {
-        console.error("❌ Supabase não inicializado.");
+        console.error("[AERIOM] ❌ Supabase não inicializado.");
         return;
     }
 
@@ -24,13 +24,30 @@ document.addEventListener("DOMContentLoaded", async () => {
     const createFirstCharacterBtn = document.getElementById("createFirstCharacterBtn");
 
     // =========================================================
+    // DIAGNÓSTICO E LOGS SUPABASE (Conforme Especificação)
+    // =========================================================
+    function logSupabaseError(arquivo, funcao, tabela, operacao, error) {
+        console.error(`
+[AERIOM][SUPABASE]
+Arquivo: ${arquivo}
+Função: ${funcao}
+Tabela: ${tabela}
+Operação: ${operacao}
+Código: ${error.code || 'N/A'}
+Mensagem: ${error.message || 'N/A'}
+Detalhes: ${error.details || 'N/A'}
+Hint: ${error.hint || 'N/A'}
+        `);
+    }
+
+    // =========================================================
     // UTILITÁRIOS E FEEDBACK
     // =========================================================
     function showMessage(msg, isError = false) {
         if (!charactersMessage) return;
         charactersMessage.textContent = msg;
         charactersMessage.className = `msg-box mb-4 ${isError ? 'msg-error' : 'msg-success'} active`;
-        setTimeout(() => { charactersMessage.classList.remove('active'); }, 4000);
+        setTimeout(() => { charactersMessage.classList.remove('active'); }, 6000); // Aumentado para o dev ter tempo de ler
     }
 
     function showState(state) {
@@ -66,13 +83,17 @@ document.addEventListener("DOMContentLoaded", async () => {
             
             currentUser = session.user;
 
+            // Consulta blindada usando a Fonte da Verdade do Schema
             const { data: characters, error: dbError } = await supabase
                 .from('characters')
                 .select('id, name, race, class, level, avatar_url, hp_max, mana_max')
                 .eq('user_id', currentUser.id)
-                .order('name', { ascending: true }); // Ordenar pelo nome é seguro e sempre existe.
+                .order('name', { ascending: true }); 
 
-            if (dbError) throw dbError;
+            if (dbError) {
+                logSupabaseError('js/fichas.js', 'loadCharacters', 'characters', 'SELECT', dbError);
+                throw dbError;
+            }
 
             if (!characters || characters.length === 0) {
                 showState('empty');
@@ -83,9 +104,8 @@ document.addEventListener("DOMContentLoaded", async () => {
             showState('list');
 
         } catch (error) {
-            console.error("Erro ao consultar fichas:", error);
             showState('empty'); 
-            showMessage("Erro de comunicação com os servidores. Tente novamente.", true);
+            showMessage(`Falha ao carregar fichas: ${error.message || 'Erro de comunicação'}. Verifique o console.`, true);
         }
     }
 
@@ -97,7 +117,6 @@ document.addEventListener("DOMContentLoaded", async () => {
         charactersList.innerHTML = '';
 
         characters.forEach(char => {
-            // Container Base Interativo
             const card = document.createElement("div");
             card.className = "aeriom-card-interactive";
             card.style.display = "flex";
@@ -107,6 +126,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
             // Avatar Container
             const avatarContainer = document.createElement("div");
+            avatarContainer.className = "char-avatar-container";
             avatarContainer.style.width = "72px";
             avatarContainer.style.height = "72px";
             avatarContainer.style.borderRadius = "50%";
@@ -117,6 +137,8 @@ document.addEventListener("DOMContentLoaded", async () => {
             avatarContainer.style.placeItems = "center";
             avatarContainer.style.overflow = "hidden";
 
+            const initial = char.name ? char.name.charAt(0).toUpperCase() : '?';
+
             if (char.avatar_url && char.avatar_url.trim() !== '') {
                 const img = document.createElement("img");
                 img.src = char.avatar_url;
@@ -124,10 +146,10 @@ document.addEventListener("DOMContentLoaded", async () => {
                 img.style.width = "100%";
                 img.style.height = "100%";
                 img.style.objectFit = "cover";
-                // Tratamento de erro nativo caso a URL seja inválida/quebrada
+                
                 img.onerror = () => {
                     avatarContainer.innerHTML = '';
-                    const fallback = createSafeElement("span", "", char.name ? char.name.charAt(0).toUpperCase() : "?");
+                    const fallback = createSafeElement("span", "", initial);
                     fallback.style.fontFamily = "var(--font-heading)";
                     fallback.style.fontSize = "1.8rem";
                     fallback.style.color = "var(--color-primary)";
@@ -135,17 +157,17 @@ document.addEventListener("DOMContentLoaded", async () => {
                 };
                 avatarContainer.appendChild(img);
             } else {
-                const initial = createSafeElement("span", "", char.name ? char.name.charAt(0).toUpperCase() : "?");
-                initial.style.fontFamily = "var(--font-heading)";
-                initial.style.fontSize = "1.8rem";
-                initial.style.color = "var(--color-primary)";
-                avatarContainer.appendChild(initial);
+                const fallback = createSafeElement("span", "", initial);
+                fallback.style.fontFamily = "var(--font-heading)";
+                fallback.style.fontSize = "1.8rem";
+                fallback.style.color = "var(--color-primary)";
+                avatarContainer.appendChild(fallback);
             }
 
             // Info Container
             const infoContainer = document.createElement("div");
             infoContainer.style.flex = "1";
-            infoContainer.style.minWidth = "0"; // Previne overflow
+            infoContainer.style.minWidth = "0"; 
 
             const name = createSafeElement("h3", "", char.name || "Herói Sem Nome");
             name.style.margin = "0 0 4px 0";
@@ -160,7 +182,6 @@ document.addEventListener("DOMContentLoaded", async () => {
             details.style.margin = "0 0 8px 0";
             details.style.fontSize = "0.85rem";
 
-            // Status Rápidos (PV e PM)
             const statsDiv = document.createElement("div");
             statsDiv.style.display = "flex";
             statsDiv.style.gap = "var(--space-md)";
@@ -182,11 +203,10 @@ document.addEventListener("DOMContentLoaded", async () => {
             infoContainer.appendChild(details);
             infoContainer.appendChild(statsDiv);
 
-            // Montagem
             card.appendChild(avatarContainer);
             card.appendChild(infoContainer);
 
-            // Evento de Clique Seguro (em vez de onclick="" no HTML)
+            // Evento de Clique Seguro: Abrir Ficha (Modo Leitura)
             card.addEventListener("click", () => {
                 localStorage.setItem("aeriom_character_id", char.id);
                 window.location.href = "ficha-view.html";
@@ -197,10 +217,11 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
 
     // =========================================================
-    // NAVEGAÇÃO DE CRIAÇÃO
+    // NAVEGAÇÃO DE CRIAÇÃO (CREATE MODE)
     // =========================================================
     const goToCreator = () => {
-        // Limpa qualquer ID residual para forçar o modo "Criação de Ficha Nova"
+        // PROBLEMA 4 RESOLVIDO: Limpeza de ID Residual
+        // Garante explícitamente a separação entre CREATE MODE e EDIT MODE
         localStorage.removeItem("aeriom_character_id");
         window.location.href = "ficha.html";
     };
