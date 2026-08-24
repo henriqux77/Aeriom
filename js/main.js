@@ -1,6 +1,6 @@
 /* =========================================================
    AERIOM — MAIN.JS (Controle da Home, Auth UI e Dashboard)
-   Correção de Integração: Remoção do sort por created_at inexistente na tabela campaign_members
+   Fase 2: Correção de Integração, Erro 42703 e Anti-XSS
 ========================================================= */
 document.addEventListener("DOMContentLoaded", async () => {
     "use strict";
@@ -76,6 +76,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     createAccountButton?.addEventListener("click", () => { showRegisterForm(); openAuth(); });
     closeAuth?.addEventListener("click", closeAuthModal);
     
+    // Fechar ao clicar fora do modal
     authModal?.addEventListener("click", (event) => {
         if (event.target === authModal) closeAuthModal();
     });
@@ -199,7 +200,8 @@ document.addEventListener("DOMContentLoaded", async () => {
         if (!recentCampaignContainer) return;
 
         try {
-            // Busca a última mesa do usuário (Removido o .order('created_at') para evitar o erro 42703)
+            // CRÍTICO: Removido o `.order('created_at', { ascending: false })`
+            // Isso previne o erro 42703 que travava o carregamento do Dashboard.
             const { data: memberships, error } = await supabaseClient
                 .from('campaign_members')
                 .select('role, campaigns(id, name, cover_url)')
