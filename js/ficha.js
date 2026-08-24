@@ -1,13 +1,12 @@
 /* =========================================================
    AERIOM — MOTOR DE CRIAÇÃO DE FICHAS V4.0 (js/ficha.js)
-   Fase 3: Lógica, Wizard, Alocação Interativa e Supabase
-   Correção de Integração: Proteção de Schema e Anti-XSS
+   Fase 3: Diagnóstico, Validação em Tempo Real e DB Seguro
 ========================================================= */
 document.addEventListener("DOMContentLoaded", async () => {
     "use strict";
 
     const supabase = window.supabaseClient;
-    if (!supabase) { console.error("❌ Supabase não inicializado."); return; }
+    if (!supabase) { console.error("[AERIOM] ❌ Supabase não inicializado."); return; }
 
     let currentCharacterId = localStorage.getItem("aeriom_character_id");
     let currentUser = null;
@@ -17,7 +16,9 @@ document.addEventListener("DOMContentLoaded", async () => {
     const fichaMessage = document.getElementById("fichaMessage");
     const saveBtn = document.getElementById("saveCharacterBtn");
     
-    // Utilitário Seguro
+    // =========================================================
+    // UTILITÁRIOS E DIAGNÓSTICO
+    // =========================================================
     function createSafeElement(tag, className, text = null) {
         const el = document.createElement(tag);
         if (className) el.className = className;
@@ -31,6 +32,20 @@ document.addEventListener("DOMContentLoaded", async () => {
         fichaMessage.className = `msg-box mb-4 ${isError ? 'msg-error' : 'msg-success'} active`;
         window.scrollTo({ top: 0, behavior: 'smooth' });
         if (!isError) setTimeout(() => { fichaMessage.classList.remove('active'); }, 4000);
+    }
+
+    function logSupabaseError(arquivo, funcao, tabela, operacao, error) {
+        console.error(`
+[AERIOM][SUPABASE]
+Arquivo: ${arquivo}
+Função: ${funcao}
+Tabela: ${tabela}
+Operação: ${operacao}
+Código: ${error.code || 'N/A'}
+Mensagem: ${error.message || 'N/A'}
+Detalhes: ${error.details || 'N/A'}
+Hint: ${error.hint || 'N/A'}
+        `);
     }
 
     // =========================================================
@@ -60,12 +75,10 @@ document.addEventListener("DOMContentLoaded", async () => {
         
         if (currentStep === totalSteps) {
             if (btnNext) btnNext.style.display = 'none';
-            generateChecklist(); 
         } else {
             if (btnNext) btnNext.style.display = 'block';
         }
         
-        // Mobile scroll para a aba ativa
         const activeStep = document.querySelector('.progress-step.active');
         if(activeStep) activeStep.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
     }
@@ -102,6 +115,8 @@ document.addEventListener("DOMContentLoaded", async () => {
                 if (hiddenInput) hiddenInput.value = value;
                 
                 if (onSelectCallback) onSelectCallback(card);
+                
+                generateChecklist(); // Atualiza validação em tempo real
             });
         });
     }
@@ -145,7 +160,6 @@ document.addEventListener("DOMContentLoaded", async () => {
             die.setAttribute("data-type", `D${val}`);
             die.setAttribute("data-val", val);
             
-            // Drag & Drop
             die.addEventListener("dragstart", (e) => {
                 die.classList.add("dragging");
                 e.dataTransfer.setData("text/plain", val);
@@ -156,7 +170,6 @@ document.addEventListener("DOMContentLoaded", async () => {
                 die.classList.remove("dragging");
             });
 
-            // Touch / Click
             die.addEventListener("click", () => {
                 document.querySelectorAll(".die-token").forEach(d => d.classList.remove("selected-mobile"));
                 die.classList.add("selected-mobile");
@@ -206,6 +219,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     function allocateDie(attrName, value) {
         allocatedAttrs[attrName] = value;
         updateAttrUI();
+        generateChecklist(); // Validação em tempo real
     }
 
     function clearMobileHighlights() {
@@ -224,7 +238,6 @@ document.addEventListener("DOMContentLoaded", async () => {
             
             slot.innerHTML = '';
             
-            // Normaliza o ID escondido (ex: attrPresenca)
             const normalizedKey = attrName.replace(/ç/g,'c').replace(/ã/g,'a');
             const hiddenInput = document.getElementById(`attr${normalizedKey}`);
             
@@ -315,7 +328,7 @@ document.addEventListener("DOMContentLoaded", async () => {
             if (placeholder) placeholder.style.display = 'none';
             
             const card = createSafeElement("div", "dynamic-card");
-            card.innerHTML = templateFn(); // HTML estático do template é seguro (sem dados de BD direto aqui)
+            card.innerHTML = templateFn(); 
             
             card.querySelector(".btn-remove-card").addEventListener("click", () => {
                 card.remove();
@@ -352,23 +365,31 @@ document.addEventListener("DOMContentLoaded", async () => {
     `);
 
     // =========================================================
-    // 6. CHECKLIST DE REVISÃO E COMPILADORES
+    // 6. VALIDAÇÃO EM TEMPO REAL E COMPILADORES
     // =========================================================
+    
+    // Gatilhos de Input para validação contínua
+    const requiredInputs = ["charName", "charHpMax", "charDefense", "bgHistory"];
+    requiredInputs.forEach(id => {
+        document.getElementById(id)?.addEventListener('input', generateChecklist);
+    });
+
     function generateChecklist() {
         const checklist = document.getElementById("reviewChecklist");
-        if (!checklist) return;
-        checklist.innerHTML = '';
+        if (checklist) checklist.innerHTML = '';
         
         let allValid = true;
 
         const checkItem = (name, isValid, stepLink) => {
-            const item = createSafeElement("div", "review-item");
-            item.innerHTML = `
-                <div class="review-icon ${isValid ? 'ok' : 'error'}">${isValid ? '✓' : '✖'}</div>
-                <div class="review-details"><h4>${name}</h4><p>${isValid ? 'Preenchido' : 'Pendente'}</p></div>
-            `;
-            item.addEventListener('click', () => { currentStep = stepLink; updateWizardUI(); });
-            checklist.appendChild(item);
+            if (checklist) {
+                const item = createSafeElement("div", "review-item");
+                item.innerHTML = `
+                    <div class="review-icon ${isValid ? 'ok' : 'error'}">${isValid ? '✓' : '✖'}</div>
+                    <div class="review-details"><h4>${name}</h4><p>${isValid ? 'Preenchido' : 'Pendente'}</p></div>
+                `;
+                item.addEventListener('click', () => { currentStep = stepLink; updateWizardUI(); });
+                checklist.appendChild(item);
+            }
             if (!isValid) allValid = false;
         };
 
@@ -389,17 +410,22 @@ document.addEventListener("DOMContentLoaded", async () => {
         checkItem("Pontos de Vida & Defesa", (hpMax !== '' && def !== ''), 8);
         checkItem("História Elaborada", bg !== '', 11);
 
+        // Atualização em tempo real do botão de Salvar
         if (saveBtn) {
             if (allValid) {
                 saveBtn.disabled = false;
-                saveBtn.textContent = "Forjar Personagem (Concluir)";
+                saveBtn.textContent = currentCharacterId ? "Atualizar Herói" : "Forjar Personagem (Concluir)";
                 saveBtn.classList.add("btn-primary");
                 saveBtn.classList.remove("btn-secondary");
             } else {
                 saveBtn.disabled = true;
                 saveBtn.textContent = "Forjar Personagem (Incompleto)";
+                saveBtn.classList.add("btn-secondary");
+                saveBtn.classList.remove("btn-primary");
             }
         }
+
+        return allValid;
     }
 
     function compileTechniques() {
@@ -452,12 +478,16 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
 
     // =========================================================
-    // 7. INIT (MODO EDIÇÃO) E SALVAMENTO
+    // 7. INIT (MODO EDIÇÃO) E SALVAMENTO SEGURO
     // =========================================================
     async function loadCharacterData(id) {
         try {
             const { data: char, error } = await supabase.from('characters').select('*').eq('id', id).single();
-            if (error) throw error;
+            
+            if (error) {
+                logSupabaseError('js/ficha.js', 'loadCharacterData', 'characters', 'SELECT', error);
+                throw error;
+            }
             if (!char) return;
 
             if(document.getElementById("charName")) document.getElementById("charName").value = char.name || "";
@@ -467,26 +497,49 @@ document.addEventListener("DOMContentLoaded", async () => {
             if(char.race) document.querySelector(`.choice-card[data-race="${char.race}"]`)?.click();
             if(char.class) document.querySelector(`.choice-card[data-class="${char.class}"]`)?.click();
 
-            const attrs = char.attributes || char;
             allocatedAttrs = {
-                Presença: attrs.presenca || null,
-                Precisão: attrs.precisao || null,
-                Intelecto: attrs.intelecto || null,
-                Controle: attrs.controle || null,
-                Percepção: attrs.percepcao || null,
-                Vigor: attrs.vigor || null,
-                Agilidade: attrs.agilidade || null,
-                Força: attrs.forca || null
+                Presença: char.presenca || null,
+                Precisão: char.precisao || null,
+                Intelecto: char.intelecto || null,
+                Controle: char.controle || null,
+                Percepção: char.percepcao || null,
+                Vigor: char.vigor || null,
+                Agilidade: char.agilidade || null,
+                Força: char.forca || null
             };
             updateAttrUI();
 
             if(document.getElementById("charHpMax")) document.getElementById("charHpMax").value = char.hp_max || 0;
             if(document.getElementById("charManaMax")) document.getElementById("charManaMax").value = char.mana_max || 0;
-            if(document.getElementById("bgHistory")) document.getElementById("bgHistory").value = char.history || "";
+
+            // Extrair status secundários da história para modo de edição
+            let historyText = char.history || "";
+            const statsMarker = "=== ESTATÍSTICAS SECUNDÁRIAS ===";
+            const statsIndex = historyText.indexOf(statsMarker);
+            
+            if (statsIndex !== -1) {
+                const statsBlock = historyText.substring(statsIndex);
+                historyText = historyText.substring(0, statsIndex).trim(); 
+                
+                const defMatch = statsBlock.match(/Defesa:\s*(\d+)/);
+                if (defMatch && document.getElementById("charDefense")) document.getElementById("charDefense").value = defMatch[1];
+                
+                const powerMatch = statsBlock.match(/Elemento:\s*([^\n]+)/);
+                if (powerMatch && document.getElementById("charPower")) document.getElementById("charPower").value = powerMatch[1].trim();
+
+                const initMatch = statsBlock.match(/Iniciativa:\s*(\d+)/);
+                if (initMatch && document.getElementById("charInitiative")) document.getElementById("charInitiative").value = initMatch[1];
+                
+                const speedMatch = statsBlock.match(/Deslocamento:\s*(\d+)/);
+                if (speedMatch && document.getElementById("charSpeed")) document.getElementById("charSpeed").value = speedMatch[1];
+            }
+
+            if(document.getElementById("bgHistory")) document.getElementById("bgHistory").value = historyText;
+
+            generateChecklist(); // Força validação ao carregar edição
 
         } catch (err) {
-            console.error("Erro ao carregar ficha:", err);
-            showMessage("Erro ao acessar os registos antigos.", true);
+            showMessage("Erro ao acessar os registos antigos. Consulte o console.", true);
         }
     }
 
@@ -501,11 +554,20 @@ document.addEventListener("DOMContentLoaded", async () => {
 
         if (currentCharacterId) {
             await loadCharacterData(currentCharacterId);
+        } else {
+            generateChecklist(); // Garante que o botão inicie bloqueado em criação nova
         }
     }
 
     characterForm?.addEventListener("submit", async (e) => {
         e.preventDefault();
+        
+        // Bloqueio de submissão caso checklist não esteja 100%
+        if (!generateChecklist()) {
+            showMessage("Preencha todos os requisitos antes de forjar o seu personagem.", true);
+            return;
+        }
+
         if (saveBtn) {
             saveBtn.disabled = true;
             saveBtn.textContent = "A Forjar...";
@@ -514,10 +576,6 @@ document.addEventListener("DOMContentLoaded", async () => {
         const compiledTechs = compileTechniques();
         const compiledEquip = compileEquipment();
         
-        // CRÍTICO (Proteção de Schema e Bug 42703): 
-        // Em vez de inserir 'secondary_stats' numa coluna que pode não existir, 
-        // concatenamos as informações vitais da V4 no final do background (history) 
-        // para preservar a leitura visual na plataforma inteira, sem explodir a Base de Dados.
         const baseHistory = document.getElementById("bgHistory")?.value.trim() || "";
         const elPower = document.getElementById("charPower")?.value || "Nenhum";
         const elDef = document.getElementById("charDefense")?.value || "0";
@@ -538,7 +596,6 @@ document.addEventListener("DOMContentLoaded", async () => {
             hp_max: parseInt(document.getElementById("charHpMax")?.value) || 0,
             mana_max: parseInt(document.getElementById("charManaMax")?.value) || 0,
             
-            // Colunas rasas que respeitam o schema original:
             forca: allocatedAttrs["Força"],
             agilidade: allocatedAttrs["Agilidade"],
             vigor: allocatedAttrs["Vigor"],
@@ -555,12 +612,20 @@ document.addEventListener("DOMContentLoaded", async () => {
 
         try {
             if (currentCharacterId) {
+                // UPDATE seguro
                 const { error } = await supabase.from('characters').update(characterData).eq('id', currentCharacterId);
-                if (error) throw error;
+                if (error) {
+                    logSupabaseError('js/ficha.js', 'Submit', 'characters', 'UPDATE', error);
+                    throw error;
+                }
                 showMessage("Lenda atualizada!");
             } else {
+                // INSERT seguro
                 const { data, error } = await supabase.from('characters').insert([characterData]).select().single();
-                if (error) throw error;
+                if (error) {
+                    logSupabaseError('js/ficha.js', 'Submit', 'characters', 'INSERT', error);
+                    throw error;
+                }
                 currentCharacterId = data.id;
                 localStorage.setItem("aeriom_character_id", currentCharacterId);
                 showMessage("Novo herói materializado!");
@@ -568,9 +633,11 @@ document.addEventListener("DOMContentLoaded", async () => {
 
             setTimeout(() => { window.location.href = "ficha-view.html"; }, 1500);
         } catch (err) {
-            console.error("Erro ao salvar:", err);
-            showMessage("Uma falha impediu o registo. Verifique a consola.", true);
-            if (saveBtn) saveBtn.disabled = false;
+            showMessage(`Falha ao registrar ficha: ${err.message || 'Erro do banco'}.`, true);
+            if (saveBtn) {
+                saveBtn.disabled = false;
+                saveBtn.textContent = currentCharacterId ? "Atualizar Herói" : "Forjar Personagem (Concluir)";
+            }
         }
     });
 
