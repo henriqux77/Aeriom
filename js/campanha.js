@@ -1,7 +1,6 @@
 /* =========================================================
    AERIOM — NÚCLEO DA MESA DIGITAL (js/campanha.js)
-   Fase 5: Motor VTT Desacoplado, Seguro e Imersivo
-   Correção de Integração: Variáveis CSS e Display States
+   Fase de Refatoração: Temas Realtime e Motor de Dados
 ========================================================= */
 document.addEventListener("DOMContentLoaded", async () => {
     "use strict";
@@ -24,7 +23,10 @@ document.addEventListener("DOMContentLoaded", async () => {
     const loadingEl = document.getElementById("loadingDash");
     const contentEl = document.getElementById("dashContent");
     const roleLabel = document.getElementById("campaignRoleLabel");
-    const bannerName = document.getElementById("bannerName");
+    
+    const bannerNameSidebar = document.getElementById("bannerName");
+    const bannerNameMobile = document.getElementById("bannerNameMobile");
+    const bannerTitleDisplay = document.getElementById("bannerTitleDisplay");
     const masterPanel = document.getElementById("masterPanel");
 
     // Elementos Combate
@@ -36,7 +38,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     const addCombatantForm = document.getElementById("addCombatantForm");
 
     // =========================================================
-    // 1. UTILITÁRIOS SEGUROS (DOM Puro / Anti-XSS)
+    // 1. UTILITÁRIOS SEGUROS
     // =========================================================
     function createSafeElement(tag, className, text = null) {
         const el = document.createElement(tag);
@@ -45,8 +47,22 @@ document.addEventListener("DOMContentLoaded", async () => {
         return el;
     }
 
+    function parseCampaignTheme(desc) {
+        if (!desc) return { cleanDesc: "", themeId: "default" };
+        const marker = "=== TEMA ===";
+        const index = desc.indexOf(marker);
+        if (index !== -1) {
+            const block = desc.substring(index);
+            const cleanDesc = desc.substring(0, index).trim();
+            const match = block.match(/ID:\s*([a-zA-Z0-9_]+)/);
+            const themeId = match ? match[1] : "default";
+            return { cleanDesc, themeId };
+        }
+        return { cleanDesc: desc, themeId: "default" };
+    }
+
     // =========================================================
-    // 2. INICIALIZAÇÃO E REALTIME
+    // 2. INICIALIZAÇÃO E REALTIME (COM SUPORTE A TEMAS)
     // =========================================================
     async function init() {
         if (!campaignId) { window.location.href = "campanhas.html"; return; }
@@ -56,29 +72,42 @@ document.addEventListener("DOMContentLoaded", async () => {
 
         await loadCampaignData();
         setupTabs();
+        setupThemeModal();
         setupRealtime();
 
-        // Inicializa Módulos Separados (Se existirem)
+        // Inicializa Módulos Separados (Exceto o morto initSceneSystem)
         if (window.initTimelineSystem) window.initTimelineSystem(supabase, campaignId);
         if (window.initCookingSystem) window.initCookingSystem(supabase, campaignId);
         if (window.initSessionSystem) window.initSessionSystem(supabase, campaignId);
-        if (window.initSceneSystem) window.initSceneSystem(supabase, campaignId);
         if (window.initSecretsSystem) window.initSecretsSystem(supabase, campaignId, currentUser, userRole);
         if (window.initMapSystem) window.initMapSystem(supabase, campaignId, userRole);
     }
 
     function setupRealtime() {
         supabase.channel('campaign-events')
+            // Ouve as mudanças globais da campanha (Ex: Troca de Tema)
+            .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'campaigns', filter: `id=eq.${campaignId}` }, (payload) => {
+                currentCampaign = payload.new;
+                const parsed = parseCampaignTheme(currentCampaign.description);
+                if (window.AeriomThemeManager) {
+                    window.AeriomThemeManager.applyTheme(parsed.themeId, currentCampaign.cover_url);
+                }
+                if (bannerNameSidebar) bannerNameSidebar.textContent = currentCampaign.name;
+                if (bannerNameMobile) bannerNameMobile.textContent = currentCampaign.name;
+                if (bannerTitleDisplay) bannerTitleDisplay.textContent = currentCampaign.name;
+            })
+            // Ouve Logs (Rolagens, Sistema, etc)
             .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'campaign_logs', filter: `campaign_id=eq.${campaignId}` }, async (payload) => {
                 const newLog = payload.new;
                 if (document.getElementById('tab-logs')?.classList.contains('active') && window.loadTimeline) window.loadTimeline(); 
                 if (newLog.log_type === 'request_roll' && userRole !== 'master') showRollRequest(newLog.description);
             })
+            // Ouve Mural
             .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'campaign_mural', filter: `campaign_id=eq.${campaignId}` }, () => {
                 if (document.getElementById('tab-mural')?.classList.contains('active') && window.loadMural) window.loadMural(); 
             })
+            // Ouve Combate
             .on('postgres_changes', { event: '*', schema: 'public', table: 'campaign_combat', filter: `campaign_id=eq.${campaignId}` }, (payload) => {
-                // Proteção contra payload vazio em caso de deleção do registro
                 if (payload.eventType === 'DELETE') {
                     combatState = { is_active: false, round_number: 1, turn_index: 0, combatants: [] };
                 } else if (payload.new && Object.keys(payload.new).length > 0) {
@@ -90,15 +119,20 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
 
     function setupTabs() {
-        const tabs = document.querySelectorAll('.dash-tab');
+        const tabs = document.querySelectorAll('.dash-tab, .nav-mob-btn');
         const tabContents = document.querySelectorAll('.dash-tab-content');
+        
         tabs.forEach(tab => {
             tab.addEventListener('click', () => {
+                const targetId = tab.getAttribute('data-tab');
+                if (!targetId) return;
+
                 tabs.forEach(t => t.classList.remove('active'));
                 tabContents.forEach(c => c.classList.remove('active'));
-                tab.classList.add('active');
                 
-                const targetId = tab.getAttribute('data-tab');
+                // Ativa tanto o botão clicado quanto seu correspondente mobile/desktop
+                document.querySelectorAll(`[data-tab="${targetId}"]`).forEach(btn => btn.classList.add('active'));
+                
                 const targetContent = document.getElementById(targetId);
                 if(targetContent) targetContent.classList.add('active');
 
@@ -120,33 +154,100 @@ document.addEventListener("DOMContentLoaded", async () => {
 
         loadingEl.style.display = "none";
         contentEl.style.display = "flex";
-        roleLabel.textContent = userRole === 'master' ? 'Mestre da Campanha' : 'Jogador';
         
-        // Uso das Variáveis oficiais do Design System (Corrigido)
-        roleLabel.style.color = userRole === 'master' ? 'var(--color-danger)' : 'var(--color-primary)';
-        bannerName.textContent = currentCampaign.name;
+        if (roleLabel) {
+            roleLabel.textContent = userRole === 'master' ? 'Mestre da Campanha' : 'Jogador';
+            roleLabel.style.color = userRole === 'master' ? 'var(--color-danger)' : 'var(--color-primary)';
+        }
         
-        if (currentCampaign.cover_url && window.AeriomThemeManager) {
-            window.AeriomThemeManager.setCustomAtmosphere(currentCampaign.cover_url);
+        if (bannerNameSidebar) bannerNameSidebar.textContent = currentCampaign.name;
+        if (bannerNameMobile) bannerNameMobile.textContent = currentCampaign.name;
+        if (bannerTitleDisplay) bannerTitleDisplay.textContent = currentCampaign.name;
+        
+        // Aplicação Inicial do Tema
+        const parsedTheme = parseCampaignTheme(currentCampaign.description);
+        if (window.AeriomThemeManager) {
+            window.AeriomThemeManager.applyTheme(parsedTheme.themeId, currentCampaign.cover_url);
         }
 
-        // Garante que o CSS Inline não bloqueie elementos do Mestre
         if (userRole === 'master') {
             if (masterPanel) masterPanel.style.display = 'block';
             document.querySelectorAll('.master-only').forEach(el => {
-                el.style.display = ''; // Limpa o "display: none" inline para a classe CSS atuar
+                el.style.display = ''; 
             });
+            document.getElementById('openMasterThemeMobile').style.display = 'block';
         } else {
             if (masterPanel) masterPanel.style.display = 'none';
             document.querySelectorAll('.master-only').forEach(el => {
                 el.style.display = 'none';
             });
+            document.getElementById('openMasterThemeMobile').style.display = 'none';
         }
         await loadCampaignCharacters();
     }
 
     // =========================================================
-    // 3. O GRUPO E FICHA IN-GAME (HUD)
+    // 3. GESTÃO DE TEMAS VISUAIS (MESTRE)
+    // =========================================================
+    function setupThemeModal() {
+        const themeModal = document.getElementById("themeConfigModal");
+        const themeSelect = document.getElementById("themeSelectDropdown");
+        const customUrlInput = document.getElementById("customThemeBgUrl");
+        
+        document.getElementById("openThemeConfigModalBtn")?.addEventListener('click', openModal);
+        document.getElementById("openThemeModalBtn")?.addEventListener('click', openModal);
+        document.getElementById("openMasterThemeMobile")?.addEventListener('click', openModal);
+        document.getElementById("closeThemeModalBtn")?.addEventListener('click', () => themeModal.classList.remove('active'));
+        
+        function openModal() {
+            if (!window.AeriomThemeManager || !currentCampaign) return;
+            
+            // Preencher Select dinamicamente
+            themeSelect.innerHTML = '';
+            const options = window.AeriomThemeManager.getThemeOptions();
+            options.forEach(opt => {
+                const el = document.createElement("option");
+                el.value = opt.id;
+                el.textContent = opt.name;
+                themeSelect.appendChild(el);
+            });
+
+            const parsed = parseCampaignTheme(currentCampaign.description);
+            themeSelect.value = parsed.themeId;
+            customUrlInput.value = currentCampaign.cover_url || "";
+            
+            themeModal.classList.add('active');
+        }
+
+        document.getElementById("themeConfigForm")?.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const selectedTheme = themeSelect.value;
+            const customUrl = customUrlInput.value.trim();
+            const parsed = parseCampaignTheme(currentCampaign.description);
+            const newDescription = `${parsed.cleanDesc}\n\n=== TEMA ===\nID: ${selectedTheme}`;
+
+            const updateData = {
+                description: newDescription,
+                cover_url: customUrl === "" ? null : customUrl
+            };
+
+            const btn = e.target.querySelector('button[type="submit"]');
+            const originalText = btn.textContent;
+            btn.textContent = "A Transmitir Tema...";
+            btn.disabled = true;
+
+            await supabase.from('campaigns').update(updateData).eq('id', campaignId);
+            
+            btn.textContent = originalText;
+            btn.disabled = false;
+            themeModal.classList.remove('active');
+            
+            if(window.generateLog) window.generateLog(`O Mestre alterou a atmosfera da campanha.`, 'system');
+        });
+    }
+
+    // =========================================================
+    // 4. O GRUPO E FICHA IN-GAME (HUD)
     // =========================================================
     async function loadCampaignCharacters() {
         const list = document.getElementById("campaignCharactersList");
@@ -169,7 +270,6 @@ document.addEventListener("DOMContentLoaded", async () => {
             const card = document.createElement('div');
             card.className = `campaign-char-card ${isOwnCharacter ? 'own-character' : ''}`;
             
-            // Avatar Fallback Seguro
             const avatarContainer = document.createElement("div");
             avatarContainer.className = "char-avatar-container";
             const initial = char.name ? char.name.charAt(0).toUpperCase() : '?';
@@ -185,7 +285,6 @@ document.addEventListener("DOMContentLoaded", async () => {
                 avatarContainer.innerHTML = `<div class="char-card-fallback">${initial}</div>`;
             }
 
-            // Infos
             const infoDiv = document.createElement('div');
             infoDiv.className = "char-card-info";
             infoDiv.appendChild(createSafeElement("h4", "", char.name));
@@ -201,7 +300,6 @@ document.addEventListener("DOMContentLoaded", async () => {
                 infoDiv.appendChild(createSafeElement("div", "char-state-badge", "⚠️ Condições"));
             }
 
-            // Ações
             const actionDiv = document.createElement('div');
             if (userRole === 'master') {
                 const btn = createSafeElement("button", "btn btn-secondary", "Gerenciar");
@@ -215,8 +313,8 @@ document.addEventListener("DOMContentLoaded", async () => {
                 });
                 actionDiv.appendChild(btn);
             } else if (isOwnCharacter) {
-                const btn = createSafeElement("button", "btn btn-primary", "Abrir Ficha");
-                btn.style.padding = "0.5rem";
+                const btn = createSafeElement("button", "btn btn-primary", "Ficha");
+                btn.style.padding = "0.5rem 1rem";
                 btn.addEventListener('click', () => openPlayerSheet(link.character_id, link.id, link.current_hp, link.current_mana, link.conditions));
                 actionDiv.appendChild(btn);
             }
@@ -266,11 +364,23 @@ document.addEventListener("DOMContentLoaded", async () => {
             btn.appendChild(labelSpan);
             btn.appendChild(valSpan);
             
-            btn.addEventListener('click', () => {
-                const d20 = Math.floor(Math.random() * 20) + 1;
-                const total = d20 + val;
-                if(window.showCinematicRoll) window.showCinematicRoll(`Teste de ${attr.label}`, char.name, total);
-                if(window.generateLog) window.generateLog(`${char.name} rolou ${attr.label}: 1d20 (${d20}) + ${val} = ${total}`, 'roll');
+            // Integração com o NOVO Motor de Dados
+            btn.addEventListener('click', async () => {
+                document.getElementById("playerSheetModal").classList.remove('active'); // Oculta a ficha para ver o dado rolando
+                
+                if (window.AeriomDice) {
+                    const result = await window.AeriomDice.roll({
+                        quantity: 1,
+                        sides: 20,
+                        modifier: val,
+                        label: `Teste de ${attr.label}`
+                    });
+                    
+                    if(window.generateLog) {
+                        const sinal = val >= 0 ? '+' : '';
+                        window.generateLog(`${char.name} rolou ${attr.label}: 1d20 (${result.rolls[0]}) ${sinal} ${val} = ${result.total}`, 'roll');
+                    }
+                }
             });
             attrGrid.appendChild(btn);
         });
@@ -287,34 +397,30 @@ document.addEventListener("DOMContentLoaded", async () => {
     });
 
     // =========================================================
-    // 4. MICROINTERAÇÕES E ESTADO (DANO/CURA)
+    // 5. MICROINTERAÇÕES E ESTADO (DANO/CURA)
     // =========================================================
     document.getElementById('psStateForm')?.addEventListener('submit', async (e) => {
         e.preventDefault();
         
         const oldHp = parseInt(document.getElementById("psHpView").textContent) || 0;
         const oldMana = parseInt(document.getElementById("psManaView").textContent) || 0;
-
         const hp = parseInt(document.getElementById("psHp").value) || 0;
         const mana = parseInt(document.getElementById("psMana").value) || 0;
         const cond = document.getElementById("psConditions").value.trim();
         
         const hpDiff = hp - oldHp;
         const manaDiff = mana - oldMana;
-        
         const rect = document.getElementById('psHpView').getBoundingClientRect();
         
         const spawnFloatingNumber = (diff, isHp) => {
             if (diff === 0) return;
             const el = document.createElement('div');
             el.className = `floating-number ${isHp ? (diff > 0 ? 'float-heal' : 'float-damage') : 'float-mana-loss'}`;
-            
             const randomX = Math.random() * 30 - 15;
             el.style.left = `${rect.left + 20 + randomX}px`;
             el.style.top = `${rect.top - 20}px`;
             el.textContent = diff > 0 ? `+${diff}` : diff;
             if (!isHp) el.textContent += " MP";
-            
             document.body.appendChild(el);
             setTimeout(() => el.remove(), 1200); 
         };
@@ -345,7 +451,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     });
 
     // =========================================================
-    // 5. TRACKER TÁTICO DE COMBATE
+    // 6. TRACKER TÁTICO DE COMBATE
     // =========================================================
     async function loadCombatState() {
         const { data } = await supabase.from('campaign_combat').select('*').eq('campaign_id', campaignId).maybeSingle();
@@ -377,7 +483,6 @@ document.addEventListener("DOMContentLoaded", async () => {
                     toggleCombatBtn.className = "btn btn-danger master-only";
                 }
                 if (combatMasterPanel) combatMasterPanel.style.display = "block";
-                // Supera o style inline !important do HTML
                 if (addCombatantForm) addCombatantForm.style.setProperty('display', 'flex', 'important');
             } else {
                 if (addCombatantForm) addCombatantForm.style.setProperty('display', 'none', 'important');
@@ -438,7 +543,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     });
 
     // =========================================================
-    // 6. SOLICITAÇÕES E TOASTS (Ações do Mestre)
+    // 7. SOLICITAÇÕES DE ROLAGEM E DADOS DO MESTRE
     // =========================================================
     document.getElementById("sendRollRequestBtn")?.addEventListener('click', async () => {
         if(window.generateLog) await window.generateLog(`Teste Solicitado: ${document.getElementById("requestRollSelect").value}`, 'request_roll');
@@ -460,30 +565,50 @@ document.addEventListener("DOMContentLoaded", async () => {
         }
     }
 
-    document.getElementById("requestToastRollBtn")?.addEventListener('click', () => {
+    // Integração com o NOVO Motor de Dados (Resposta do Jogador)
+    document.getElementById("requestToastRollBtn")?.addEventListener('click', async () => {
         document.getElementById("requestToast").classList.remove('active');
-        const d20 = Math.floor(Math.random() * 20) + 1;
-        const total = d20 + currentRequestAttrValue;
         const charName = playerSheetCharName || 'Um jogador';
         
-        if(window.showCinematicRoll) window.showCinematicRoll(`Teste de ${currentRequestAttrName}`, charName, total);
-        if(window.generateLog) window.generateLog(`${charName} respondeu ao teste de ${currentRequestAttrName}: 1d20 (${d20}) + ${currentRequestAttrValue} = ${total}`, 'roll');
+        if (window.AeriomDice) {
+            const result = await window.AeriomDice.roll({
+                quantity: 1,
+                sides: 20,
+                modifier: currentRequestAttrValue,
+                label: `Teste de ${currentRequestAttrName}`
+            });
+            
+            if(window.generateLog) {
+                const sinal = currentRequestAttrValue >= 0 ? '+' : '';
+                window.generateLog(`${charName} respondeu ao teste de ${currentRequestAttrName}: 1d20 (${result.rolls[0]}) ${sinal} ${currentRequestAttrValue} = ${result.total}`, 'roll');
+            }
+        }
     });
     
     document.getElementById("requestToastCloseBtn")?.addEventListener('click', () => document.getElementById("requestToast").classList.remove('active'));
 
-    // Fechamento de modais VTT via botão nativo do modal
+    // Fechamento de modais VTT
     document.getElementById("closePlayerSheetModal")?.addEventListener("click", () => document.getElementById("playerSheetModal").classList.remove('active'));
     document.getElementById("closeCharacterStateModal")?.addEventListener("click", () => document.getElementById("characterStateModal").classList.remove('active'));
     document.getElementById("closeCreateSecretModal")?.addEventListener("click", () => document.getElementById("createSecretModal").classList.remove('active'));
 
-    // Rolagens Públicas Mestre
+    // Rolagens Públicas do Mestre integradas ao Motor Visual
     document.querySelectorAll('.master-dice-btn').forEach(btn => {
-        btn.addEventListener('click', () => {
+        btn.addEventListener('click', async () => {
             const sides = parseInt(btn.getAttribute('data-dice'));
-            const result = Math.floor(Math.random() * sides) + 1;
-            if(window.showCinematicRoll) window.showCinematicRoll('Rolagem Pública', `1d${sides}`, result);
-            if(window.generateLog) window.generateLog(`O Mestre rolou 1d${sides}. Resultado: ${result}`, 'roll');
+            
+            if (window.AeriomDice) {
+                const result = await window.AeriomDice.roll({
+                    quantity: 1,
+                    sides: sides,
+                    modifier: 0,
+                    label: `Rolagem Pública (1D${sides})`
+                });
+                
+                if(window.generateLog) {
+                    window.generateLog(`O Mestre rolou 1D${sides}. Resultado: ${result.total}`, 'roll');
+                }
+            }
         });
     });
 
