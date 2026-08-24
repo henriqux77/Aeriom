@@ -1,6 +1,6 @@
 /* =========================================================
    AERIOM — GERENCIADOR DE FICHAS (js/fichas.js)
-   Fase 4: Listagem Premium, Segura e Desacoplada
+   Fase 2: Remoção de Estilos Inline, Anti-XSS e Refatoração
 ========================================================= */
 document.addEventListener("DOMContentLoaded", async () => {
     "use strict";
@@ -11,40 +11,51 @@ document.addEventListener("DOMContentLoaded", async () => {
         return;
     }
 
+    let currentUser = null;
+
+    // 1. Elementos de Estado da Interface
+    const loadingCharacters = document.getElementById("loadingCharacters");
+    const emptyCharacters = document.getElementById("emptyCharacters");
     const charactersList = document.getElementById("charactersList");
     const charactersMessage = document.getElementById("charactersMessage");
-    
-    // Modal de Exclusão
-    const deleteModal = document.getElementById("deleteConfirmModal");
-    const confirmDeleteBtn = document.getElementById("confirmDeleteBtn");
-    const cancelDeleteBtn = document.getElementById("cancelDeleteBtn");
-    let characterToDelete = null;
+
+    // 2. Elementos de Ação
+    const createCharacterBtn = document.getElementById("createCharacterBtn");
+    const createFirstCharacterBtn = document.getElementById("createFirstCharacterBtn");
 
     // =========================================================
-    // 1. UTILITÁRIOS E FEEDBACK
+    // UTILITÁRIOS E FEEDBACK
     // =========================================================
     function showMessage(msg, isError = false) {
         if (!charactersMessage) return;
         charactersMessage.textContent = msg;
-        charactersMessage.className = `msg-box mb-4 ${isError ? 'msg-error' : 'msg-success'}`;
-        charactersMessage.classList.add('active'); // Usando active em vez de display: flex
-        
-        setTimeout(() => { 
-            charactersMessage.classList.remove('active'); 
-        }, 4000);
+        charactersMessage.className = `msg-box mb-4 ${isError ? 'msg-error' : 'msg-success'} active`;
+        setTimeout(() => { charactersMessage.classList.remove('active'); }, 4000);
     }
 
-    function createSafeElement(tag, className, text) {
+    function showState(state) {
+        if (loadingCharacters) loadingCharacters.style.display = "none";
+        if (emptyCharacters) emptyCharacters.style.display = "none";
+        if (charactersList) charactersList.style.display = "none";
+
+        if (state === 'loading' && loadingCharacters) loadingCharacters.style.display = "block";
+        if (state === 'empty' && emptyCharacters) emptyCharacters.style.display = "block";
+        if (state === 'list' && charactersList) charactersList.style.display = "grid"; 
+    }
+
+    function createSafeElement(tag, className, textContent = null) {
         const el = document.createElement(tag);
         if (className) el.className = className;
-        if (text) el.textContent = text;
+        if (textContent !== null) el.textContent = textContent;
         return el;
     }
 
     // =========================================================
-    // 2. BUSCA DE DADOS
+    // CARREGAMENTO DE FICHAS
     // =========================================================
     async function loadCharacters() {
+        showState('loading');
+        
         try {
             const { data: { session }, error: authError } = await supabase.auth.getSession();
             
@@ -52,182 +63,151 @@ document.addEventListener("DOMContentLoaded", async () => {
                 window.location.href = "index.html";
                 return;
             }
+            
+            currentUser = session.user;
 
             const { data: characters, error: dbError } = await supabase
                 .from('characters')
-                .select('*')
-                .eq('user_id', session.user.id)
-                .order('created_at', { ascending: false });
+                .select('id, name, race, class, level, avatar_url, hp_max, mana_max')
+                .eq('user_id', currentUser.id)
+                .order('name', { ascending: true }); // Ordenar pelo nome é seguro e sempre existe.
 
             if (dbError) throw dbError;
 
+            if (!characters || characters.length === 0) {
+                showState('empty');
+                return;
+            }
+
             renderCharacters(characters);
+            showState('list');
+
         } catch (error) {
-            console.error("Erro ao carregar fichas:", error);
-            showMessage("Falha ao se conectar aos registros de Aeriom.", true);
-            renderEmptyState(true);
+            console.error("Erro ao consultar fichas:", error);
+            showState('empty'); 
+            showMessage("Erro de comunicação com os servidores. Tente novamente.", true);
         }
     }
 
     // =========================================================
-    // 3. RENDERIZAÇÃO SEGURA (DOM Puro)
+    // RENDERIZAÇÃO BLINDADA (ANTI-XSS) E DESIGN SYSTEM
     // =========================================================
-    function renderEmptyState(isError = false) {
-        charactersList.innerHTML = "";
-        const emptyState = document.createElement('div');
-        emptyState.className = 'empty-state-panel';
-
-        emptyState.innerHTML = `
-            <div class="empty-state-icon">📜</div>
-            <p class="empty-state-title">${isError ? 'Conexão Perdida' : 'Nenhum Herói Encontrado'}</p>
-            <p class="empty-state-desc">${isError ? 'Tente atualizar a página.' : 'Os salões de Aeriom aguardam a sua primeira lenda.'}</p>
-        `;
-
-        if (!isError) {
-            const createBtn = document.createElement('button');
-            createBtn.className = 'btn btn-primary mt-4';
-            createBtn.textContent = 'Forjar Novo Personagem';
-            createBtn.addEventListener('click', () => {
-                localStorage.removeItem("aeriom_character_id");
-                window.location.href = 'ficha.html';
-            });
-            emptyState.appendChild(createBtn);
-        }
-
-        charactersList.appendChild(emptyState);
-    }
-
     function renderCharacters(characters) {
-        charactersList.innerHTML = "";
-
-        if (!characters || characters.length === 0) {
-            renderEmptyState();
-            return;
-        }
+        if (!charactersList) return;
+        charactersList.innerHTML = '';
 
         characters.forEach(char => {
+            // Container Base Interativo
             const card = document.createElement("div");
-            card.className = "character-card";
+            card.className = "aeriom-card-interactive";
+            card.style.display = "flex";
+            card.style.alignItems = "center";
+            card.style.gap = "var(--space-md)";
+            card.style.padding = "var(--space-md)";
 
-            // Header do Card (Avatar + Info)
-            const cardHeader = document.createElement("div");
-            cardHeader.className = "char-card-header";
-
-            // Container do Avatar com Fallback Seguro
+            // Avatar Container
             const avatarContainer = document.createElement("div");
-            avatarContainer.className = "char-avatar-container";
-            
-            const initial = char.name ? char.name.charAt(0).toUpperCase() : '?';
+            avatarContainer.style.width = "72px";
+            avatarContainer.style.height = "72px";
+            avatarContainer.style.borderRadius = "50%";
+            avatarContainer.style.border = "2px solid var(--color-border-strong)";
+            avatarContainer.style.backgroundColor = "var(--color-bg-secondary)";
+            avatarContainer.style.flexShrink = "0";
+            avatarContainer.style.display = "grid";
+            avatarContainer.style.placeItems = "center";
+            avatarContainer.style.overflow = "hidden";
 
             if (char.avatar_url && char.avatar_url.trim() !== '') {
                 const img = document.createElement("img");
                 img.src = char.avatar_url;
-                img.className = "char-avatar-img";
-                img.alt = `Avatar de ${char.name}`;
-                // Fallback em caso de URL quebrada
+                img.alt = "Avatar";
+                img.style.width = "100%";
+                img.style.height = "100%";
+                img.style.objectFit = "cover";
+                // Tratamento de erro nativo caso a URL seja inválida/quebrada
                 img.onerror = () => {
-                    avatarContainer.innerHTML = `<div class="char-avatar-fallback">${initial}</div>`;
+                    avatarContainer.innerHTML = '';
+                    const fallback = createSafeElement("span", "", char.name ? char.name.charAt(0).toUpperCase() : "?");
+                    fallback.style.fontFamily = "var(--font-heading)";
+                    fallback.style.fontSize = "1.8rem";
+                    fallback.style.color = "var(--color-primary)";
+                    avatarContainer.appendChild(fallback);
                 };
                 avatarContainer.appendChild(img);
             } else {
-                avatarContainer.innerHTML = `<div class="char-avatar-fallback">${initial}</div>`;
+                const initial = createSafeElement("span", "", char.name ? char.name.charAt(0).toUpperCase() : "?");
+                initial.style.fontFamily = "var(--font-heading)";
+                initial.style.fontSize = "1.8rem";
+                initial.style.color = "var(--color-primary)";
+                avatarContainer.appendChild(initial);
             }
 
-            // Info de Texto Segura contra XSS
+            // Info Container
             const infoContainer = document.createElement("div");
-            infoContainer.className = "char-info";
+            infoContainer.style.flex = "1";
+            infoContainer.style.minWidth = "0"; // Previne overflow
+
+            const name = createSafeElement("h3", "", char.name || "Herói Sem Nome");
+            name.style.margin = "0 0 4px 0";
+            name.style.color = "var(--color-text)";
+            name.style.whiteSpace = "nowrap";
+            name.style.overflow = "hidden";
+            name.style.textOverflow = "ellipsis";
+            name.style.fontFamily = "var(--font-heading)";
+            name.style.fontSize = "1.2rem";
+
+            const details = createSafeElement("p", "text-muted", `${char.race || "Sem Raça"} • ${char.class || "Sem Classe"} (Nv.${char.level || 1})`);
+            details.style.margin = "0 0 8px 0";
+            details.style.fontSize = "0.85rem";
+
+            // Status Rápidos (PV e PM)
+            const statsDiv = document.createElement("div");
+            statsDiv.style.display = "flex";
+            statsDiv.style.gap = "var(--space-md)";
+            statsDiv.style.fontSize = "0.75rem";
+            statsDiv.style.fontWeight = "600";
             
-            infoContainer.appendChild(createSafeElement("h3", "char-name", char.name || "Sem Nome"));
+            const hpStat = document.createElement("span");
+            hpStat.style.color = "var(--color-danger)";
+            hpStat.textContent = `♥ PV: ${char.hp_max || 0}`;
             
-            const subtitle = `${char.race || 'Desconhecido'} • ${char.class || 'Aventureiro'} • Nv. ${char.level || 1}`;
-            infoContainer.appendChild(createSafeElement("p", "char-subtitle", subtitle));
+            const mpStat = document.createElement("span");
+            mpStat.style.color = "var(--color-mana)";
+            mpStat.textContent = `✧ PM: ${char.mana_max || 0}`;
 
-            cardHeader.appendChild(avatarContainer);
-            cardHeader.appendChild(infoContainer);
+            statsDiv.appendChild(hpStat);
+            statsDiv.appendChild(mpStat);
 
-            // Container de Ações
-            const actionsContainer = document.createElement("div");
-            actionsContainer.className = "char-card-actions";
+            infoContainer.appendChild(name);
+            infoContainer.appendChild(details);
+            infoContainer.appendChild(statsDiv);
 
-            const btnView = createSafeElement("button", "btn btn-primary flex-1", "Inspecionar");
-            const btnEdit = createSafeElement("button", "btn btn-secondary", "✏️");
-            btnEdit.title = "Editar Ficha";
-            const btnDelete = createSafeElement("button", "btn btn-danger", "🗑️");
-            btnDelete.title = "Excluir Herói";
+            // Montagem
+            card.appendChild(avatarContainer);
+            card.appendChild(infoContainer);
 
-            // Eventos
-            btnView.addEventListener("click", () => {
+            // Evento de Clique Seguro (em vez de onclick="" no HTML)
+            card.addEventListener("click", () => {
                 localStorage.setItem("aeriom_character_id", char.id);
                 window.location.href = "ficha-view.html";
             });
-
-            btnEdit.addEventListener("click", () => {
-                localStorage.setItem("aeriom_character_id", char.id);
-                window.location.href = "ficha.html";
-            });
-
-            btnDelete.addEventListener("click", () => {
-                characterToDelete = char.id;
-                document.getElementById('deleteCharName').textContent = char.name;
-                deleteModal.classList.add('active');
-            });
-
-            actionsContainer.appendChild(btnView);
-            actionsContainer.appendChild(btnEdit);
-            actionsContainer.appendChild(btnDelete);
-
-            card.appendChild(cardHeader);
-            card.appendChild(actionsContainer);
 
             charactersList.appendChild(card);
         });
     }
 
     // =========================================================
-    // 4. LÓGICA DE EXCLUSÃO (MODAL)
+    // NAVEGAÇÃO DE CRIAÇÃO
     // =========================================================
-    cancelDeleteBtn?.addEventListener("click", () => {
-        characterToDelete = null;
-        deleteModal.classList.remove('active');
-    });
-
-    confirmDeleteBtn?.addEventListener("click", async () => {
-        if (!characterToDelete) return;
-
-        confirmDeleteBtn.disabled = true;
-        confirmDeleteBtn.textContent = "Apagando...";
-
-        try {
-            const { error } = await supabase.from('characters').delete().eq('id', characterToDelete);
-            if (error) throw error;
-            
-            showMessage("Lenda apagada dos registros.");
-            
-            if (localStorage.getItem("aeriom_character_id") === characterToDelete) {
-                localStorage.removeItem("aeriom_character_id");
-            }
-            
-            await loadCharacters(); 
-        } catch (error) {
-            console.error("Erro ao deletar:", error);
-            showMessage("Erro ao excluir o herói.", true);
-        } finally {
-            deleteModal.classList.remove('active');
-            confirmDeleteBtn.disabled = false;
-            confirmDeleteBtn.textContent = "Apagar Herói";
-            characterToDelete = null;
-        }
-    });
-
-    // =========================================================
-    // 5. NOVA FICHA
-    // =========================================================
-    document.getElementById("createCharacterButton")?.addEventListener("click", (e) => {
-        e.preventDefault();
+    const goToCreator = () => {
+        // Limpa qualquer ID residual para forçar o modo "Criação de Ficha Nova"
         localStorage.removeItem("aeriom_character_id");
         window.location.href = "ficha.html";
-    });
+    };
 
-    // Inicia a busca
+    createCharacterBtn?.addEventListener("click", goToCreator);
+    createFirstCharacterBtn?.addEventListener("click", goToCreator);
+
+    // Gatilho Inicial
     loadCharacters();
 });
