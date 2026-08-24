@@ -1,6 +1,7 @@
 /* =========================================================
    AERIOM — NÚCLEO DA MESA DIGITAL (js/campanha.js)
    Fase 5: Motor VTT Desacoplado, Seguro e Imersivo
+   Correção de Integração: Variáveis CSS e Display States
 ========================================================= */
 document.addEventListener("DOMContentLoaded", async () => {
     "use strict";
@@ -32,6 +33,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     const combatTrackerContainer = document.getElementById("combatTrackerContainer");
     const noCombatPlaceholder = document.getElementById("noCombatPlaceholder");
     const initiativeList = document.getElementById("initiativeList");
+    const addCombatantForm = document.getElementById("addCombatantForm");
 
     // =========================================================
     // 1. UTILITÁRIOS SEGUROS (DOM Puro / Anti-XSS)
@@ -44,7 +46,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
 
     // =========================================================
-    // 2. INICIALIZAÇÃO
+    // 2. INICIALIZAÇÃO E REALTIME
     // =========================================================
     async function init() {
         if (!campaignId) { window.location.href = "campanhas.html"; return; }
@@ -76,7 +78,12 @@ document.addEventListener("DOMContentLoaded", async () => {
                 if (document.getElementById('tab-mural')?.classList.contains('active') && window.loadMural) window.loadMural(); 
             })
             .on('postgres_changes', { event: '*', schema: 'public', table: 'campaign_combat', filter: `campaign_id=eq.${campaignId}` }, (payload) => {
-                combatState = payload.new;
+                // Proteção contra payload vazio em caso de deleção do registro
+                if (payload.eventType === 'DELETE') {
+                    combatState = { is_active: false, round_number: 1, turn_index: 0, combatants: [] };
+                } else if (payload.new && Object.keys(payload.new).length > 0) {
+                    combatState = payload.new;
+                }
                 if (document.getElementById('tab-combate')?.classList.contains('active')) renderCombat();
             })
             .subscribe();
@@ -111,21 +118,28 @@ document.addEventListener("DOMContentLoaded", async () => {
         const { data: campData } = await supabase.from('campaigns').select('*').eq('id', campaignId).single();
         currentCampaign = campData;
 
-        loadingEl.hidden = true;
-        contentEl.hidden = false;
+        loadingEl.style.display = "none";
+        contentEl.style.display = "flex";
         roleLabel.textContent = userRole === 'master' ? 'Mestre da Campanha' : 'Jogador';
-        // A cor do label (Laranja Mestre / Dourado Jogador) será tratada via CSS no futuro, mantemos o inline temporário para o label apenas.
-        roleLabel.style.color = userRole === 'master' ? 'var(--danger)' : 'var(--theme-primary)';
+        
+        // Uso das Variáveis oficiais do Design System (Corrigido)
+        roleLabel.style.color = userRole === 'master' ? 'var(--color-danger)' : 'var(--color-primary)';
         bannerName.textContent = currentCampaign.name;
         
         if (currentCampaign.cover_url && window.AeriomThemeManager) {
             window.AeriomThemeManager.setCustomAtmosphere(currentCampaign.cover_url);
         }
 
+        // Garante que o CSS Inline não bloqueie elementos do Mestre
         if (userRole === 'master') {
-            masterPanel.hidden = false;
+            if (masterPanel) masterPanel.style.display = 'block';
             document.querySelectorAll('.master-only').forEach(el => {
-                el.hidden = false;
+                el.style.display = ''; // Limpa o "display: none" inline para a classe CSS atuar
+            });
+        } else {
+            if (masterPanel) masterPanel.style.display = 'none';
+            document.querySelectorAll('.master-only').forEach(el => {
+                el.style.display = 'none';
             });
         }
         await loadCampaignCharacters();
@@ -255,7 +269,6 @@ document.addEventListener("DOMContentLoaded", async () => {
             btn.addEventListener('click', () => {
                 const d20 = Math.floor(Math.random() * 20) + 1;
                 const total = d20 + val;
-                // Integração com o sistema de dados da Fase 6 que será criado, por enquanto usa o cinematic antigo
                 if(window.showCinematicRoll) window.showCinematicRoll(`Teste de ${attr.label}`, char.name, total);
                 if(window.generateLog) window.generateLog(`${char.name} rolou ${attr.label}: 1d20 (${d20}) + ${val} = ${total}`, 'roll');
             });
@@ -268,7 +281,6 @@ document.addEventListener("DOMContentLoaded", async () => {
         document.getElementById("playerSheetModal").classList.add('active');
     }
 
-    // Toggle Formulário HUD
     document.getElementById('psToggleEditStateBtn')?.addEventListener('click', () => {
         const form = document.getElementById('psStateForm');
         form.style.display = form.style.display === 'none' ? 'block' : 'none';
@@ -297,7 +309,6 @@ document.addEventListener("DOMContentLoaded", async () => {
             const el = document.createElement('div');
             el.className = `floating-number ${isHp ? (diff > 0 ? 'float-heal' : 'float-damage') : 'float-mana-loss'}`;
             
-            // Randomiza posição levemente e injeta de forma segura
             const randomX = Math.random() * 30 - 15;
             el.style.left = `${rect.left + 20 + randomX}px`;
             el.style.top = `${rect.top - 20}px`;
@@ -311,7 +322,6 @@ document.addEventListener("DOMContentLoaded", async () => {
         spawnFloatingNumber(hpDiff, true);
         setTimeout(() => spawnFloatingNumber(manaDiff, false), 150);
 
-        // UI Otimista
         document.getElementById("psHpView").textContent = hp;
         document.getElementById("psManaView").textContent = mana;
         document.getElementById("psConditionsView").textContent = cond || "Nenhuma";
@@ -319,7 +329,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
         await supabase.from('campaign_characters').update({ current_hp: hp, current_mana: mana, conditions: cond }).eq('id', playerSheetLinkId);
         if(window.generateLog && (hpDiff !== 0 || manaDiff !== 0)) {
-            window.generateLog(`${playerSheetCharName} atualizou seu estado vital (PV: ${hp}, Mana: ${mana}).`, 'system');
+            window.generateLog(`${playerSheetCharName} atualizou o seu estado vital (PV: ${hp}, Mana: ${mana}).`, 'system');
         }
         await loadCampaignCharacters();
     });
@@ -347,10 +357,14 @@ document.addEventListener("DOMContentLoaded", async () => {
         if (!combatState || !combatState.is_active) {
             combatTrackerContainer.style.display = "none";
             noCombatPlaceholder.style.display = "flex";
+            
             if (userRole === 'master') { 
-                toggleCombatBtn.textContent = "Iniciar Combate"; 
-                toggleCombatBtn.className = "btn btn-primary master-only";
-                combatMasterPanel.hidden = true; 
+                if (toggleCombatBtn) {
+                    toggleCombatBtn.textContent = "Iniciar Combate"; 
+                    toggleCombatBtn.className = "btn btn-primary master-only";
+                }
+                if (combatMasterPanel) combatMasterPanel.style.display = "none";
+                if (addCombatantForm) addCombatantForm.style.setProperty('display', 'none', 'important');
             }
         } else {
             noCombatPlaceholder.style.display = "none";
@@ -358,9 +372,15 @@ document.addEventListener("DOMContentLoaded", async () => {
             document.getElementById("combatRoundDisplay").textContent = combatState.round_number;
             
             if (userRole === 'master') { 
-                toggleCombatBtn.textContent = "Encerrar Combate"; 
-                toggleCombatBtn.className = "btn btn-danger master-only";
-                combatMasterPanel.hidden = false; 
+                if (toggleCombatBtn) {
+                    toggleCombatBtn.textContent = "Encerrar Combate"; 
+                    toggleCombatBtn.className = "btn btn-danger master-only";
+                }
+                if (combatMasterPanel) combatMasterPanel.style.display = "block";
+                // Supera o style inline !important do HTML
+                if (addCombatantForm) addCombatantForm.style.setProperty('display', 'flex', 'important');
+            } else {
+                if (addCombatantForm) addCombatantForm.style.setProperty('display', 'none', 'important');
             }
             
             initiativeList.innerHTML = '';
@@ -452,7 +472,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     
     document.getElementById("requestToastCloseBtn")?.addEventListener('click', () => document.getElementById("requestToast").classList.remove('active'));
 
-    // Fechamento de modais VTT
+    // Fechamento de modais VTT via botão nativo do modal
     document.getElementById("closePlayerSheetModal")?.addEventListener("click", () => document.getElementById("playerSheetModal").classList.remove('active'));
     document.getElementById("closeCharacterStateModal")?.addEventListener("click", () => document.getElementById("characterStateModal").classList.remove('active'));
     document.getElementById("closeCreateSecretModal")?.addEventListener("click", () => document.getElementById("createSecretModal").classList.remove('active'));
