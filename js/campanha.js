@@ -1,6 +1,6 @@
 /* =========================================================
    AERIOM — NÚCLEO DA MESA DIGITAL (js/campanha.js)
-   Fase de Refatoração: Temas Realtime, Motor de Dados e Blindagem
+   Fase 5: Integração Premium, Motor de Dados e Sincronia
 ========================================================= */
 document.addEventListener("DOMContentLoaded", async () => {
     "use strict";
@@ -11,14 +11,18 @@ document.addEventListener("DOMContentLoaded", async () => {
     let currentUser = null;
     let currentCampaign = null;
     let userRole = null;
+    
+    // IDs de controle de estado
     let activeStateLinkId = null;
     let playerSheetLinkId = null;
     let playerSheetCharName = "";
     
+    // Controle Tático
     let combatState = null;
     let currentRequestAttrValue = 0;
     let currentRequestAttrName = "";
 
+    // Elementos Base
     const campaignId = localStorage.getItem("aeriom_active_campaign");
     const loadingEl = document.getElementById("loadingDash");
     const contentEl = document.getElementById("dashContent");
@@ -29,7 +33,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     const bannerTitleDisplay = document.getElementById("bannerTitleDisplay");
     const masterPanel = document.getElementById("masterPanel");
 
-    // Elementos Combate
+    // Elementos de Combate
     const toggleCombatBtn = document.getElementById("toggleCombatBtn");
     const combatMasterPanel = document.getElementById("combatMasterPanel");
     const combatTrackerContainer = document.getElementById("combatTrackerContainer");
@@ -38,7 +42,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     const addCombatantForm = document.getElementById("addCombatantForm");
 
     // =========================================================
-    // 1. UTILITÁRIOS SEGUROS
+    // 1. UTILITÁRIOS E PARSERS
     // =========================================================
     function createSafeElement(tag, className, text = null) {
         const el = document.createElement(tag);
@@ -62,12 +66,12 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
 
     // =========================================================
-    // 2. INICIALIZAÇÃO E BLINDAGEM CONTRA ERROS
+    // 2. INICIALIZAÇÃO BLINDADA
     // =========================================================
     async function init() {
         if (!campaignId) { window.location.href = "campanhas.html"; return; }
         
-        // BLINDAGEM: Activa as Tabs imediatamente. Os botões funcionarão sempre!
+        // Activa a UI imediatamente, não espera a rede
         setupTabs();
         setupThemeModal();
 
@@ -79,29 +83,35 @@ document.addEventListener("DOMContentLoaded", async () => {
             await loadCampaignData();
             setupRealtime();
 
+            // Desperta os submódulos da mesa
             if (window.initTimelineSystem) window.initTimelineSystem(supabase, campaignId);
             if (window.initCookingSystem) window.initCookingSystem(supabase, campaignId);
             if (window.initSessionSystem) window.initSessionSystem(supabase, campaignId);
             if (window.initSecretsSystem) window.initSecretsSystem(supabase, campaignId, currentUser, userRole);
             if (window.initMapSystem) window.initMapSystem(supabase, campaignId, userRole);
+            
         } catch (err) {
-            console.error("[AERIOM] Falha crítica na inicialização da Mesa:", err);
+            console.error("[AERIOM] Falha na conjuração da Mesa:", err);
             if (loadingEl) {
                 loadingEl.innerHTML = `
-                    <div class="placeholder-icon">⚠️</div>
-                    <h3 style="color: var(--color-danger);">A Magia Falhou</h3>
-                    <p class="text-muted">A mesa não pôde ser carregada. Consulte o console para mais detalhes.</p>
+                    <div class="placeholder-icon" style="color: var(--color-danger);">⚠️</div>
+                    <h3 style="color: var(--color-danger); margin-bottom: 8px;">A Magia Falhou</h3>
+                    <p class="text-muted">Os tomos desta campanha não puderam ser abertos. Verifique a sua conexão.</p>
                 `;
             }
         }
     }
 
+    // =========================================================
+    // 3. SINCRONIA EM TEMPO REAL (REALTIME)
+    // =========================================================
     function setupRealtime() {
         supabase.channel('campaign-events')
             .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'campaigns', filter: `id=eq.${campaignId}` }, (payload) => {
                 currentCampaign = payload.new;
                 const parsed = parseCampaignTheme(currentCampaign.description);
                 if (window.AeriomThemeManager) window.AeriomThemeManager.applyTheme(parsed.themeId, currentCampaign.cover_url);
+                
                 if (bannerNameSidebar) bannerNameSidebar.textContent = currentCampaign.name;
                 if (bannerNameMobile) bannerNameMobile.textContent = currentCampaign.name;
                 if (bannerTitleDisplay) bannerTitleDisplay.textContent = currentCampaign.name;
@@ -120,11 +130,14 @@ document.addEventListener("DOMContentLoaded", async () => {
                 } else if (payload.new && Object.keys(payload.new).length > 0) {
                     combatState = payload.new;
                 }
-                if (document.getElementById('tab-combate')?.classList.contains('active')) renderCombat();
+                renderCombat();
             })
             .subscribe();
     }
 
+    // =========================================================
+    // 4. INTERFACE E NAVEGAÇÃO
+    // =========================================================
     function setupTabs() {
         const tabs = document.querySelectorAll('.dash-tab, .nav-mob-btn');
         const tabContents = document.querySelectorAll('.dash-tab-content');
@@ -140,8 +153,9 @@ document.addEventListener("DOMContentLoaded", async () => {
                 document.querySelectorAll(`[data-tab="${targetId}"]`).forEach(btn => btn.classList.add('active'));
                 
                 const targetContent = document.getElementById(targetId);
-                if(targetContent) targetContent.classList.add('active');
+                if (targetContent) targetContent.classList.add('active');
 
+                // Dispara os carregamentos contextuais de outras abas
                 if (targetId === 'tab-mural' && window.loadMural) window.loadMural();
                 if (targetId === 'tab-logs' && window.loadTimeline) window.loadTimeline();
                 if (targetId === 'tab-overview') loadCampaignCharacters();
@@ -163,14 +177,15 @@ document.addEventListener("DOMContentLoaded", async () => {
         if (contentEl) contentEl.style.display = "flex";
         
         if (roleLabel) {
-            roleLabel.textContent = userRole === 'master' ? 'Mestre da Campanha' : 'Jogador';
-            roleLabel.style.color = userRole === 'master' ? 'var(--color-danger)' : 'var(--color-primary)';
+            roleLabel.textContent = userRole === 'master' ? 'Mestre' : 'Aventureiro';
+            roleLabel.style.color = userRole === 'master' ? 'var(--theme-accent)' : 'var(--theme-primary)';
         }
         
         if (bannerNameSidebar) bannerNameSidebar.textContent = currentCampaign.name;
         if (bannerNameMobile) bannerNameMobile.textContent = currentCampaign.name;
         if (bannerTitleDisplay) bannerTitleDisplay.textContent = currentCampaign.name;
         
+        // Applica a Atmosfera da Campanha
         const parsedTheme = parseCampaignTheme(currentCampaign.description);
         if (window.AeriomThemeManager) {
             window.AeriomThemeManager.applyTheme(parsedTheme.themeId, currentCampaign.cover_url);
@@ -178,6 +193,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
         const masterThemeBtn = document.getElementById('openMasterThemeMobile');
 
+        // Controlo de Acesso (Mestre vs Jogador)
         if (userRole === 'master') {
             if (masterPanel) masterPanel.style.display = 'block';
             document.querySelectorAll('.master-only').forEach(el => el.style.display = '');
@@ -192,7 +208,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
 
     // =========================================================
-    // 3. GESTÃO DE TEMAS VISUAIS (MESTRE)
+    // 5. GESTÃO DE ATMOSFERA E TEMAS
     // =========================================================
     function setupThemeModal() {
         const themeModal = document.getElementById("themeConfigModal");
@@ -232,7 +248,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
             const btn = e.target.querySelector('button[type="submit"]');
             const originalText = btn.textContent;
-            btn.textContent = "A Transmitir Tema...";
+            btn.textContent = "A Sincronizar Atmosfera...";
             btn.disabled = true;
 
             await supabase.from('campaigns').update({ description: newDescription, cover_url: customUrl === "" ? null : customUrl }).eq('id', campaignId);
@@ -241,12 +257,12 @@ document.addEventListener("DOMContentLoaded", async () => {
             btn.disabled = false;
             if (themeModal) themeModal.classList.remove('active');
             
-            if(window.generateLog) window.generateLog(`O Mestre alterou a atmosfera da campanha.`, 'system');
+            if(window.generateLog) window.generateLog(`A atmosfera do ambiente mudou sutilmente...`, 'system');
         });
     }
 
     // =========================================================
-    // 4. O GRUPO E FICHA IN-GAME (HUD)
+    // 6. HUD DO GRUPO (CARTÕES DE HERÓI)
     // =========================================================
     async function loadCampaignCharacters() {
         const list = document.getElementById("campaignCharactersList");
@@ -257,8 +273,9 @@ document.addEventListener("DOMContentLoaded", async () => {
 
         list.innerHTML = '';
         if (!data || data.length === 0) { 
-            const empty = createSafeElement("p", "text-muted w-full", "Nenhum aventureiro presente na mesa.");
+            const empty = createSafeElement("p", "text-muted w-full text-center", "Nenhum aventureiro respondeu ao chamamento da mesa ainda.");
             empty.style.gridColumn = "1/-1";
+            empty.style.padding = "var(--space-24)";
             list.appendChild(empty);
             return; 
         }
@@ -298,13 +315,12 @@ document.addEventListener("DOMContentLoaded", async () => {
             infoDiv.appendChild(stats);
 
             if (link.conditions && link.conditions.trim() !== '') {
-                infoDiv.appendChild(createSafeElement("div", "char-state-badge", "⚠️ Condições"));
+                infoDiv.appendChild(createSafeElement("div", "char-state-badge", "Condições"));
             }
 
             const actionDiv = document.createElement('div');
             if (userRole === 'master') {
-                const btn = createSafeElement("button", "btn btn-secondary", "Gerenciar");
-                btn.style.padding = "0.5rem";
+                const btn = createSafeElement("button", "btn btn-secondary btn-sm", "Gerir");
                 btn.addEventListener('click', () => {
                     activeStateLinkId = link.id;
                     document.getElementById("stateHp").value = link.current_hp;
@@ -314,8 +330,7 @@ document.addEventListener("DOMContentLoaded", async () => {
                 });
                 actionDiv.appendChild(btn);
             } else if (isOwnCharacter) {
-                const btn = createSafeElement("button", "btn btn-primary", "Ficha");
-                btn.style.padding = "0.5rem 1rem";
+                const btn = createSafeElement("button", "btn btn-primary btn-sm", "Ficha");
                 btn.addEventListener('click', () => openPlayerSheet(link.character_id, link.id, link.current_hp, link.current_mana, link.conditions));
                 actionDiv.appendChild(btn);
             }
@@ -365,16 +380,21 @@ document.addEventListener("DOMContentLoaded", async () => {
             btn.appendChild(labelSpan);
             btn.appendChild(valSpan);
             
+            // INTEGRAÇÃO COM MOTOR VISUAL (DICE.JS)
             btn.addEventListener('click', async () => {
                 document.getElementById("playerSheetModal").classList.remove('active'); 
                 
                 if (window.AeriomDice) {
                     const result = await window.AeriomDice.roll({
-                        quantity: 1, sides: 20, modifier: val, label: `Teste de ${attr.label}`
+                        quantity: 1, 
+                        sides: 20, 
+                        modifier: val, 
+                        label: `Teste de ${attr.label}`
                     });
-                    if(window.generateLog) {
+                    
+                    if (window.generateLog) {
                         const sinal = val >= 0 ? '+' : '';
-                        window.generateLog(`${char.name} rolou ${attr.label}: 1d20 (${result.rolls[0]}) ${sinal} ${val} = ${result.total}`, 'roll');
+                        window.generateLog(`${char.name} rolou ${attr.label}: 1d20 (${result.rolls[0]}) ${sinal} ${val} = **${result.total}**`, 'roll');
                     }
                 }
             });
@@ -382,7 +402,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         });
 
         document.getElementById("psInventory").textContent = char.inventory || "Vazio";
-        document.getElementById("psSkills").textContent = char.skills || "Nenhuma habilidade";
+        document.getElementById("psSkills").textContent = char.skills || "Nenhum registo.";
         
         document.getElementById("playerSheetModal").classList.add('active');
     }
@@ -393,7 +413,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     });
 
     // =========================================================
-    // 5. MICROINTERAÇÕES E ESTADO (DANO/CURA)
+    // 7. MICROINTERAÇÕES VITAI (DANO/CURA FLOATING)
     // =========================================================
     document.getElementById('psStateForm')?.addEventListener('submit', async (e) => {
         e.preventDefault();
@@ -430,8 +450,9 @@ document.addEventListener("DOMContentLoaded", async () => {
         document.getElementById('psStateForm').style.display = 'none';
 
         await supabase.from('campaign_characters').update({ current_hp: hp, current_mana: mana, conditions: cond }).eq('id', playerSheetLinkId);
-        if(window.generateLog && (hpDiff !== 0 || manaDiff !== 0)) {
-            window.generateLog(`${playerSheetCharName} atualizou o seu estado vital (PV: ${hp}, Mana: ${mana}).`, 'system');
+        
+        if (window.generateLog && (hpDiff !== 0 || manaDiff !== 0)) {
+            window.generateLog(`${playerSheetCharName} alterou o seu estado vital (PV: ${hp}, Mana: ${mana}).`, 'system');
         }
         await loadCampaignCharacters();
     });
@@ -447,7 +468,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     });
 
     // =========================================================
-    // 6. TRACKER TÁTICO DE COMBATE
+    // 8. TRACKER TÁTICO DE COMBATE
     // =========================================================
     async function loadCombatState() {
         const { data } = await supabase.from('campaign_combat').select('*').eq('campaign_id', campaignId).maybeSingle();
@@ -505,13 +526,13 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     document.getElementById("toggleCombatBtn")?.addEventListener('click', async () => {
         combatState.is_active = !combatState.is_active;
-        if(!combatState.is_active) { 
+        if (!combatState.is_active) { 
             combatState.combatants = []; 
             combatState.turn_index = 0; 
             combatState.round_number = 1; 
         }
         await supabase.from('campaign_combat').upsert({ campaign_id: campaignId, ...combatState });
-        if(window.generateLog) window.generateLog(combatState.is_active ? "O Mestre inciou o Tracker de Combate!" : "A batalha foi encerrada.", "combat");
+        if (window.generateLog) window.generateLog(combatState.is_active ? "O Mestre conjurou o Tracker de Combate!" : "As lâminas foram guardadas. O combate terminou.", "combat");
     });
 
     document.getElementById("nextTurnBtn")?.addEventListener('click', async () => {
@@ -534,15 +555,16 @@ document.addEventListener("DOMContentLoaded", async () => {
     });
 
     // =========================================================
-    // 7. SOLICITAÇÕES DE ROLAGEM
+    // 9. EVENTOS DO MESTRE E TESTES DE DADOS
     // =========================================================
     document.getElementById("sendRollRequestBtn")?.addEventListener('click', async () => {
-        if(window.generateLog) await window.generateLog(`Teste Solicitado: ${document.getElementById("requestRollSelect").value}`, 'request_roll');
+        if (window.generateLog) await window.generateLog(`O Mestre exige um teste de: ${document.getElementById("requestRollSelect").value}`, 'request_roll');
     });
 
     function showRollRequest(requestStr) {
         currentRequestAttrName = requestStr.split(': ')[1]?.trim();
-        if(!currentRequestAttrName) return;
+        if (!currentRequestAttrName) return;
+        
         document.getElementById("requestToastMsg").textContent = `Teste de ${currentRequestAttrName}`;
         document.getElementById("requestToast").classList.add('active');
         
@@ -558,13 +580,19 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     document.getElementById("requestToastRollBtn")?.addEventListener('click', async () => {
         document.getElementById("requestToast").classList.remove('active');
-        const charName = playerSheetCharName || 'Um jogador';
+        const charName = playerSheetCharName || 'Um aventureiro';
         
         if (window.AeriomDice) {
-            const result = await window.AeriomDice.roll({ quantity: 1, sides: 20, modifier: currentRequestAttrValue, label: `Teste de ${currentRequestAttrName}` });
-            if(window.generateLog) {
+            const result = await window.AeriomDice.roll({ 
+                quantity: 1, 
+                sides: 20, 
+                modifier: currentRequestAttrValue, 
+                label: `Teste de ${currentRequestAttrName}` 
+            });
+            
+            if (window.generateLog) {
                 const sinal = currentRequestAttrValue >= 0 ? '+' : '';
-                window.generateLog(`${charName} respondeu ao teste de ${currentRequestAttrName}: 1d20 (${result.rolls[0]}) ${sinal} ${currentRequestAttrValue} = ${result.total}`, 'roll');
+                window.generateLog(`${charName} respondeu ao teste de ${currentRequestAttrName}: 1d20 (${result.rolls[0]}) ${sinal} ${currentRequestAttrValue} = **${result.total}**`, 'roll');
             }
         }
     });
@@ -575,15 +603,22 @@ document.addEventListener("DOMContentLoaded", async () => {
     document.getElementById("closeCharacterStateModal")?.addEventListener("click", () => document.getElementById("characterStateModal").classList.remove('active'));
     document.getElementById("closeCreateSecretModal")?.addEventListener("click", () => document.getElementById("createSecretModal").classList.remove('active'));
 
+    // Rolagens Públicas do Mestre (No Painel de Ferramentas)
     document.querySelectorAll('.master-dice-btn').forEach(btn => {
         btn.addEventListener('click', async () => {
             const sides = parseInt(btn.getAttribute('data-dice'));
             if (window.AeriomDice) {
-                const result = await window.AeriomDice.roll({ quantity: 1, sides: sides, modifier: 0, label: `Rolagem Pública (1D${sides})` });
-                if(window.generateLog) window.generateLog(`O Mestre rolou 1D${sides}. Resultado: ${result.total}`, 'roll');
+                const result = await window.AeriomDice.roll({ 
+                    quantity: 1, 
+                    sides: sides, 
+                    modifier: 0, 
+                    label: `Rolagem do Mestre (1D${sides})` 
+                });
+                if (window.generateLog) window.generateLog(`O Mestre jogou 1D${sides} no salão. Resultado: **${result.total}**`, 'roll');
             }
         });
     });
 
+    // Iniciar
     init();
 });
