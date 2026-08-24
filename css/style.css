@@ -1,101 +1,108 @@
 /* =========================================================
-   AERIOM — DESIGN SYSTEM E ESTILOS GLOBAIS (CORE)
-   Fase Final: Identidade Visual, Temas e Z-Index Consolidado
+   AERIOM — DESIGN SYSTEM PREMIUM (CORE)
+   Fase 1: Redesign Visual - Dark Fantasy & Mesa Digital
 ========================================================= */
 
-@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;600;700&family=Inter:wght@400;500;600&display=swap');
 
 /* =========================================================
-   1. DESIGN TOKENS (VARIÁVEIS GLOBAIS)
+   1. DESIGN TOKENS E THEME VARIABLES
 ========================================================= */
 :root {
-    /* 1.1 MARCA E LOGO OFICIAL (Problema 6 Resolvido) */
-    --aeriom-logo-url: url("https://i.ibb.co/zYVXyTC/Design-sem-nome-20260823-184618-0000.png");
+    /* LOGO OFICIAL */
+    --aeriom-logo-url: url("https://i.ibb.co/Cfd1zhc/52befe11-27fa-490b-a434-8afa6fd3f5c1-20260823-192033-0000.png");
 
-    /* 1.2 CORES SEMÂNTICAS (Dark Fantasy) */
-    --color-bg: #09090b;                 /* Obsidiana / Fundo Base */
-    --color-bg-secondary: #0f0f13;       
-    --color-surface: rgba(24, 24, 27, 0.85); 
-    --color-surface-raised: #1c1c21;     
-    --color-surface-hover: #27272a;      
+    /* CORES BASE (CARVÃO E PEDRA) */
+    --color-bg: #0B0A0C;                 
+    --color-bg-secondary: #121114;       
+    --color-surface: rgba(24, 23, 27, 0.85); 
+    --color-surface-raised: #1E1D22;     
+    --color-surface-hover: #26252B;      
     
-    --color-primary: #d4af37;            /* Dourado Envelhecido / Bronze */
-    --color-primary-hover: #f1cf5b;      
-    --color-primary-muted: rgba(212, 175, 55, 0.15); 
+    /* DESTAQUES (DOURADO E ÂMBAR) */
+    --color-primary: #D4AF37;            
+    --color-primary-hover: #F1CF5B;      
+    --color-primary-muted: rgba(212, 175, 55, 0.12); 
+    --color-accent: #D97706;             
     
-    --color-accent: #f26b1d;             /* Laranja Fogo */
+    /* TIPOGRAFIA E TEXTOS */
+    --color-text: #E5E5E5;               
+    --color-text-muted: #A19F9D;         
+    --color-text-disabled: #5A5856;      
     
-    --color-text: #f4f4f5;               
-    --color-text-muted: #a1a1aa;         
-    --color-text-disabled: #52525b;      
-    
-    --color-border: rgba(255, 255, 255, 0.08);
-    --color-border-strong: rgba(255, 255, 255, 0.15);
+    /* BORDAS (PROFUNDIDADE SUTIL) */
+    --color-border: rgba(255, 255, 255, 0.06);
+    --color-border-strong: rgba(212, 175, 55, 0.15); /* Reflexo dourado nas bordas principais */
     --color-border-focus: var(--color-primary);
 
-    --color-danger: #ef4444;             
-    --color-danger-muted: rgba(239, 68, 68, 0.15);
-    --color-success: #22c55e;            
-    --color-success-muted: rgba(34, 197, 94, 0.15);
-    --color-warning: #f59e0b;
-    --color-mana: #3b82f6;               
+    /* STATUS (CORES FECHADAS PARA FANTASIA) */
+    --color-danger: #9F1239;             
+    --color-danger-muted: rgba(159, 18, 57, 0.15);
+    --color-success: #166534;            
+    --color-success-muted: rgba(22, 101, 52, 0.15);
+    --color-warning: #B45309;
+    --color-mana: #0369A1;               
 
-    /* 1.3 ARQUITETURA DE TEMAS E BACKGROUNDS (Problema 8 Resolvido) */
-    /* Permite que o tema base e a imagem da mesa virtual operem de forma independente */
-    --theme-background-image: none;
-    --campaign-background-image: none;
-
-    /* 1.4 ALIASES LEGADOS E DE RETROCOMPATIBILIDADE */
-    /* Mantidos para garantir que componentes antigos não quebrem visualmente */
-    --bg-obsidian: var(--color-bg);
-    --bg-charcoal: var(--color-surface);
-    --bg-elevated: var(--color-surface-raised);
-    --gold-primary: var(--color-primary);
-    --gold-hover: var(--color-primary-hover);
-    --border-light: var(--color-border);
+    /* VARIÁVEIS DE TEMA (HERANÇA PARA A VTT) */
+    --theme-primary: var(--color-primary);
+    --theme-accent: var(--color-accent);
     --theme-bg: var(--color-bg);
     --theme-surface: var(--color-surface);
-    --theme-surface-elevated: var(--color-surface-raised);
-    --theme-surface-interactive: var(--color-surface-hover);
-    --theme-primary: var(--color-primary);
-    --theme-primary-hover: var(--color-primary-hover);
-    --theme-primary-soft: var(--color-primary-muted);
+    --theme-surface-raised: var(--color-surface-raised);
+    --theme-surface-hover: var(--color-surface-hover);
     --theme-border: var(--color-border);
     --theme-border-strong: var(--color-border-strong);
+    --theme-text: var(--color-text);
+    --theme-muted: var(--color-text-muted);
+    
+    /* ATMOSFERA / BACKGROUND GLOBAL */
+    --theme-background-image: none;
+    --theme-overlay: rgba(11, 10, 12, 0.85);
 
-    /* 1.5 TIPOGRAFIA */
+    /* TIPOGRAFIA GLOBAL */
     --font-heading: 'Cinzel', serif;     
     --font-ui: 'Inter', sans-serif;      
 
-    /* 1.6 GEOMETRIA E BORDAS */
+    /* BORDER RADIUS (SOPHISTICATED, NOT ROUNDED) */
     --radius-sm: 4px;
     --radius-md: 8px;
-    --radius-lg: 16px;
+    --radius-lg: 12px;
     --radius-full: 9999px;
     
-    /* 1.7 SOMBRAS E PROFUNDIDADE */
-    --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.4);
-    --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.6);
-    --shadow-lg: 0 16px 40px rgba(0, 0, 0, 0.8);
-    --shadow-glow: 0 0 15px var(--color-primary-muted);
+    /* SOMBRAS (PROFUNDIDADE REALISTA) */
+    --shadow-sm: 0 2px 6px rgba(0, 0, 0, 0.6);
+    --shadow-md: 0 6px 16px rgba(0, 0, 0, 0.8);
+    --shadow-lg: 0 16px 40px rgba(0, 0, 0, 0.95);
+    --shadow-glow: 0 0 12px var(--color-primary-muted);
+    --shadow-inner: inset 0 1px 0 rgba(255, 255, 255, 0.05); /* Highlight superior para imitar luz em material */
     
-    /* 1.8 ESPAÇAMENTOS */
-    --space-xs: 4px;  
-    --space-sm: 8px;   
-    --space-md: 16px;     
-    --space-lg: 32px;   
-    --space-xl: 64px;   
+    /* ESCALA RÍGIDA DE ESPAÇAMENTO */
+    --space-4: 4px;  
+    --space-8: 8px;   
+    --space-12: 12px;     
+    --space-16: 16px;   
+    --space-24: 24px;   
+    --space-32: 32px;
+    --space-48: 48px;
 
-    /* 1.9 Z-INDEX ARQUITETURAL BLINDADO */
+    /* Aliases de retrocompatibilidade (até refatorarmos os HTMLs) */
+    --space-xs: var(--space-4);
+    --space-sm: var(--space-8);
+    --space-md: var(--space-16);
+    --space-lg: var(--space-24);
+    --space-xl: var(--space-48);
+
+    /* Z-INDEX ARQUITETURAL */
     --z-background: 0;
     --z-content: 10;
     --z-header: 50;
+    --z-bottom-nav: 60;
     --z-overlay: 900;
     --z-sidebar: 1000;
     --z-modal: 1100;
     --z-toast: 1200;
 
-    /* 1.10 TRANSIÇÕES */
+    /* TRANSIÇÕES ELEGANTES */
     --transition-fast: 0.15s ease-out;
     --transition-smooth: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
@@ -125,44 +132,44 @@ body {
     flex-direction: column;
     overflow-x: hidden;
     background-color: var(--color-bg);
-    
-    /* O background da VTT sobrepõe o background do Tema, se presente. Senão, fica limpo. */
-    background-image: var(--campaign-background-image, var(--theme-background-image, none));
+    background-image: var(--theme-background-image);
     background-position: center;
     background-size: cover;
     background-attachment: fixed;
     background-repeat: no-repeat;
+    position: relative;
 }
 
-/* Overlay sutil para garantir leitura imersiva sobre imagens de fundo */
+/* Atmosfera base para o site inteiro (quando há imagem global) */
 body::before {
     content: '';
     position: fixed;
     inset: 0;
-    background: rgba(9, 9, 11, 0.65); 
+    background: var(--theme-overlay); 
     z-index: var(--z-background);
     pointer-events: none;
 }
 
 /* =========================================================
-   3. TIPOGRAFIA GERAL
+   3. TIPOGRAFIA HIERÁRQUICA (EDITORIAL)
 ========================================================= */
 h1, h2, h3, h4, h5, h6 {
     font-family: var(--font-heading);
-    font-weight: 600;
     color: var(--color-text);
-    line-height: 1.2;
-    letter-spacing: 0.02em;
+    line-height: 1.25;
+    letter-spacing: 0.01em;
+    font-weight: 500; /* Cinzel fica muito bruto com 700. 500 é mais elegante. */
 }
 
-h1 { font-size: 2.5rem; }
-h2 { font-size: 2rem; }
-h3 { font-size: 1.5rem; }
-h4 { font-size: 1.25rem; }
+h1 { font-size: 2.25rem; font-weight: 600; }
+h2 { font-size: 1.75rem; }
+h3 { font-size: 1.25rem; color: var(--color-primary); }
+h4 { font-size: 1rem; }
 
 p {
     line-height: 1.6;
     color: var(--color-text-muted);
+    font-size: 0.95rem;
 }
 
 a {
@@ -181,13 +188,13 @@ a:hover {
 }
 
 /* =========================================================
-   4. LAYOUT GERAL (CONTAINERS)
+   4. LAYOUT PRINCIPAL (CONTAINERS)
 ========================================================= */
 .app-container, .container {
     width: 100%;
-    max-width: 1200px;
+    max-width: 1280px;
     margin: 0 auto;
-    padding: 0 var(--space-lg);
+    padding: 0 var(--space-24);
     position: relative;
     z-index: var(--z-content);
     display: flex;
@@ -196,49 +203,18 @@ a:hover {
 }
 
 /* =========================================================
-   5. COMPONENTES: CARDS
-========================================================= */
-.aeriom-card {
-    background: var(--color-surface);
-    border: 1px solid var(--color-border);
-    border-radius: var(--radius-md);
-    padding: var(--space-lg);
-    box-shadow: var(--shadow-sm);
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
-}
-
-.aeriom-card-interactive {
-    background: linear-gradient(145deg, var(--color-surface-raised), var(--color-surface));
-    border: 1px solid var(--color-border-strong);
-    border-radius: var(--radius-md);
-    padding: var(--space-lg);
-    box-shadow: var(--shadow-md);
-    transition: transform var(--transition-fast), box-shadow var(--transition-fast), border-color var(--transition-fast);
-    cursor: pointer;
-}
-
-.aeriom-card-interactive:hover {
-    transform: translateY(-4px);
-    box-shadow: var(--shadow-lg), var(--shadow-glow);
-    border-color: var(--color-primary-muted);
-}
-
-/* =========================================================
-   6. COMPONENTES: BOTÕES
+   5. BOTÕES (PRIMARY, SECONDARY, GHOST)
 ========================================================= */
 .btn {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    gap: var(--space-sm);
-    padding: 0.75rem 1.5rem;
+    gap: var(--space-8);
+    padding: var(--space-12) var(--space-24);
     border-radius: var(--radius-sm);
     font-family: var(--font-ui);
-    font-size: 0.875rem;
-    font-weight: 600;
-    letter-spacing: 0.05em;
-    text-transform: uppercase;
+    font-size: 0.9rem;
+    font-weight: 500;
     border: none;
     background: transparent;
     color: var(--color-text);
@@ -246,29 +222,33 @@ a:hover {
     transition: all var(--transition-fast);
     user-select: none;
     position: relative;
-    overflow: hidden;
+    min-height: 44px; /* Touch target acessível */
+    text-decoration: none;
 }
 
-.btn:active:not(:disabled) { transform: scale(0.97); }
-.btn:disabled { opacity: 0.5; cursor: not-allowed; filter: grayscale(100%); }
+.btn:active:not(:disabled) { transform: scale(0.98); }
+.btn:disabled { opacity: 0.4; cursor: not-allowed; filter: grayscale(100%); }
 
+/* Primary: Dourado, texto escuro. Aparência de ferramenta principal. */
 .btn-primary {
     background: var(--color-primary);
-    color: var(--color-bg);
+    color: #000;
     border: 1px solid var(--color-primary);
-    box-shadow: var(--shadow-sm);
+    box-shadow: var(--shadow-sm), inset 0 1px 0 rgba(255, 255, 255, 0.4);
+    font-weight: 600;
 }
 
 .btn-primary:hover:not(:disabled) {
     background: var(--color-primary-hover);
-    border-color: var(--color-primary-hover);
-    box-shadow: var(--shadow-glow);
+    box-shadow: var(--shadow-md), var(--shadow-glow);
 }
 
+/* Secondary: Material escuro com borda metálica/dourada sutil */
 .btn-secondary {
     background: var(--color-surface-raised);
     color: var(--color-text);
     border: 1px solid var(--color-border-strong);
+    box-shadow: var(--shadow-sm);
 }
 
 .btn-secondary:hover:not(:disabled) {
@@ -277,17 +257,28 @@ a:hover {
     color: var(--color-primary);
 }
 
+/* Ghost: Sem fundo, sutil */
+.btn-ghost {
+    background: transparent;
+    color: var(--color-text-muted);
+}
+
+.btn-ghost:hover:not(:disabled) {
+    background: rgba(255, 255, 255, 0.05);
+    color: var(--color-text);
+}
+
+/* Danger */
 .btn-danger {
     background: var(--color-danger-muted);
-    color: var(--color-danger);
-    border: 1px solid rgba(239, 68, 68, 0.3);
+    color: #fecdd3; /* vermelho bem claro */
+    border: 1px solid var(--color-danger);
 }
 
 .btn-danger:hover:not(:disabled) {
     background: var(--color-danger);
     color: #fff;
-    border-color: var(--color-danger);
-    box-shadow: 0 0 15px var(--color-danger-muted);
+    box-shadow: 0 0 12px var(--color-danger-muted);
 }
 
 .btn-icon {
@@ -297,30 +288,60 @@ a:hover {
     border-radius: var(--radius-sm);
     display: grid;
     place-items: center;
-    background: var(--color-surface);
-    border: 1px solid var(--color-border);
+    background: transparent;
+    border: 1px solid transparent;
     color: var(--color-text-muted);
     font-size: 1.25rem;
+    transition: all var(--transition-fast);
 }
 
 .btn-icon:hover:not(:disabled) {
     background: var(--color-surface-hover);
     color: var(--color-primary);
-    border-color: var(--color-primary-muted);
 }
 
-.btn-sm { padding: 0.5rem 1rem; font-size: 0.75rem; }
-.btn-lg { padding: 1rem 2rem; font-size: 1rem; }
+.btn-sm { padding: var(--space-8) var(--space-16); font-size: 0.8rem; min-height: 36px; }
+.btn-lg { padding: var(--space-16) var(--space-32); font-size: 1.05rem; min-height: 52px; }
 .w-full { width: 100%; }
 
 /* =========================================================
-   7. COMPONENTES: FORMULÁRIOS E INPUTS
+   6. CARDS & PAINÉIS (Materiais Físicos Virtuais)
+========================================================= */
+.aeriom-card {
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    padding: var(--space-24);
+    box-shadow: var(--shadow-md), var(--shadow-inner);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+}
+
+.aeriom-card-interactive {
+    background: linear-gradient(160deg, var(--color-surface-raised), var(--color-surface));
+    border: 1px solid var(--color-border-strong);
+    border-radius: var(--radius-md);
+    padding: var(--space-24);
+    box-shadow: var(--shadow-md), var(--shadow-inner);
+    transition: transform var(--transition-fast), box-shadow var(--transition-fast), border-color var(--transition-fast);
+    cursor: pointer;
+    position: relative;
+}
+
+.aeriom-card-interactive:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-lg), var(--shadow-glow);
+    border-color: var(--color-primary-muted);
+}
+
+/* =========================================================
+   7. FORMULÁRIOS E INPUTS
 ========================================================= */
 .form-group {
     display: flex;
     flex-direction: column;
-    gap: var(--space-xs);
-    margin-bottom: var(--space-md);
+    gap: var(--space-8);
+    margin-bottom: var(--space-16);
 }
 
 .form-label {
@@ -333,15 +354,16 @@ a:hover {
 
 .form-input, .form-select, .form-textarea {
     width: 100%;
-    padding: 0.75rem 1rem;
+    padding: var(--space-12) var(--space-16);
     background: rgba(0, 0, 0, 0.4);
-    border: 1px solid var(--color-border-strong);
+    border: 1px solid var(--color-border);
     border-radius: var(--radius-sm);
     color: var(--color-text);
     font-family: var(--font-ui);
     font-size: 0.95rem;
     transition: all var(--transition-fast);
     outline: none;
+    box-shadow: inset 0 2px 4px rgba(0,0,0,0.5); /* Imita baixo-relevo */
 }
 
 .form-textarea {
@@ -355,13 +377,13 @@ a:hover {
 }
 
 .form-input:hover, .form-select:hover, .form-textarea:hover {
-    border-color: rgba(255, 255, 255, 0.25);
+    border-color: rgba(255, 255, 255, 0.15);
 }
 
 .form-input:focus, .form-select:focus, .form-textarea:focus {
     border-color: var(--color-border-focus);
     background: rgba(0, 0, 0, 0.6);
-    box-shadow: 0 0 0 2px var(--color-primary-muted);
+    box-shadow: inset 0 2px 4px rgba(0,0,0,0.5), 0 0 0 1px var(--color-primary-muted);
 }
 
 .form-input:disabled, .form-select:disabled, .form-textarea:disabled {
@@ -371,44 +393,50 @@ a:hover {
 }
 
 /* =========================================================
-   8. NAVEGAÇÃO E HEADER
+   8. HEADER (APLICAÇÃO GLOBAL)
 ========================================================= */
 .topbar {
     position: sticky;
     top: 0;
     z-index: var(--z-header);
     background: var(--color-surface);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
     border-bottom: 1px solid var(--color-border);
+    box-shadow: var(--shadow-sm);
 }
 
 .topbar-content {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    height: 4.5rem;
+    height: 4rem; /* Mais enxuto */
 }
 
-/* Logo Global Configurada para beber diretamente da variável CSS */
+/* LOGO OFFICIAL RESPONSIVA E SEM DISTORÇÃO */
 .logo, .brand-logo {
     display: block;
-    height: 40px;
+    height: 32px; /* Proporção elegante e contida */
     width: 140px; 
     background-image: var(--aeriom-logo-url);
     background-size: contain;
-    background-position: center left;
+    background-position: left center;
     background-repeat: no-repeat;
-    filter: drop-shadow(0 0 8px var(--color-primary-muted));
+    filter: drop-shadow(0 2px 4px rgba(0,0,0,0.8));
+    transition: opacity var(--transition-fast);
+}
+
+.brand-logo:hover {
+    opacity: 0.85;
 }
 
 /* =========================================================
-   9. SIDEBAR GLOBAL E OVERLAY
+   9. SIDEBAR GLOBAL (Navegação fora da Mesa)
 ========================================================= */
-.global-overlay, .sidebar-overlay {
+.global-overlay {
     position: fixed;
     inset: 0;
-    background: rgba(0, 0, 0, 0.75);
+    background: rgba(0, 0, 0, 0.8);
     backdrop-filter: blur(4px);
     -webkit-backdrop-filter: blur(4px);
     z-index: var(--z-overlay);
@@ -417,17 +445,17 @@ a:hover {
     transition: all var(--transition-smooth);
 }
 
-.global-overlay.active, .sidebar-overlay.active {
+.global-overlay.active {
     opacity: 1;
     visibility: visible;
 }
 
-.global-sidebar, .sidebar {
+.global-sidebar {
     position: fixed;
     top: 0;
     left: -320px;
     width: 300px;
-    height: 100vh;
+    height: 100dvh;
     background: var(--color-surface-raised);
     border-right: 1px solid var(--color-border-strong);
     z-index: var(--z-sidebar);
@@ -437,12 +465,12 @@ a:hover {
     box-shadow: var(--shadow-lg);
 }
 
-.global-sidebar.active, .sidebar.active {
+.global-sidebar.active {
     transform: translateX(320px);
 }
 
 .sidebar-header {
-    padding: var(--space-md) var(--space-lg);
+    padding: var(--space-16) var(--space-24);
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -452,7 +480,7 @@ a:hover {
 .sidebar-nav {
     flex: 1;
     overflow-y: auto;
-    padding: var(--space-md) 0;
+    padding: var(--space-16) 0;
 }
 
 .sidebar-category {
@@ -460,19 +488,20 @@ a:hover {
     color: var(--color-text-disabled);
     text-transform: uppercase;
     letter-spacing: 0.1em;
-    margin: var(--space-lg) var(--space-lg) var(--space-sm);
+    margin: var(--space-24) var(--space-24) var(--space-8);
     font-weight: 600;
 }
 
 .sidebar-link {
     display: flex;
     align-items: center;
-    gap: var(--space-md);
-    padding: 0.75rem var(--space-lg);
+    gap: var(--space-16);
+    padding: var(--space-12) var(--space-24);
     color: var(--color-text-muted);
     font-size: 0.95rem;
     font-weight: 500;
-    border-left: 3px solid transparent;
+    border-left: 2px solid transparent;
+    transition: all var(--transition-fast);
 }
 
 .sidebar-link:hover {
@@ -480,9 +509,9 @@ a:hover {
     background: var(--color-surface-hover);
 }
 
-.sidebar-link.active, .sidebar-link.current {
+.sidebar-link.active {
     color: var(--color-primary);
-    background: var(--color-primary-muted);
+    background: linear-gradient(90deg, var(--color-primary-muted) 0%, transparent 100%);
     border-left-color: var(--color-primary);
 }
 
@@ -490,6 +519,11 @@ a:hover {
     font-size: 1.25rem;
     width: 24px;
     text-align: center;
+    opacity: 0.8;
+}
+
+.sidebar-link.active .sidebar-icon {
+    opacity: 1;
 }
 
 /* =========================================================
@@ -499,19 +533,19 @@ a:hover {
     position: fixed;
     inset: 0;
     background: rgba(0, 0, 0, 0.85);
-    backdrop-filter: blur(6px);
-    -webkit-backdrop-filter: blur(6px);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
     z-index: var(--z-modal);
     display: none; 
     align-items: center;
     justify-content: center;
-    padding: var(--space-md);
+    padding: var(--space-16);
     opacity: 0;
     visibility: hidden;
     transition: opacity var(--transition-fast);
 }
 
-.modal-backdrop.active, .modal-backdrop.open {
+.modal-backdrop.active {
     display: flex;
     opacity: 1;
     visibility: visible;
@@ -522,31 +556,30 @@ a:hover {
     border: 1px solid var(--color-border-strong);
     border-radius: var(--radius-md);
     width: 100%;
-    max-width: 480px;
-    padding: var(--space-xl);
+    max-width: 520px; /* Pouco mais largo e confortável */
+    padding: var(--space-32);
     position: relative;
-    box-shadow: var(--shadow-lg), inset 0 1px 0 rgba(255,255,255,0.05);
-    transform: translateY(20px) scale(0.95);
+    box-shadow: var(--shadow-lg), var(--shadow-inner);
+    transform: translateY(10px) scale(0.98);
     transition: transform var(--transition-smooth);
     max-height: 90vh;
     overflow-y: auto;
 }
 
-.modal-backdrop.active .modal-surface, .modal-backdrop.open .modal-surface {
+.modal-backdrop.active .modal-surface {
     transform: translateY(0) scale(1);
 }
 
 .modal-close {
     position: absolute;
-    top: 1rem;
-    right: 1rem;
-    width: 32px;
-    height: 32px;
+    top: var(--space-12);
+    right: var(--space-12);
+    width: 36px;
+    height: 36px;
     background: transparent;
     border: none;
     color: var(--color-text-muted);
     font-size: 1.5rem;
-    line-height: 1;
     cursor: pointer;
     border-radius: var(--radius-sm);
     display: grid;
@@ -561,21 +594,21 @@ a:hover {
 
 .modal-header {
     text-align: center;
-    margin-bottom: var(--space-xl);
+    margin-bottom: var(--space-24);
 }
 
 .modal-header h2 {
     color: var(--color-primary);
-    margin-bottom: var(--space-xs);
+    margin-bottom: var(--space-4);
 }
 
 /* =========================================================
    11. FEEDBACK VISUAL (TOASTS E ALERTAS)
 ========================================================= */
 .msg-box {
-    padding: var(--space-md);
+    padding: var(--space-12) var(--space-16);
     border-radius: var(--radius-sm);
-    font-size: 0.875rem;
+    font-size: 0.9rem;
     text-align: center;
     font-weight: 500;
     display: none;
@@ -583,6 +616,7 @@ a:hover {
     justify-content: center;
     animation: fadeIn var(--transition-fast) forwards;
     z-index: var(--z-toast);
+    box-shadow: var(--shadow-md);
 }
 
 .msg-box.active {
@@ -591,14 +625,14 @@ a:hover {
 
 .msg-error {
     background: var(--color-danger-muted);
-    color: var(--color-danger);
-    border: 1px solid rgba(239, 68, 68, 0.4);
+    color: #fecdd3;
+    border: 1px solid var(--color-danger);
 }
 
 .msg-success {
     background: var(--color-success-muted);
-    color: var(--color-success);
-    border: 1px solid rgba(34, 197, 94, 0.4);
+    color: #bbf7d0;
+    border: 1px solid var(--color-success);
 }
 
 @keyframes fadeIn {
@@ -616,12 +650,12 @@ a:hover {
 .text-primary { color: var(--color-primary); }
 .text-danger { color: var(--color-danger); }
 .m-0 { margin: 0; }
-.mt-2 { margin-top: var(--space-sm); }
-.mt-4 { margin-top: var(--space-md); }
-.mb-2 { margin-bottom: var(--space-sm); }
-.mb-4 { margin-bottom: var(--space-md); }
-.gap-2 { gap: var(--space-sm); }
-.gap-4 { gap: var(--space-md); }
+.mt-2 { margin-top: var(--space-8); }
+.mt-4 { margin-top: var(--space-16); }
+.mb-2 { margin-bottom: var(--space-8); }
+.mb-4 { margin-bottom: var(--space-16); }
+.gap-2 { gap: var(--space-8); }
+.gap-4 { gap: var(--space-16); }
 .flex { display: flex; }
 .flex-1 { flex: 1; }
 .flex-col { flex-direction: column; }
@@ -629,20 +663,25 @@ a:hover {
 .justify-between { justify-content: space-between; }
 .justify-center { justify-content: center; }
 
-::-webkit-scrollbar { width: 6px; height: 6px; }
-::-webkit-scrollbar-track { background: var(--color-bg); }
+::-webkit-scrollbar { width: 8px; height: 8px; }
+::-webkit-scrollbar-track { background: var(--color-bg); border-left: 1px solid var(--color-border); }
 ::-webkit-scrollbar-thumb { background: var(--color-border-strong); border-radius: var(--radius-full); }
 ::-webkit-scrollbar-thumb:hover { background: var(--color-primary-muted); }
 
+/* MOBILE AJUSTES GERAIS */
 @media (max-width: 768px) {
-    h1 { font-size: 2rem; }
+    h1 { font-size: 1.75rem; }
     h2 { font-size: 1.5rem; }
-    .app-container, .container { padding: 0 var(--space-md); }
-    .btn { padding: 0.75rem 1rem; }
-    .topbar-content { height: 4rem; }
+    h3 { font-size: 1.15rem; }
     
-    /* Logo adaptativa para Mobile */
+    .app-container, .container { padding: 0 var(--space-16); }
+    
+    .btn { width: 100%; justify-content: center; } /* Botões expandem em mobile para touch */
+    
+    .topbar-content { height: 3.5rem; }
+    
     .logo, .brand-logo { 
         width: 120px; 
+        background-position: center; /* Centraliza no mobile se necessário */
     }
 }
