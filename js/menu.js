@@ -1,14 +1,14 @@
 /* =========================================================
    AERIOM — MENU GLOBAL (js/menu.js)
-   Correção de Integração: Z-Index, Overlay, Lock Scroll e Links Ativos
+   Fase 2: Correção de Z-Index, Overlay e Links Ativos
 ========================================================= */
 document.addEventListener("DOMContentLoaded", () => {
     "use strict";
 
-    // Previne a criação duplicada do menu caso o script seja chamado mais de uma vez
+    // Previne a criação duplicada do menu
     if (document.getElementById("aeriomGlobalSidebar")) return;
 
-    // Identifica a página atual para destacar o link ativo de forma automática
+    // Identifica a página atual
     const currentPage = window.location.pathname.split('/').pop() || 'index.html';
 
     // =========================================================
@@ -22,10 +22,9 @@ document.addEventListener("DOMContentLoaded", () => {
     sidebar.className = 'global-sidebar';
     sidebar.id = 'aeriomGlobalSidebar';
 
-    // A estrutura do menu é puramente estática e de navegação (seguro usar innerHTML aqui)
     sidebar.innerHTML = `
         <div class="sidebar-header">
-            <h2>Aeriom</h2>
+            <h2 style="font-family: var(--font-heading); color: var(--color-primary); margin: 0;">Aeriom</h2>
             <button class="modal-close" id="closeSidebarBtn" title="Fechar Menu">×</button>
         </div>
         <nav class="sidebar-nav">
@@ -51,41 +50,38 @@ document.addEventListener("DOMContentLoaded", () => {
         </nav>
     `;
 
-    // A ordem de injeção no DOM garante o comportamento estrutural
     document.body.appendChild(overlay);
     document.body.appendChild(sidebar);
 
     // =========================================================
-    // 2. SELEÇÃO DE ELEMENTOS INTERNOS E EVENTOS
+    // 2. CONTROLES E EVENTOS
     // =========================================================
     const closeBtn = document.getElementById("closeSidebarBtn");
-    const openBtn = document.getElementById("menuButton"); // Botão localizado na topbar do HTML
+    const openBtn = document.getElementById("menuButton");
 
     function openMenu() {
         sidebar.classList.add('active');
         overlay.classList.add('active');
-        document.body.style.overflow = 'hidden'; // Bloqueia o scroll do fundo no mobile/desktop
+        document.body.style.overflow = 'hidden'; 
     }
 
     function closeMenu() {
         sidebar.classList.remove('active');
         overlay.classList.remove('active');
-        document.body.style.overflow = ''; // Restaura o scroll do fundo
+        document.body.style.overflow = ''; 
     }
 
-    // Liga os Eventos
     if (openBtn) {
         openBtn.addEventListener("click", openMenu);
     } else {
-        console.warn("Aviso Aeriom: Botão '#menuButton' não encontrado no DOM desta página.");
+        console.warn("Aviso Aeriom: Botão '#menuButton' não encontrado nesta página.");
     }
 
     closeBtn?.addEventListener("click", closeMenu);
     
-    // O clique fora do menu (no overlay) fecha a navegação, respeitando a nova hierarquia do z-index
+    // O clique no overlay (que agora tem z-index inferior ao sidebar) fecha o menu
     overlay.addEventListener("click", closeMenu);
 
-    // Fechamento via Teclado (Acessibilidade)
     document.addEventListener("keydown", (e) => {
         if (e.key === "Escape" && sidebar.classList.contains('active')) {
             closeMenu();
