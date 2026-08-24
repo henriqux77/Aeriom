@@ -3,13 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Aeriom — Minhas Fichas</title>
-    <!-- Carrega os estilos globais do Design System -->
+    <title>Aeriom — Fichas de Herói</title>
+    <!-- Estilos globais do Design System -->
     <link rel="stylesheet" href="css/style.css">
-    <!-- Inicia o gerenciador de temas imediatamente para evitar FOUC -->
+    <!-- Gerenciador de temas (FOUC prevention) -->
     <script src="js/theme.js"></script>
-    
-    </head>
+</head>
 <body>
 
     <!-- =========================================================
@@ -17,131 +16,108 @@
     ========================================================= -->
     <header class="topbar">
         <div class="app-container topbar-content">
-            <button class="btn-icon" id="menuButton" aria-label="Abrir menu">
-                ☰
-            </button>
-            
-            <a href="index.html" class="brand-logo">
-                <img src="https://i.ibb.co/d0SnBLcV/Design-sem-nome-20260817-180846-0000.jpg" alt="Aeriom">
-            </a>
-            
+            <button class="btn-icon" id="menuButton" aria-label="Abrir menu">☰</button>
+            <a href="index.html" class="brand-logo" aria-label="Aeriom Home"></a>
             <div style="display: flex; gap: 8px;">
-                <button class="btn-icon" id="openCommandBarBtn" title="Ações Rápidas (Ctrl+K)">
-                    ⌘
-                </button>
-                <button class="btn-icon" id="profileButton" aria-label="Abrir Perfil">
-                    ♙
-                </button>
+                <button class="btn-icon" id="openCommandBarBtn" title="Ações Rápidas (Ctrl+K)">⌘</button>
+                <button class="btn-icon" id="profileButton" aria-label="Abrir Perfil">♙</button>
             </div>
         </div>
     </header>
 
     <!-- =========================================================
-         CONTEÚDO PRINCIPAL
+         MAIN CONTENT: LISTA DE FICHAS
     ========================================================= -->
-    <main class="app-container" style="padding-top: 3rem; padding-bottom: 3rem; flex: 1;">
+    <main class="app-container" style="padding-top: 2rem; padding-bottom: 5rem;">
         
-        <!-- Cabeçalho da Página -->
-        <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 2rem; flex-wrap: wrap; gap: 1rem; border-bottom: 1px solid var(--theme-border); padding-bottom: 1.5rem;">
+        <!-- HEADER DA PÁGINA -->
+        <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: var(--space-lg); flex-wrap: wrap; gap: var(--space-md);">
             <div>
-                <h1 style="font-size: 2.2rem; margin-bottom: 0.5rem; color: var(--theme-primary);">Minhas Fichas</h1>
-                <p style="color: var(--text-secondary); font-size: 1rem;">Visualize, edite e crie novos heróis para as suas aventuras.</p>
+                <h1 style="color: var(--color-primary); margin-bottom: var(--space-xs);">Salão dos Heróis</h1>
+                <p class="text-muted">A sua coleção de aventureiros e lendas vivas.</p>
             </div>
-            <button id="createCharacterButton" class="btn btn-primary" onclick="window.location.href='ficha.html'">
-                + Nova Ficha
-            </button>
+            <button id="createCharacterBtn" class="btn btn-primary">+ Forjar Novo Herói</button>
         </div>
 
-        <!-- Mensagens de Erro/Aviso -->
+        <!-- MENSAGENS GLOBAIS DESTA TELA -->
         <div id="charactersMessage" class="msg-box mb-4"></div>
 
-        <!-- Grid de Personagens (Onde fichas.js vai injetar os cards) -->
-        <div id="charactersList" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1.5rem;">
-            
-            <!-- Estado de Carregamento Inicial -->
-            <div style="grid-column: 1/-1; text-align: center; padding: 4rem 1rem; color: var(--text-muted); background: var(--theme-surface); border: 1px solid var(--theme-border); border-radius: var(--radius-md);">
-                <div style="width: 48px; height: 48px; border: 3px solid var(--theme-border); border-top-color: var(--theme-primary); border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto 1rem;"></div>
-                <p style="font-family: var(--font-heading); font-size: 1.2rem; color: var(--text-primary);">Convocando seus heróis...</p>
-                <p style="font-size: 0.85rem;">Acessando os registros de Aeriom.</p>
-            </div>
-
+        <!-- =========================================================
+             ESTADOS DA PÁGINA (Arquitetura Consistente)
+        ========================================================= -->
+        
+        <!-- ESTADO 1: LOADING -->
+        <div id="loadingCharacters" class="placeholder-panel text-center" style="padding: var(--space-xl);">
+            <div class="placeholder-icon" style="font-size: 3rem; margin-bottom: var(--space-md); animation: pulse 1.5s infinite opacity;">⏳</div>
+            <h3 style="color: var(--color-primary); margin-bottom: 8px;">A consultar os tomos...</h3>
+            <p class="text-muted">A procurar os seus heróis nos registos de Aeriom.</p>
         </div>
+
+        <!-- ESTADO 2: VAZIO (EMPTY STATE) -->
+        <div id="emptyCharacters" class="placeholder-panel text-center" style="display: none; padding: var(--space-xl);">
+            <div class="placeholder-icon" style="font-size: 3rem; margin-bottom: var(--space-md);">📜</div>
+            <h3 style="color: var(--color-primary); margin-bottom: 8px;">Nenhuma Lenda Escrita</h3>
+            <p class="text-muted">Ainda não forjou nenhum aventureiro.</p>
+            <button class="btn btn-secondary mt-4" id="createFirstCharacterBtn">Forjar o Primeiro Herói</button>
+        </div>
+
+        <!-- ESTADO 3: LISTA PREENCHIDA -->
+        <div id="charactersList" style="display: none; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: var(--space-lg);">
+            <!-- Os cards das fichas serão injetados aqui via JS -->
+        </div>
+
     </main>
 
     <!-- =========================================================
          MODAIS GLOBAIS
     ========================================================= -->
-    
-    <!-- COMMAND BAR (PESQUISA RÁPIDA / CTRL+K) -->
-    <div id="commandBarModal" class="command-bar-modal">
-        <div class="global-overlay active" id="commandBarOverlay"></div>
-        <div class="command-bar-surface" style="z-index: 10006;">
-            <div class="command-input-wrapper">
+
+    <!-- MODAL: COMMAND BAR (Navegação Rápida) -->
+    <div id="commandBarModal" class="modal-backdrop" style="z-index: 10006; align-items: flex-start; padding-top: 15vh;">
+        <div class="modal-surface" style="padding: 0;">
+            <div style="display: flex; align-items: center; padding: 1.2rem 1.5rem; border-bottom: 1px solid var(--color-border); gap: 12px;">
                 <span>🔍</span>
-                <input type="text" class="command-input" id="commandBarInput" placeholder="O que você quer fazer? (ex: 'Campanha', 'Início')">
-                <div style="font-size: 0.7rem; background: var(--theme-surface-interactive); padding: 4px 8px; border-radius: var(--radius-sm); color: var(--text-muted); font-weight: 600;">ESC</div>
+                <input type="text" class="form-input" style="border:none; background:transparent; box-shadow:none; padding:0;" id="commandBarInput" placeholder="Navegação Rápida (ex: 'Início')">
+                <div style="font-size: 0.7rem; background: var(--color-surface-hover); padding: 4px 8px; border-radius: var(--radius-sm); color: var(--color-text-muted); font-weight: 600;">ESC</div>
             </div>
-            <div class="command-list" id="commandBarList">
-                <a href="index.html" class="command-item">
-                    <span class="command-item-icon">🏠</span> Voltar ao Início
-                </a>
-                <a href="campanhas.html" class="command-item">
-                    <span class="command-item-icon">⚔️</span> Acessar Campanhas
-                </a>
-                <a href="ficha.html" class="command-item">
-                    <span class="command-item-icon">✨</span> Criar Novo Personagem
-                </a>
+            <div style="padding: 0.5rem; max-height: 300px; overflow-y: auto;">
+                <a href="index.html" class="sidebar-link"><span class="sidebar-icon">🏠</span> Voltar ao Início</a>
+                <a href="campanhas.html" class="sidebar-link"><span class="sidebar-icon">🗺️</span> Campanhas</a>
             </div>
         </div>
     </div>
 
-    <!-- PAINEL DE PERFIL -->
+    <!-- MODAL: PERFIL DO UTILIZADOR -->
     <div id="profilePanel" class="modal-backdrop">
         <div class="modal-surface text-center">
             <button id="closeProfile" class="modal-close">×</button>
-            <div style="width: 80px; height: 80px; border-radius: 50%; background: var(--theme-surface-interactive); margin: 0 auto 1.5rem; border: 1px solid var(--theme-border-strong); display: grid; place-items: center; font-size: 2rem; font-family: var(--font-heading); color: var(--theme-primary);">♙</div>
-            <img id="profileAvatar" src="" alt="Avatar" style="display: none; width: 80px; height: 80px; border-radius: 50%; margin: 0 auto 1.5rem; object-fit: cover; border: 1px solid var(--theme-border-strong);">
-            
-            <h2 id="profileName" style="margin-bottom: 0.25rem;">Carregando...</h2>
-            <p id="profileEmail" class="text-secondary mb-4">Aguarde...</p>
-            
-            <div class="form-group">
-                <button id="editProfileButton" class="btn btn-secondary w-full">Editar Perfil</button>
-                <button id="logoutButton" class="btn btn-ghost w-full" style="color: var(--danger); margin-top: 8px;">Sair da Conta</button>
+            <div style="width: 80px; height: 80px; border-radius: 50%; background: var(--color-surface-hover); margin: 0 auto 1.5rem; border: 1px solid var(--color-border-strong); display: grid; place-items: center; font-size: 2rem; font-family: var(--font-heading); color: var(--color-primary); overflow: hidden;">
+                <img id="profileAvatar" src="" alt="Avatar" style="width: 100%; height: 100%; object-fit: cover; display: none;">
+                <span id="profileFallback">♙</span>
             </div>
-        </div>
-    </div>
-    <!-- MODAL DE CONFIRMAÇÃO DE EXCLUSÃO -->
-    <div id="deleteConfirmModal" class="modal-backdrop">
-        <div class="modal-surface text-center">
-            <div style="font-size: 3rem; margin-bottom: 1rem;">🗡️</div>
-            <h2 style="color: var(--danger); margin-bottom: 0.5rem; font-family: var(--font-heading);">Apagar Personagem?</h2>
-            <p style="color: var(--text-secondary); margin-bottom: 2rem;">A lenda de <strong id="deleteCharName" style="color: var(--text-primary);">...</strong> será apagada dos salões de Aeriom.<br>Esta decisão não poderá ser desfeita.</p>
-            
-            <div style="display: flex; gap: 10px;">
-                <button id="cancelDeleteBtn" class="btn btn-secondary flex-1">Cancelar</button>
-                <button id="confirmDeleteBtn" class="btn btn-danger flex-1">Apagar Herói</button>
+            <h2 id="profileName" style="margin-bottom: 0.25rem;">Carregando...</h2>
+            <p id="profileEmail" class="text-muted mb-4">Aguarde...</p>
+            <div class="form-group mb-0">
+                <button id="logoutButton" class="btn btn-danger w-full mt-2">Sair da Conta</button>
             </div>
         </div>
     </div>
 
     <!-- =========================================================
-         SCRIPTS CORE
+         SCRIPTS
     ========================================================= -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="js/supabase.js"></script>
     <script src="js/auth.js"></script>
-    <script src="js/main.js"></script> <!-- Carrega o controle de perfil e redirecionamentos base -->
-    <script src="js/menu.js"></script> <!-- Injeta a Sidebar dinamicamente -->
+    <script src="js/menu.js"></script>
     
-    <!-- Script Específico desta página (Não alterar, mantém a lógica de listar fichas) -->
+    <!-- Lógica de Fichas (O script blindado e alinhado) -->
     <script src="js/fichas.js"></script>
 
-    <!-- Script Estrutural da Command Bar -->
+    <!-- Script Inline da Command Bar -->
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             const cmdModal = document.getElementById('commandBarModal');
-            const cmdOverlay = document.getElementById('commandBarOverlay');
             const cmdInput = document.getElementById('commandBarInput');
             
             function toggleCommandBar() {
@@ -153,17 +129,16 @@
                     cmdInput.focus();
                 }
             }
-
+            
             document.getElementById('openCommandBarBtn')?.addEventListener('click', toggleCommandBar);
-            cmdOverlay?.addEventListener('click', toggleCommandBar);
             
             document.addEventListener('keydown', (e) => {
-                if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
-                    e.preventDefault();
-                    toggleCommandBar();
+                if ((e.ctrlKey || e.metaKey) && e.key === 'k') { 
+                    e.preventDefault(); 
+                    toggleCommandBar(); 
                 }
-                if (e.key === 'Escape' && cmdModal.classList.contains('active')) {
-                    toggleCommandBar();
+                if (e.key === 'Escape' && cmdModal.classList.contains('active')) { 
+                    toggleCommandBar(); 
                 }
             });
         });
