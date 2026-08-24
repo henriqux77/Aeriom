@@ -1,6 +1,6 @@
 /* =========================================================
    AERIOM — NÚCLEO DA MESA DIGITAL (js/campanha.js)
-   Fase de Refatoração: Temas Realtime e Motor de Dados
+   Fase de Refatoração: Temas Realtime, Motor de Dados e Blindagem
 ========================================================= */
 document.addEventListener("DOMContentLoaded", async () => {
     "use strict";
@@ -62,51 +62,58 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
 
     // =========================================================
-    // 2. INICIALIZAÇÃO E REALTIME (COM SUPORTE A TEMAS)
+    // 2. INICIALIZAÇÃO E BLINDAGEM CONTRA ERROS
     // =========================================================
     async function init() {
         if (!campaignId) { window.location.href = "campanhas.html"; return; }
-        const { data: { session }, error } = await supabase.auth.getSession();
-        if (error || !session) { window.location.href = "index.html"; return; }
-        currentUser = session.user;
-
-        await loadCampaignData();
+        
+        // BLINDAGEM: Activa as Tabs imediatamente. Os botões funcionarão sempre!
         setupTabs();
         setupThemeModal();
-        setupRealtime();
 
-        // Inicializa Módulos Separados (Exceto o morto initSceneSystem)
-        if (window.initTimelineSystem) window.initTimelineSystem(supabase, campaignId);
-        if (window.initCookingSystem) window.initCookingSystem(supabase, campaignId);
-        if (window.initSessionSystem) window.initSessionSystem(supabase, campaignId);
-        if (window.initSecretsSystem) window.initSecretsSystem(supabase, campaignId, currentUser, userRole);
-        if (window.initMapSystem) window.initMapSystem(supabase, campaignId, userRole);
+        try {
+            const { data: { session }, error } = await supabase.auth.getSession();
+            if (error || !session) { window.location.href = "index.html"; return; }
+            currentUser = session.user;
+
+            await loadCampaignData();
+            setupRealtime();
+
+            if (window.initTimelineSystem) window.initTimelineSystem(supabase, campaignId);
+            if (window.initCookingSystem) window.initCookingSystem(supabase, campaignId);
+            if (window.initSessionSystem) window.initSessionSystem(supabase, campaignId);
+            if (window.initSecretsSystem) window.initSecretsSystem(supabase, campaignId, currentUser, userRole);
+            if (window.initMapSystem) window.initMapSystem(supabase, campaignId, userRole);
+        } catch (err) {
+            console.error("[AERIOM] Falha crítica na inicialização da Mesa:", err);
+            if (loadingEl) {
+                loadingEl.innerHTML = `
+                    <div class="placeholder-icon">⚠️</div>
+                    <h3 style="color: var(--color-danger);">A Magia Falhou</h3>
+                    <p class="text-muted">A mesa não pôde ser carregada. Consulte o console para mais detalhes.</p>
+                `;
+            }
+        }
     }
 
     function setupRealtime() {
         supabase.channel('campaign-events')
-            // Ouve as mudanças globais da campanha (Ex: Troca de Tema)
             .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'campaigns', filter: `id=eq.${campaignId}` }, (payload) => {
                 currentCampaign = payload.new;
                 const parsed = parseCampaignTheme(currentCampaign.description);
-                if (window.AeriomThemeManager) {
-                    window.AeriomThemeManager.applyTheme(parsed.themeId, currentCampaign.cover_url);
-                }
+                if (window.AeriomThemeManager) window.AeriomThemeManager.applyTheme(parsed.themeId, currentCampaign.cover_url);
                 if (bannerNameSidebar) bannerNameSidebar.textContent = currentCampaign.name;
                 if (bannerNameMobile) bannerNameMobile.textContent = currentCampaign.name;
                 if (bannerTitleDisplay) bannerTitleDisplay.textContent = currentCampaign.name;
             })
-            // Ouve Logs (Rolagens, Sistema, etc)
             .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'campaign_logs', filter: `campaign_id=eq.${campaignId}` }, async (payload) => {
                 const newLog = payload.new;
                 if (document.getElementById('tab-logs')?.classList.contains('active') && window.loadTimeline) window.loadTimeline(); 
                 if (newLog.log_type === 'request_roll' && userRole !== 'master') showRollRequest(newLog.description);
             })
-            // Ouve Mural
             .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'campaign_mural', filter: `campaign_id=eq.${campaignId}` }, () => {
                 if (document.getElementById('tab-mural')?.classList.contains('active') && window.loadMural) window.loadMural(); 
             })
-            // Ouve Combate
             .on('postgres_changes', { event: '*', schema: 'public', table: 'campaign_combat', filter: `campaign_id=eq.${campaignId}` }, (payload) => {
                 if (payload.eventType === 'DELETE') {
                     combatState = { is_active: false, round_number: 1, turn_index: 0, combatants: [] };
@@ -130,13 +137,11 @@ document.addEventListener("DOMContentLoaded", async () => {
                 tabs.forEach(t => t.classList.remove('active'));
                 tabContents.forEach(c => c.classList.remove('active'));
                 
-                // Ativa tanto o botão clicado quanto seu correspondente mobile/desktop
                 document.querySelectorAll(`[data-tab="${targetId}"]`).forEach(btn => btn.classList.add('active'));
                 
                 const targetContent = document.getElementById(targetId);
                 if(targetContent) targetContent.classList.add('active');
 
-                // Dispara atualizações contextuais
                 if (targetId === 'tab-mural' && window.loadMural) window.loadMural();
                 if (targetId === 'tab-logs' && window.loadTimeline) window.loadTimeline();
                 if (targetId === 'tab-overview') loadCampaignCharacters();
@@ -146,14 +151,16 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
 
     async function loadCampaignData() {
-        const { data: memberData } = await supabase.from('campaign_members').select('role').eq('campaign_id', campaignId).eq('user_id', currentUser.id).maybeSingle();
+        const { data: memberData, error: memberErr } = await supabase.from('campaign_members').select('role').eq('campaign_id', campaignId).eq('user_id', currentUser.id).maybeSingle();
+        if (memberErr) throw memberErr;
         userRole = memberData ? memberData.role : 'player';
 
-        const { data: campData } = await supabase.from('campaigns').select('*').eq('id', campaignId).single();
+        const { data: campData, error: campErr } = await supabase.from('campaigns').select('*').eq('id', campaignId).single();
+        if (campErr) throw campErr;
         currentCampaign = campData;
 
-        loadingEl.style.display = "none";
-        contentEl.style.display = "flex";
+        if (loadingEl) loadingEl.style.display = "none";
+        if (contentEl) contentEl.style.display = "flex";
         
         if (roleLabel) {
             roleLabel.textContent = userRole === 'master' ? 'Mestre da Campanha' : 'Jogador';
@@ -164,25 +171,23 @@ document.addEventListener("DOMContentLoaded", async () => {
         if (bannerNameMobile) bannerNameMobile.textContent = currentCampaign.name;
         if (bannerTitleDisplay) bannerTitleDisplay.textContent = currentCampaign.name;
         
-        // Aplicação Inicial do Tema
         const parsedTheme = parseCampaignTheme(currentCampaign.description);
         if (window.AeriomThemeManager) {
             window.AeriomThemeManager.applyTheme(parsedTheme.themeId, currentCampaign.cover_url);
         }
 
+        const masterThemeBtn = document.getElementById('openMasterThemeMobile');
+
         if (userRole === 'master') {
             if (masterPanel) masterPanel.style.display = 'block';
-            document.querySelectorAll('.master-only').forEach(el => {
-                el.style.display = ''; 
-            });
-            document.getElementById('openMasterThemeMobile').style.display = 'block';
+            document.querySelectorAll('.master-only').forEach(el => el.style.display = '');
+            if (masterThemeBtn) masterThemeBtn.style.display = 'block';
         } else {
             if (masterPanel) masterPanel.style.display = 'none';
-            document.querySelectorAll('.master-only').forEach(el => {
-                el.style.display = 'none';
-            });
-            document.getElementById('openMasterThemeMobile').style.display = 'none';
+            document.querySelectorAll('.master-only').forEach(el => el.style.display = 'none');
+            if (masterThemeBtn) masterThemeBtn.style.display = 'none';
         }
+        
         await loadCampaignCharacters();
     }
 
@@ -197,12 +202,11 @@ document.addEventListener("DOMContentLoaded", async () => {
         document.getElementById("openThemeConfigModalBtn")?.addEventListener('click', openModal);
         document.getElementById("openThemeModalBtn")?.addEventListener('click', openModal);
         document.getElementById("openMasterThemeMobile")?.addEventListener('click', openModal);
-        document.getElementById("closeThemeModalBtn")?.addEventListener('click', () => themeModal.classList.remove('active'));
+        document.getElementById("closeThemeModalBtn")?.addEventListener('click', () => themeModal?.classList.remove('active'));
         
         function openModal() {
-            if (!window.AeriomThemeManager || !currentCampaign) return;
+            if (!window.AeriomThemeManager || !currentCampaign || !themeModal) return;
             
-            // Preencher Select dinamicamente
             themeSelect.innerHTML = '';
             const options = window.AeriomThemeManager.getThemeOptions();
             options.forEach(opt => {
@@ -226,21 +230,16 @@ document.addEventListener("DOMContentLoaded", async () => {
             const parsed = parseCampaignTheme(currentCampaign.description);
             const newDescription = `${parsed.cleanDesc}\n\n=== TEMA ===\nID: ${selectedTheme}`;
 
-            const updateData = {
-                description: newDescription,
-                cover_url: customUrl === "" ? null : customUrl
-            };
-
             const btn = e.target.querySelector('button[type="submit"]');
             const originalText = btn.textContent;
             btn.textContent = "A Transmitir Tema...";
             btn.disabled = true;
 
-            await supabase.from('campaigns').update(updateData).eq('id', campaignId);
+            await supabase.from('campaigns').update({ description: newDescription, cover_url: customUrl === "" ? null : customUrl }).eq('id', campaignId);
             
             btn.textContent = originalText;
             btn.disabled = false;
-            themeModal.classList.remove('active');
+            if (themeModal) themeModal.classList.remove('active');
             
             if(window.generateLog) window.generateLog(`O Mestre alterou a atmosfera da campanha.`, 'system');
         });
@@ -252,8 +251,10 @@ document.addEventListener("DOMContentLoaded", async () => {
     async function loadCampaignCharacters() {
         const list = document.getElementById("campaignCharactersList");
         if (!list) return;
-        const { data } = await supabase.from('campaign_characters').select(`id, user_id, character_id, current_hp, current_mana, conditions, characters(id, name, race, class, avatar_url)`).eq('campaign_id', campaignId);
+        const { data, error } = await supabase.from('campaign_characters').select(`id, user_id, character_id, current_hp, current_mana, conditions, characters(id, name, race, class, avatar_url)`).eq('campaign_id', campaignId);
         
+        if (error) throw error;
+
         list.innerHTML = '';
         if (!data || data.length === 0) { 
             const empty = createSafeElement("p", "text-muted w-full", "Nenhum aventureiro presente na mesa.");
@@ -364,18 +365,13 @@ document.addEventListener("DOMContentLoaded", async () => {
             btn.appendChild(labelSpan);
             btn.appendChild(valSpan);
             
-            // Integração com o NOVO Motor de Dados
             btn.addEventListener('click', async () => {
-                document.getElementById("playerSheetModal").classList.remove('active'); // Oculta a ficha para ver o dado rolando
+                document.getElementById("playerSheetModal").classList.remove('active'); 
                 
                 if (window.AeriomDice) {
                     const result = await window.AeriomDice.roll({
-                        quantity: 1,
-                        sides: 20,
-                        modifier: val,
-                        label: `Teste de ${attr.label}`
+                        quantity: 1, sides: 20, modifier: val, label: `Teste de ${attr.label}`
                     });
-                    
                     if(window.generateLog) {
                         const sinal = val >= 0 ? '+' : '';
                         window.generateLog(`${char.name} rolou ${attr.label}: 1d20 (${result.rolls[0]}) ${sinal} ${val} = ${result.total}`, 'roll');
@@ -461,54 +457,49 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     function renderCombat() {
         if (!combatState || !combatState.is_active) {
-            combatTrackerContainer.style.display = "none";
-            noCombatPlaceholder.style.display = "flex";
+            if (combatTrackerContainer) combatTrackerContainer.style.display = "none";
+            if (noCombatPlaceholder) noCombatPlaceholder.style.display = "flex";
             
             if (userRole === 'master') { 
-                if (toggleCombatBtn) {
-                    toggleCombatBtn.textContent = "Iniciar Combate"; 
-                    toggleCombatBtn.className = "btn btn-primary master-only";
-                }
+                if (toggleCombatBtn) { toggleCombatBtn.textContent = "Iniciar Combate"; toggleCombatBtn.className = "btn btn-primary master-only"; }
                 if (combatMasterPanel) combatMasterPanel.style.display = "none";
                 if (addCombatantForm) addCombatantForm.style.setProperty('display', 'none', 'important');
             }
         } else {
-            noCombatPlaceholder.style.display = "none";
-            combatTrackerContainer.style.display = "block";
-            document.getElementById("combatRoundDisplay").textContent = combatState.round_number;
+            if (noCombatPlaceholder) noCombatPlaceholder.style.display = "none";
+            if (combatTrackerContainer) combatTrackerContainer.style.display = "block";
+            if (document.getElementById("combatRoundDisplay")) document.getElementById("combatRoundDisplay").textContent = combatState.round_number;
             
             if (userRole === 'master') { 
-                if (toggleCombatBtn) {
-                    toggleCombatBtn.textContent = "Encerrar Combate"; 
-                    toggleCombatBtn.className = "btn btn-danger master-only";
-                }
+                if (toggleCombatBtn) { toggleCombatBtn.textContent = "Encerrar Combate"; toggleCombatBtn.className = "btn btn-danger master-only"; }
                 if (combatMasterPanel) combatMasterPanel.style.display = "block";
                 if (addCombatantForm) addCombatantForm.style.setProperty('display', 'flex', 'important');
             } else {
                 if (addCombatantForm) addCombatantForm.style.setProperty('display', 'none', 'important');
             }
             
-            initiativeList.innerHTML = '';
-            combatState.combatants.forEach((c, index) => {
-                const isActive = index === combatState.turn_index;
-                const card = document.createElement('div');
-                card.className = `combatant-card ${isActive ? 'active-turn' : ''}`;
-                
-                card.appendChild(createSafeElement("div", "combatant-init", c.init));
-                card.appendChild(createSafeElement("div", "combatant-name", c.name));
-                
-                if (userRole === 'master') {
-                    const removeBtn = createSafeElement("button", "remove-combatant-btn", "×");
-                    removeBtn.title = "Remover";
-                    removeBtn.addEventListener('click', async () => {
-                        combatState.combatants.splice(index, 1);
-                        await supabase.from('campaign_combat').upsert({ campaign_id: campaignId, ...combatState });
-                    });
-                    card.appendChild(removeBtn);
-                }
-                
-                initiativeList.appendChild(card);
-            });
+            if (initiativeList) {
+                initiativeList.innerHTML = '';
+                combatState.combatants.forEach((c, index) => {
+                    const isActive = index === combatState.turn_index;
+                    const card = document.createElement('div');
+                    card.className = `combatant-card ${isActive ? 'active-turn' : ''}`;
+                    
+                    card.appendChild(createSafeElement("div", "combatant-init", c.init));
+                    card.appendChild(createSafeElement("div", "combatant-name", c.name));
+                    
+                    if (userRole === 'master') {
+                        const removeBtn = createSafeElement("button", "remove-combatant-btn", "×");
+                        removeBtn.title = "Remover";
+                        removeBtn.addEventListener('click', async () => {
+                            combatState.combatants.splice(index, 1);
+                            await supabase.from('campaign_combat').upsert({ campaign_id: campaignId, ...combatState });
+                        });
+                        card.appendChild(removeBtn);
+                    }
+                    initiativeList.appendChild(card);
+                });
+            }
         }
     }
 
@@ -543,7 +534,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     });
 
     // =========================================================
-    // 7. SOLICITAÇÕES DE ROLAGEM E DADOS DO MESTRE
+    // 7. SOLICITAÇÕES DE ROLAGEM
     // =========================================================
     document.getElementById("sendRollRequestBtn")?.addEventListener('click', async () => {
         if(window.generateLog) await window.generateLog(`Teste Solicitado: ${document.getElementById("requestRollSelect").value}`, 'request_roll');
@@ -565,19 +556,12 @@ document.addEventListener("DOMContentLoaded", async () => {
         }
     }
 
-    // Integração com o NOVO Motor de Dados (Resposta do Jogador)
     document.getElementById("requestToastRollBtn")?.addEventListener('click', async () => {
         document.getElementById("requestToast").classList.remove('active');
         const charName = playerSheetCharName || 'Um jogador';
         
         if (window.AeriomDice) {
-            const result = await window.AeriomDice.roll({
-                quantity: 1,
-                sides: 20,
-                modifier: currentRequestAttrValue,
-                label: `Teste de ${currentRequestAttrName}`
-            });
-            
+            const result = await window.AeriomDice.roll({ quantity: 1, sides: 20, modifier: currentRequestAttrValue, label: `Teste de ${currentRequestAttrName}` });
             if(window.generateLog) {
                 const sinal = currentRequestAttrValue >= 0 ? '+' : '';
                 window.generateLog(`${charName} respondeu ao teste de ${currentRequestAttrName}: 1d20 (${result.rolls[0]}) ${sinal} ${currentRequestAttrValue} = ${result.total}`, 'roll');
@@ -587,27 +571,16 @@ document.addEventListener("DOMContentLoaded", async () => {
     
     document.getElementById("requestToastCloseBtn")?.addEventListener('click', () => document.getElementById("requestToast").classList.remove('active'));
 
-    // Fechamento de modais VTT
     document.getElementById("closePlayerSheetModal")?.addEventListener("click", () => document.getElementById("playerSheetModal").classList.remove('active'));
     document.getElementById("closeCharacterStateModal")?.addEventListener("click", () => document.getElementById("characterStateModal").classList.remove('active'));
     document.getElementById("closeCreateSecretModal")?.addEventListener("click", () => document.getElementById("createSecretModal").classList.remove('active'));
 
-    // Rolagens Públicas do Mestre integradas ao Motor Visual
     document.querySelectorAll('.master-dice-btn').forEach(btn => {
         btn.addEventListener('click', async () => {
             const sides = parseInt(btn.getAttribute('data-dice'));
-            
             if (window.AeriomDice) {
-                const result = await window.AeriomDice.roll({
-                    quantity: 1,
-                    sides: sides,
-                    modifier: 0,
-                    label: `Rolagem Pública (1D${sides})`
-                });
-                
-                if(window.generateLog) {
-                    window.generateLog(`O Mestre rolou 1D${sides}. Resultado: ${result.total}`, 'roll');
-                }
+                const result = await window.AeriomDice.roll({ quantity: 1, sides: sides, modifier: 0, label: `Rolagem Pública (1D${sides})` });
+                if(window.generateLog) window.generateLog(`O Mestre rolou 1D${sides}. Resultado: ${result.total}`, 'roll');
             }
         });
     });
