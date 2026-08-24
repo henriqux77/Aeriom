@@ -1,12 +1,15 @@
 /* =========================================================
    AERIOM — MOTOR DE CRIAÇÃO DE FICHAS V4.0 (js/ficha.js)
-   Fase 3: Diagnóstico, Validação em Tempo Real e DB Seguro
+   Fase 3: Validação em Tempo Real, Diagnóstico e INSERT/UPDATE Seguro
 ========================================================= */
 document.addEventListener("DOMContentLoaded", async () => {
     "use strict";
 
     const supabase = window.supabaseClient;
-    if (!supabase) { console.error("[AERIOM] ❌ Supabase não inicializado."); return; }
+    if (!supabase) { 
+        console.error("[AERIOM] ❌ Supabase não inicializado."); 
+        return; 
+    }
 
     let currentCharacterId = localStorage.getItem("aeriom_character_id");
     let currentUser = null;
@@ -17,7 +20,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     const saveBtn = document.getElementById("saveCharacterBtn");
     
     // =========================================================
-    // UTILITÁRIOS E DIAGNÓSTICO
+    // 0. UTILITÁRIOS E DIAGNÓSTICO (Obrigatório)
     // =========================================================
     function createSafeElement(tag, className, text = null) {
         const el = document.createElement(tag);
@@ -116,7 +119,7 @@ Hint: ${error.hint || 'N/A'}
                 
                 if (onSelectCallback) onSelectCallback(card);
                 
-                generateChecklist(); // Atualiza validação em tempo real
+                generateChecklist(); // Força a validação
             });
         });
     }
@@ -138,7 +141,6 @@ Hint: ${error.hint || 'N/A'}
     // =========================================================
     const initialDicePool = [4, 6, 6, 8, 10, 12, 20, 20];
     let allocatedAttrs = { Presença: null, Precisão: null, Intelecto: null, Controle: null, Percepção: null, Vigor: null, Agilidade: null, Força: null };
-    
     let selectedDieMobile = null; 
 
     function renderDicePool() {
@@ -211,6 +213,7 @@ Hint: ${error.hint || 'N/A'}
                 } else if (allocatedAttrs[attrName] !== null) {
                     allocatedAttrs[attrName] = null;
                     updateAttrUI();
+                    generateChecklist();
                 }
             });
         });
@@ -219,7 +222,7 @@ Hint: ${error.hint || 'N/A'}
     function allocateDie(attrName, value) {
         allocatedAttrs[attrName] = value;
         updateAttrUI();
-        generateChecklist(); // Validação em tempo real
+        generateChecklist(); // Validação imediata
     }
 
     function clearMobileHighlights() {
@@ -237,7 +240,6 @@ Hint: ${error.hint || 'N/A'}
             const val = allocatedAttrs[attrName];
             
             slot.innerHTML = '';
-            
             const normalizedKey = attrName.replace(/ç/g,'c').replace(/ã/g,'a');
             const hiddenInput = document.getElementById(`attr${normalizedKey}`);
             
@@ -255,12 +257,11 @@ Hint: ${error.hint || 'N/A'}
                 if (hiddenInput) hiddenInput.value = "";
             }
         });
-        
         updateManaDisplay();
     }
 
     // =========================================================
-    // 4. SISTEMAS V4.0 E UTILITÁRIOS
+    // 4. SISTEMAS V4.0 (Poder, Mana, Perícias)
     // =========================================================
     document.getElementById("rollRandomPowerBtn")?.addEventListener("click", () => {
         const powers = ["Fogo", "Ar", "Terra", "Água", "Gelo", "Eletricidade/Magnetismo", "Vegetação/Natureza", "Gravidade", "Luz/Sombras", "Tecnologia/Construtos"];
@@ -367,8 +368,6 @@ Hint: ${error.hint || 'N/A'}
     // =========================================================
     // 6. VALIDAÇÃO EM TEMPO REAL E COMPILADORES
     // =========================================================
-    
-    // Gatilhos de Input para validação contínua
     const requiredInputs = ["charName", "charHpMax", "charDefense", "bgHistory"];
     requiredInputs.forEach(id => {
         document.getElementById(id)?.addEventListener('input', generateChecklist);
@@ -410,11 +409,11 @@ Hint: ${error.hint || 'N/A'}
         checkItem("Pontos de Vida & Defesa", (hpMax !== '' && def !== ''), 8);
         checkItem("História Elaborada", bg !== '', 11);
 
-        // Atualização em tempo real do botão de Salvar
+        // O botão é desbloqueado IMEDIATAMENTE quando tudo está preenchido
         if (saveBtn) {
             if (allValid) {
                 saveBtn.disabled = false;
-                saveBtn.textContent = currentCharacterId ? "Atualizar Herói" : "Forjar Personagem (Concluir)";
+                saveBtn.textContent = currentCharacterId ? "Atualizar Herói (Pronto)" : "Forjar Personagem (Pronto)";
                 saveBtn.classList.add("btn-primary");
                 saveBtn.classList.remove("btn-secondary");
             } else {
@@ -478,7 +477,7 @@ Hint: ${error.hint || 'N/A'}
     }
 
     // =========================================================
-    // 7. INIT (MODO EDIÇÃO) E SALVAMENTO SEGURO
+    // 7. INIT (MODO EDIÇÃO) E SALVAMENTO BLINDADO
     // =========================================================
     async function loadCharacterData(id) {
         try {
@@ -512,7 +511,7 @@ Hint: ${error.hint || 'N/A'}
             if(document.getElementById("charHpMax")) document.getElementById("charHpMax").value = char.hp_max || 0;
             if(document.getElementById("charManaMax")) document.getElementById("charManaMax").value = char.mana_max || 0;
 
-            // Extrair status secundários da história para modo de edição
+            // Extrair status secundários embutidos no modo leitura
             let historyText = char.history || "";
             const statsMarker = "=== ESTATÍSTICAS SECUNDÁRIAS ===";
             const statsIndex = historyText.indexOf(statsMarker);
@@ -536,10 +535,10 @@ Hint: ${error.hint || 'N/A'}
 
             if(document.getElementById("bgHistory")) document.getElementById("bgHistory").value = historyText;
 
-            generateChecklist(); // Força validação ao carregar edição
+            generateChecklist(); // Executa validação logo ao preencher a ficha para edição
 
         } catch (err) {
-            showMessage("Erro ao acessar os registos antigos. Consulte o console.", true);
+            showMessage("Erro ao acessar os registos da ficha. Verifique o console.", true);
         }
     }
 
@@ -555,16 +554,16 @@ Hint: ${error.hint || 'N/A'}
         if (currentCharacterId) {
             await loadCharacterData(currentCharacterId);
         } else {
-            generateChecklist(); // Garante que o botão inicie bloqueado em criação nova
+            generateChecklist(); 
         }
     }
 
     characterForm?.addEventListener("submit", async (e) => {
         e.preventDefault();
         
-        // Bloqueio de submissão caso checklist não esteja 100%
+        // Bloqueio extra caso a função não libere
         if (!generateChecklist()) {
-            showMessage("Preencha todos os requisitos antes de forjar o seu personagem.", true);
+            showMessage("Por favor, preencha todos os requisitos antes de forjar o herói.", true);
             return;
         }
 
@@ -585,6 +584,7 @@ Hint: ${error.hint || 'N/A'}
 
         const historyWithStats = `${baseHistory}\n\n=== ESTATÍSTICAS SECUNDÁRIAS ===\nElemento: ${elPower}\nDefesa: ${elDef} | Iniciativa: ${elInit} | Deslocamento: ${elSpeed}m\nPerícias: ${skillsText || 'Nenhuma'}`;
 
+        // Os campos DEVEM bater exatamente com database/schema.sql
         const characterData = {
             user_id: currentUser.id,
             name: document.getElementById("charName")?.value.trim() || "Herói",
@@ -612,7 +612,7 @@ Hint: ${error.hint || 'N/A'}
 
         try {
             if (currentCharacterId) {
-                // UPDATE seguro
+                // UPDATE
                 const { error } = await supabase.from('characters').update(characterData).eq('id', currentCharacterId);
                 if (error) {
                     logSupabaseError('js/ficha.js', 'Submit', 'characters', 'UPDATE', error);
@@ -620,7 +620,7 @@ Hint: ${error.hint || 'N/A'}
                 }
                 showMessage("Lenda atualizada!");
             } else {
-                // INSERT seguro
+                // INSERT
                 const { data, error } = await supabase.from('characters').insert([characterData]).select().single();
                 if (error) {
                     logSupabaseError('js/ficha.js', 'Submit', 'characters', 'INSERT', error);
@@ -631,12 +631,13 @@ Hint: ${error.hint || 'N/A'}
                 showMessage("Novo herói materializado!");
             }
 
+            // Redirecionamento após o sucesso garantido
             setTimeout(() => { window.location.href = "ficha-view.html"; }, 1500);
         } catch (err) {
-            showMessage(`Falha ao registrar ficha: ${err.message || 'Erro do banco'}.`, true);
+            showMessage(`Falha ao registrar ficha: ${err.message || 'Erro do banco de dados'}.`, true);
             if (saveBtn) {
                 saveBtn.disabled = false;
-                saveBtn.textContent = currentCharacterId ? "Atualizar Herói" : "Forjar Personagem (Concluir)";
+                saveBtn.textContent = currentCharacterId ? "Atualizar Herói (Pronto)" : "Forjar Personagem (Pronto)";
             }
         }
     });
