@@ -1,14 +1,13 @@
 /* =========================================================
    AERIOM — MENU GLOBAL (js/menu.js)
-   Fase 2: Correção de Z-Index, Overlay e Links Ativos
+   Fase 5: Unificação de Botões (Desktop/Mobile) e Z-Index
 ========================================================= */
 document.addEventListener("DOMContentLoaded", () => {
     "use strict";
 
-    // Previne a criação duplicada do menu
+    // Previne a criação duplicada do menu caso o script carregue duas vezes
     if (document.getElementById("aeriomGlobalSidebar")) return;
 
-    // Identifica a página atual
     const currentPage = window.location.pathname.split('/').pop() || 'index.html';
 
     // =========================================================
@@ -44,7 +43,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
             <div class="sidebar-category">Sistema</div>
             
-            <a href="#" class="sidebar-link" onclick="alert('O Compêndio de Regras e Itens chegará numa atualização futura.'); return false;">
+            <a href="#" class="sidebar-link" id="compendioLink">
                 <span class="sidebar-icon">📚</span> Compêndio
             </a>
         </nav>
@@ -53,33 +52,51 @@ document.addEventListener("DOMContentLoaded", () => {
     document.body.appendChild(overlay);
     document.body.appendChild(sidebar);
 
+    // Proteção Anti-XSS: Remoção do onclick inline do HTML
+    document.getElementById("compendioLink")?.addEventListener("click", (e) => {
+        e.preventDefault();
+        alert('O Compêndio de Regras e Itens chegará numa atualização futura.');
+    });
+
     // =========================================================
-    // 2. CONTROLES E EVENTOS
+    // 2. CONTROLES E EVENTOS (Mobile + Desktop)
     // =========================================================
     const closeBtn = document.getElementById("closeSidebarBtn");
-    const openBtn = document.getElementById("menuButton");
+    
+    // Captura ambos os gatilhos oficiais da plataforma
+    const openBtnDesktop = document.getElementById("menuButton");
+    const openBtnMobile = document.getElementById("menuButtonMobile");
 
     function openMenu() {
         sidebar.classList.add('active');
         overlay.classList.add('active');
-        document.body.style.overflow = 'hidden'; 
+        document.body.style.overflow = 'hidden'; // Bloqueia o scroll do fundo
     }
 
     function closeMenu() {
         sidebar.classList.remove('active');
         overlay.classList.remove('active');
-        document.body.style.overflow = ''; 
+        document.body.style.overflow = ''; // Restaura o scroll do fundo
     }
 
-    if (openBtn) {
-        openBtn.addEventListener("click", openMenu);
-    } else {
-        console.warn("Aviso Aeriom: Botão '#menuButton' não encontrado nesta página.");
+    if (openBtnDesktop) {
+        openBtnDesktop.addEventListener("click", openMenu);
+    }
+    
+    if (openBtnMobile) {
+        // Limpa obrigatoriamente a dependência inline que existia no HTML antigo
+        openBtnMobile.removeAttribute("onclick");
+        openBtnMobile.addEventListener("click", openMenu);
+    }
+
+    if (!openBtnDesktop && !openBtnMobile) {
+        console.warn("[AERIOM] Aviso: Nenhum botão de menu (#menuButton ou #menuButtonMobile) encontrado nesta página.");
     }
 
     closeBtn?.addEventListener("click", closeMenu);
     
-    // O clique no overlay (que agora tem z-index inferior ao sidebar) fecha o menu
+    // O clique no overlay agora funciona corretamente porque o Z-Index foi estabelecido
+    // globalmente na arquitetura CSS (Sidebar > Overlay > Content).
     overlay.addEventListener("click", closeMenu);
 
     document.addEventListener("keydown", (e) => {
