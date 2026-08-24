@@ -1,6 +1,6 @@
 /* =========================================================
    AERIOM — VISUALIZAÇÃO DE FICHA (js/ficha-view.js)
-   Fase 4: Grimório Seguro e Desacoplado (Anti-XSS)
+   Fase 4: Grimório Seguro, Parsers V4 e Tokens de Dados
 ========================================================= */
 document.addEventListener("DOMContentLoaded", async () => {
     "use strict";
@@ -16,7 +16,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     const msgBox = document.getElementById("fichaViewMessage");
 
     // =========================================================
-    // 1. UTILITÁRIOS
+    // 1. UTILITÁRIOS SEGUROS
     // =========================================================
     function showMessage(msg, isError = false) {
         if (!msgBox) return;
@@ -24,14 +24,45 @@ document.addEventListener("DOMContentLoaded", async () => {
         msgBox.className = `msg-box mb-4 ${isError ? 'msg-error' : 'msg-success'} active`;
     }
 
-    // Preenchimento seguro via textContent (Anti-XSS)
     function setContent(id, text, fallback = "—") {
         const el = document.getElementById(id);
         if (el) el.textContent = (text !== null && text !== undefined && text !== '') ? text : fallback;
     }
 
+    // Cria o Token de Dado Visual (V4.0) em vez de apenas texto solto
+    function renderDieToken(value, containerId) {
+        const container = document.getElementById(containerId);
+        if (!container) return;
+        container.innerHTML = ''; // Limpeza segura antes do append
+
+        if (!value || value === 0 || value === "0") {
+            const empty = document.createElement("span");
+            empty.textContent = "—";
+            empty.style.color = "var(--color-text-disabled)";
+            empty.style.fontWeight = "600";
+            container.appendChild(empty);
+            return;
+        }
+
+        const die = document.createElement("div");
+        die.className = "die-token";
+        die.setAttribute("data-type", `D${value}`);
+        die.textContent = `D${value}`;
+        
+        // Remove interatividade (Pois é modo leitura)
+        die.style.cursor = "default";
+        die.style.boxShadow = "none";
+        die.style.transform = "none";
+        // Ajuste de tamanho para o modo de leitura
+        die.style.width = "48px";
+        die.style.height = "48px";
+        die.style.fontSize = "1.1rem";
+        
+        container.appendChild(die);
+    }
+
     // =========================================================
-    // 2. BUSCA E INJEÇÃO DOS DADOS
+    // 2. BUSCA, PARSER E INJEÇÃO DOS DADOS
     // =========================================================
     async function loadCharacterView() {
         if (!currentCharacterId) {
@@ -54,59 +85,95 @@ document.addEventListener("DOMContentLoaded", async () => {
 
             if (error) throw error;
             if (!char) {
-                showMessage("Os registros deste herói não foram encontrados.", true);
+                showMessage("Os registos deste herói não foram encontrados.", true);
                 return;
             }
 
-            // Exibe o container da ficha
             if (viewContainer) viewContainer.style.display = 'flex';
 
-            // 1. Avatar Seguro
-            const avatarImg = document.getElementById("viewCharAvatar");
-            const avatarFallback = document.getElementById("viewCharAvatarFallback");
+            // 1. Avatar Seguro com Fallback
+            const avatarImg = document.getElementById("viewCharAvatar") || document.querySelector(".view-avatar-img");
+            const avatarFallback = document.getElementById("viewCharAvatarFallback") || document.querySelector(".view-avatar-fallback");
             const initial = char.name ? char.name.charAt(0).toUpperCase() : '?';
 
             if (char.avatar_url && char.avatar_url.trim() !== '') {
-                avatarImg.src = char.avatar_url;
-                avatarImg.style.display = "block";
-                avatarFallback.style.display = "none";
-                
-                avatarImg.onerror = () => {
-                    avatarImg.style.display = "none";
+                if (avatarImg) {
+                    avatarImg.src = char.avatar_url;
+                    avatarImg.style.display = "block";
+                    avatarImg.onerror = () => {
+                        avatarImg.style.display = "none";
+                        if (avatarFallback) {
+                            avatarFallback.style.display = "grid";
+                            avatarFallback.textContent = initial;
+                        }
+                    };
+                }
+                if (avatarFallback) avatarFallback.style.display = "none";
+            } else {
+                if (avatarImg) avatarImg.style.display = "none";
+                if (avatarFallback) {
                     avatarFallback.style.display = "grid";
                     avatarFallback.textContent = initial;
-                };
-            } else {
-                avatarImg.style.display = "none";
-                avatarFallback.style.display = "grid";
-                avatarFallback.textContent = initial;
+                }
             }
 
-            // 2. Identidade
+            // 2. Identidade Básica
             setContent("viewCharName", char.name, "Herói Sem Nome");
             setContent("viewCharRace", char.race, "Desconhecido");
             setContent("viewCharClass", char.class, "Aventureiro");
             setContent("viewCharLevel", char.level, "1");
             
-            // 3. Status Vitais
+            // 3. Status Vitais Base
             setContent("viewCharHpMax", char.hp_max, "0");
             setContent("viewCharManaMax", char.mana_max, "0");
 
-            // 4. Atributos
-            const attrs = char.attributes || char;
-            setContent("viewAttrForca", attrs.forca, "0");
-            setContent("viewAttrAgilidade", attrs.agilidade, "0");
-            setContent("viewAttrVigor", attrs.vigor, "0");
-            setContent("viewAttrIntelecto", attrs.intelecto, "0");
-            setContent("viewAttrPercepcao", attrs.percepcao, "0");
-            setContent("viewAttrPresenca", attrs.presenca, "0");
-            setContent("viewAttrPrecisao", attrs.precisao, "0");
-            setContent("viewAttrControle", attrs.controle, "0");
+            // 4. Parser Inteligente das Estatísticas Secundárias (V4.0)
+            // Extrai a Defesa, Iniciativa e Deslocamento que foram salvas em formato de texto no "history"
+            let historyText = char.history || "";
+            let power = "Nenhum", def = "0", init = "0", speed = "0";
+            
+            const statsMarker = "=== ESTATÍSTICAS SECUNDÁRIAS ===";
+            const statsIndex = historyText.indexOf(statsMarker);
+            
+            if (statsIndex !== -1) {
+                const statsBlock = historyText.substring(statsIndex);
+                // Limpa a história para exibir apenas a narrativa ao jogador
+                historyText = historyText.substring(0, statsIndex).trim(); 
+                
+                const powerMatch = statsBlock.match(/Elemento:\s*(.+)/);
+                if (powerMatch) power = powerMatch[1];
+                
+                const defMatch = statsBlock.match(/Defesa:\s*(\d+)/);
+                if (defMatch) def = defMatch[1];
+                
+                const initMatch = statsBlock.match(/Iniciativa:\s*(\d+)/);
+                if (initMatch) init = initMatch[1];
+                
+                const speedMatch = statsBlock.match(/Deslocamento:\s*(\d+)/);
+                if (speedMatch) speed = speedMatch[1];
+            }
 
-            // 5. Blocos de Texto
-            setContent("viewCharSkills", char.skills, "Nenhum poder ou técnica registrado.");
+            // Preenche os campos táticos se existirem no HTML
+            setContent("viewCharPower", power, "Nenhum");
+            setContent("viewCharDefense", def, "0");
+            setContent("viewCharInitiative", init, "0");
+            setContent("viewCharSpeed", speed, "0");
+
+            // 5. Atributos Visuais (Renderiza os Tokens D4, D6, D20...)
+            const attrs = char.attributes || char;
+            renderDieToken(attrs.forca, "viewAttrForca");
+            renderDieToken(attrs.agilidade, "viewAttrAgilidade");
+            renderDieToken(attrs.vigor, "viewAttrVigor");
+            renderDieToken(attrs.intelecto, "viewAttrIntelecto");
+            renderDieToken(attrs.percepcao, "viewAttrPercepcao");
+            renderDieToken(attrs.presenca, "viewAttrPresenca");
+            renderDieToken(attrs.precisao, "viewAttrPrecisao");
+            renderDieToken(attrs.controle, "viewAttrControle");
+
+            // 6. Blocos de Texto Resilientes
+            setContent("viewCharSkills", char.skills, "Nenhum poder ou técnica registado.");
             setContent("viewCharInventory", char.inventory, "A mochila está vazia.");
-            setContent("viewCharHistory", char.history, "As crônicas ainda não registraram a história deste herói...");
+            setContent("viewCharHistory", historyText, "As crónicas ainda não registaram a história deste herói...");
 
         } catch (err) {
             console.error("Erro ao carregar visualização:", err);
@@ -118,7 +185,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     // 3. AÇÕES
     // =========================================================
     document.getElementById("editCharacterBtn")?.addEventListener("click", () => {
-        // O currentCharacterId já está no localStorage
+        // Redireciona para o Creator, que buscará o ID no localStorage para carregar os dados
         window.location.href = "ficha.html";
     });
 
