@@ -1,6 +1,6 @@
 /* =========================================================
    AERIOM — GERENCIADOR DE CAMPANHAS (js/campanhas.js)
-   Correção de Integração: Remoção do sort por created_at inexistente
+   Fase 2: Correção de IDs, Estados e Erros do Supabase
 ========================================================= */
 document.addEventListener("DOMContentLoaded", async () => {
     "use strict";
@@ -13,13 +13,13 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     let currentUser = null;
 
-    // Elementos de Estado da Interface
+    // 1. Elementos de Estado da Interface (Garantidos pela nova estrutura HTML)
     const loadingCampaigns = document.getElementById("loadingCampaigns");
     const emptyCampaigns = document.getElementById("emptyCampaigns");
     const campaignsList = document.getElementById("campaignsList");
     const campaignsMessage = document.getElementById("campaignsMessage");
 
-    // Elementos de Criação
+    // 2. Elementos de Criação e Modais
     const createCampaignBtn = document.getElementById("createCampaignBtn");
     const createCampaignModal = document.getElementById("createCampaignModal");
     const closeCreateModal = document.getElementById("closeCreateModal");
@@ -27,7 +27,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     const submitCampaignBtn = document.getElementById("submitCampaignBtn");
 
     // =========================================================
-    // 1. UTILITÁRIOS DE FEEDBACK E ESTADO
+    // UTILITÁRIOS
     // =========================================================
     function showMessage(msg, isError = false) {
         if (!campaignsMessage) return;
@@ -36,18 +36,19 @@ document.addEventListener("DOMContentLoaded", async () => {
         setTimeout(() => { campaignsMessage.classList.remove('active'); }, 4000);
     }
 
+    // Gerencia as transições visuais sem "esconder tudo", protegendo contra nulls
     function showState(state) {
         if (loadingCampaigns) loadingCampaigns.style.display = "none";
         if (emptyCampaigns) emptyCampaigns.style.display = "none";
         if (campaignsList) campaignsList.style.display = "none";
 
-        if (state === 'loading' && loadingCampaigns) loadingCampaigns.style.display = "flex";
-        if (state === 'empty' && emptyCampaigns) emptyCampaigns.style.display = "flex";
+        if (state === 'loading' && loadingCampaigns) loadingCampaigns.style.display = "block";
+        if (state === 'empty' && emptyCampaigns) emptyCampaigns.style.display = "block";
         if (state === 'list' && campaignsList) campaignsList.style.display = "grid"; 
     }
 
     // =========================================================
-    // 2. CARREGAMENTO DE CAMPANHAS
+    // CARREGAMENTO DE CAMPANHAS
     // =========================================================
     async function loadCampaigns() {
         showState('loading');
@@ -62,7 +63,11 @@ document.addEventListener("DOMContentLoaded", async () => {
             
             currentUser = session.user;
 
-            // Busca as mesas nas quais o jogador é membro (Removido o .order('created_at') para evitar o erro 42703)
+            /* 
+               CRÍTICO (Bug 42703 resolvido): 
+               Removido `.order('created_at', ...)` pois a tabela de relação não possui a coluna.
+               O banco processava a query como Bad Request e abortava o script.
+            */
             const { data: memberships, error: dbError } = await supabase
                 .from('campaign_members')
                 .select('role, campaigns(id, name, description, cover_url)')
@@ -80,13 +85,13 @@ document.addEventListener("DOMContentLoaded", async () => {
 
         } catch (error) {
             console.error("Erro ao consultar campanhas:", error);
-            showState('empty'); 
-            showMessage("Erro de comunicação com os servidores. Tente atualizar a página.", true);
+            showState('empty'); // Mostra vazio de forma gracefully, mas avisa o usuário.
+            showMessage("Erro de comunicação com os servidores. Tente novamente.", true);
         }
     }
 
     // =========================================================
-    // 3. RENDERIZAÇÃO SEGURA (Anti-XSS e Design System)
+    // RENDERIZAÇÃO BLINDADA CONTRA XSS
     // =========================================================
     function renderCampaigns(memberships) {
         if (!campaignsList) return;
@@ -96,6 +101,7 @@ document.addEventListener("DOMContentLoaded", async () => {
             const camp = member.campaigns;
             if (!camp) return;
 
+            // Container do Card Interativo
             const card = document.createElement("div");
             card.className = "aeriom-card-interactive";
             card.style.padding = "0"; 
@@ -103,6 +109,7 @@ document.addEventListener("DOMContentLoaded", async () => {
             card.style.flexDirection = "column";
             card.style.overflow = "hidden";
 
+            // Capa
             const cover = document.createElement("div");
             cover.style.height = "140px";
             cover.style.width = "100%";
@@ -117,13 +124,14 @@ document.addEventListener("DOMContentLoaded", async () => {
                 cover.style.display = "grid";
                 cover.style.placeItems = "center";
                 const initial = document.createElement("span");
-                initial.textContent = camp.name ? camp.name.charAt(0).toUpperCase() : "A";
+                initial.textContent = camp.name ? camp.name.charAt(0).toUpperCase() : "M";
                 initial.style.fontSize = "3rem";
                 initial.style.fontFamily = "var(--font-heading)";
                 initial.style.color = "var(--color-primary-muted)";
                 cover.appendChild(initial);
             }
 
+            // Conteúdo Interno
             const content = document.createElement("div");
             content.style.padding = "var(--space-lg)";
             content.style.display = "flex";
@@ -147,6 +155,7 @@ document.addEventListener("DOMContentLoaded", async () => {
             desc.style.overflow = "hidden";
             desc.textContent = camp.description || "Sem descrição registada.";
 
+            // Role Badge (Identifica quem é o Mestre)
             const roleBadge = document.createElement("div");
             roleBadge.style.marginTop = "var(--space-md)";
             roleBadge.style.fontSize = "0.75rem";
@@ -162,13 +171,14 @@ document.addEventListener("DOMContentLoaded", async () => {
                 roleBadge.textContent = "⚔️ Aventureiro";
             }
 
+            // Montagem
             content.appendChild(title);
             content.appendChild(desc);
             content.appendChild(roleBadge);
-
             card.appendChild(cover);
             card.appendChild(content);
 
+            // Ação de Redirecionamento para a Mesa Virtual (VTT)
             card.addEventListener("click", () => {
                 localStorage.setItem("aeriom_active_campaign", camp.id);
                 window.location.href = "campanha.html";
@@ -179,7 +189,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
 
     // =========================================================
-    // 4. CRIAÇÃO DE NOVA CAMPANHA
+    // CRIAÇÃO DE NOVA CAMPANHA
     // =========================================================
     createCampaignBtn?.addEventListener("click", () => {
         if (createCampaignModal) createCampaignModal.classList.add("active");
@@ -192,7 +202,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     createCampaignForm?.addEventListener("submit", async (e) => {
         e.preventDefault();
         
-        if (!currentUser) return showMessage("Precisa estar logado para criar uma campanha.", true);
+        if (!currentUser) return showMessage("Precisa estar autenticado para fundar uma campanha.", true);
 
         if (submitCampaignBtn) {
             submitCampaignBtn.disabled = true;
@@ -204,6 +214,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         const cover = document.getElementById("campaignCover").value.trim(); 
 
         try {
+            // Insere na tabela 'campaigns'
             const { data: newCampaign, error: campError } = await supabase
                 .from('campaigns')
                 .insert([{ name: name, description: desc, cover_url: cover }])
@@ -212,6 +223,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
             if (campError) throw campError;
 
+            // Insere imediatamente a ligação como 'master'
             const { error: memberError } = await supabase
                 .from('campaign_members')
                 .insert([{ campaign_id: newCampaign.id, user_id: currentUser.id, role: 'master' }]);
@@ -222,11 +234,12 @@ document.addEventListener("DOMContentLoaded", async () => {
             createCampaignForm.reset();
             if (createCampaignModal) createCampaignModal.classList.remove("active");
             
+            // Recarrega a UI para mostrar a nova mesa
             await loadCampaigns();
 
         } catch (error) {
             console.error("Erro ao fundar campanha:", error);
-            showMessage("Uma falha impediu a fundação da mesa.", true);
+            showMessage("Uma falha impediu a fundação da mesa. Verifique a consola.", true);
         } finally {
             if (submitCampaignBtn) {
                 submitCampaignBtn.disabled = false;
@@ -235,5 +248,6 @@ document.addEventListener("DOMContentLoaded", async () => {
         }
     });
 
+    // Gatilho Inicial
     loadCampaigns();
 });
