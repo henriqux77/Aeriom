@@ -19,7 +19,7 @@
     <div class="theme-overlay" id="themeOverlayLayer"></div>
 
     <!-- =========================================================
-         LAYOUT DA MESA DIGITAL (APP LAYOUT)
+         LAYOUT DA MESA DIGITAL (APP LAYOUT - Layer 2)
     ========================================================= -->
     <div class="app-layout">
         
@@ -49,26 +49,26 @@
             </nav>
         </aside>
 
-        <!-- TOPBAR MOBILE -->
+        <!-- TOPBAR MOBILE (Com Logo Premium) -->
         <header class="mobile-topbar">
             <button class="btn-icon" id="menuButtonMobile" aria-label="Abrir menu lateral">☰</button>
-            <h1 id="bannerNameMobile">Mesa Digital</h1>
-            <button class="btn-icon" id="openMasterThemeMobile" style="display: none;" title="Alterar Tema">🎨</button>
+            <a href="index.html" class="brand-logo" aria-label="Aeriom Home"></a>
+            <button class="btn-icon master-only" id="openMasterThemeMobile" style="display: none;" title="Alterar Tema">🎨</button>
         </header>
 
-        <!-- ÁREA PRINCIPAL (MAIN VIEW - Layer 2) -->
+        <!-- ÁREA PRINCIPAL (MAIN VIEW) -->
         <main class="app-main" id="appMainContainer">
             <div class="main-container">
                 
                 <!-- ESTADO DE CARREGAMENTO -->
-                <div id="loadingDash" class="placeholder-panel text-center" style="padding: var(--space-xl);">
-                    <div class="placeholder-icon" style="font-size: 3rem; margin-bottom: var(--space-md);">⏳</div>
-                    <h3 style="color: var(--color-primary); margin-bottom: 8px;">A conectar à Mesa...</h3>
-                    <p class="text-muted">A preparar os tomos e o salão de aventuras.</p>
+                <div id="loadingDash" class="placeholder-panel">
+                    <div class="placeholder-icon">⏳</div>
+                    <h3>A conectar à Mesa...</h3>
+                    <p class="text-muted">A preparar os tomos e a atmosfera da aventura.</p>
                 </div>
 
                 <!-- CONTEÚDO PRINCIPAL DA VTT -->
-                <div id="dashContent" style="display: none; display: flex; flex-direction: column; gap: var(--space-lg);">
+                <div id="dashContent" style="display: none; display: flex; flex-direction: column; gap: var(--space-24);">
 
                     <!-- ABA 1: VISÃO GERAL -->
                     <div id="tab-overview" class="dash-tab-content active">
@@ -86,29 +86,29 @@
                                     <h3>Painel do Mestre</h3>
                                     <p class="text-muted">Ferramentas de controlo rápido da sessão.</p>
                                 </div>
-                                <div style="display: flex; gap: var(--space-sm);">
+                                <div style="display: flex; gap: var(--space-8);">
                                     <button class="btn btn-secondary btn-sm" id="openCreateSecretBtn">+ Novo Segredo</button>
-                                    <button class="btn btn-primary btn-sm" id="openThemeConfigModalBtn">Mudar Tema Visual</button>
+                                    <button class="btn btn-primary btn-sm" id="openThemeConfigModalBtn">Mudar Atmosfera</button>
                                 </div>
                             </div>
                             
                             <div class="master-tools-grid">
                                 <div class="tool-box">
-                                    <span class="tool-box-header">Rolagens Públicas (Mestre)</span>
+                                    <span class="tool-box-header">Rolagens Públicas</span>
                                     <div class="dice-buttons-container">
                                         <button class="master-dice-btn" data-dice="4">1D4</button>
                                         <button class="master-dice-btn" data-dice="6">1D6</button>
                                         <button class="master-dice-btn" data-dice="8">1D8</button>
                                         <button class="master-dice-btn" data-dice="10">1D10</button>
                                         <button class="master-dice-btn" data-dice="12">1D12</button>
-                                        <button class="master-dice-btn dice-d20" data-dice="20">1D20</button>
+                                        <button class="master-dice-btn dice-d20" style="color: var(--theme-primary); border-color: var(--theme-primary);" data-dice="20">1D20</button>
                                         <button class="master-dice-btn" data-dice="100">1D100</button>
                                     </div>
                                 </div>
 
                                 <div class="tool-box">
                                     <span class="tool-box-header">Solicitar Teste ao Grupo</span>
-                                    <div style="display: flex; gap: var(--space-sm);">
+                                    <div style="display: flex; gap: var(--space-8);">
                                         <select class="form-select" id="requestRollSelect">
                                             <option value="Força">Força</option>
                                             <option value="Agilidade">Agilidade</option>
@@ -146,7 +146,7 @@
                         <div class="panel">
                             <div class="panel-header">
                                 <div>
-                                    <h3>Tracker de Combate & Iniciativa</h3>
+                                    <h3>Tracker de Combate</h3>
                                     <p class="text-muted">Ordem de turnos e confrontos ativos.</p>
                                 </div>
                                 <button class="btn btn-primary master-only" id="toggleCombatBtn" style="display: none;">Iniciar Combate</button>
@@ -154,13 +154,13 @@
 
                             <div id="noCombatPlaceholder" class="placeholder-panel">
                                 <div class="placeholder-icon">🛡️</div>
-                                <h3>Ainda sem combates na mesa</h3>
+                                <h3>Sem combates na mesa</h3>
                                 <p class="text-muted">O grupo encontra-se em momento de exploração ou descanso.</p>
                             </div>
 
                             <div id="combatTrackerContainer" style="display: none;">
-                                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--space-md);">
-                                    <div style="font-family: var(--font-heading); font-size: 1.25rem; color: var(--color-primary);">
+                                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--space-16);">
+                                    <div style="font-family: var(--font-heading); font-size: 1.35rem; color: var(--theme-primary);">
                                         Ronda Atual: <span id="combatRoundDisplay">1</span>
                                     </div>
                                     <button class="btn btn-secondary master-only" id="nextTurnBtn" style="display: none;">Próximo Turno ➡️</button>
@@ -168,9 +168,9 @@
 
                                 <!-- Painel do Mestre para Adicionar Combatentes -->
                                 <div id="combatMasterPanel" class="tool-box mb-4 master-only" style="display: none;">
-                                    <span class="tool-box-header">Adicionar Personagem / Criatura à Iniciativa</span>
-                                    <form id="addCombatantForm" style="display: flex; gap: var(--space-sm); flex-wrap: wrap;">
-                                        <input type="text" class="form-input flex-1" id="combatantName" placeholder="Nome (Ex: Goblin Espadachim)" required style="min-width: 200px;">
+                                    <span class="tool-box-header">Adicionar à Iniciativa</span>
+                                    <form id="addCombatantForm" style="display: flex; gap: var(--space-8); flex-wrap: wrap;">
+                                        <input type="text" class="form-input flex-1" id="combatantName" placeholder="Nome (Ex: Goblin)" required style="min-width: 200px;">
                                         <input type="number" class="form-input" id="combatantInit" placeholder="Iniciativa (Ex: 15)" style="width: 120px;" required>
                                         <button type="submit" class="btn btn-primary">Adicionar</button>
                                     </form>
@@ -189,7 +189,7 @@
                             <div class="panel-header">
                                 <div>
                                     <h3>Mural da Campanha</h3>
-                                    <p class="text-muted">Notas públicas, pistas e avisos deixados pelo Mestre.</p>
+                                    <p class="text-muted">Notas, pistas e avisos deixados pelo Mestre.</p>
                                 </div>
                                 <button class="btn btn-primary master-only" id="openCreateMuralBtn" style="display: none;">+ Publicar Nota</button>
                             </div>
@@ -222,7 +222,7 @@
                         <div class="panel">
                             <div class="panel-header">
                                 <div>
-                                    <h3>Cozinha de Acampamento & Poções</h3>
+                                    <h3>Cozinha de Acampamento</h3>
                                     <p class="text-muted">Misture ingredientes recolhidos nas jornadas para forjar bônus.</p>
                                 </div>
                             </div>
@@ -252,8 +252,8 @@
                         <div class="panel master-panel">
                             <div class="panel-header">
                                 <div>
-                                    <h3>Segredos & Notas do Mestre</h3>
-                                    <p class="text-muted">Informações confidenciais que apenas você consegue decifrar.</p>
+                                    <h3>Segredos do Mestre</h3>
+                                    <p class="text-muted">Informações confidenciais e blocos de anotações.</p>
                                 </div>
                                 <button class="btn btn-primary" id="openSecretModalBtn">+ Novo Segredo</button>
                             </div>
@@ -310,11 +310,11 @@
                     </select>
                 </div>
                 <div class="form-group">
-                    <label class="form-label" for="customThemeBgUrl">URL de Imagem Customizada (Opcional)</label>
+                    <label class="form-label" for="customThemeBgUrl">Imagem de Fundo (Capa da Campanha)</label>
                     <input type="url" id="customThemeBgUrl" class="form-input" placeholder="https://exemplo.com/fundo.jpg">
                     <p class="text-muted" style="font-size: 0.75rem; margin-top: 4px;">Deixe em branco para usar a arte padrão do tema escolhido.</p>
                 </div>
-                <button type="submit" class="btn btn-primary w-full mt-4">Aplicar e Transmitir Tema</button>
+                <button type="submit" class="btn btn-primary w-full mt-4">Aplicar Tema (Realtime)</button>
             </form>
         </div>
     </div>
@@ -323,42 +323,42 @@
     <div id="playerSheetModal" class="modal-backdrop">
         <div class="modal-surface" style="max-width: 650px;">
             <button class="modal-close" id="closePlayerSheetModal">×</button>
-            <div class="modal-header" style="margin-bottom: var(--space-md);">
+            <div class="modal-header" style="margin-bottom: var(--space-24);">
                 <h2 id="psName">Herói</h2>
                 <p id="psSubinfo" class="text-muted">Raça • Classe</p>
             </div>
             
-            <div style="display: flex; gap: var(--space-md); justify-content: center; margin-bottom: var(--space-lg); background: var(--color-bg-secondary); padding: var(--space-md); border-radius: var(--radius-sm); border: 1px solid var(--color-border);">
-                <div><strong>PV:</strong> <span id="psHpView" style="color: var(--color-danger); font-size: 1.1rem;">0</span></div>
-                <div><strong>MP:</strong> <span id="psManaView" style="color: var(--color-mana); font-size: 1.1rem;">0</span></div>
+            <div style="display: flex; gap: var(--space-16); justify-content: center; margin-bottom: var(--space-24); background: rgba(0,0,0,0.3); padding: var(--space-16); border-radius: var(--radius-sm); border: 1px solid var(--theme-border);">
+                <div><strong>PV:</strong> <span id="psHpView" style="color: var(--color-danger); font-size: 1.15rem;">0</span></div>
+                <div><strong>MP:</strong> <span id="psManaView" style="color: var(--color-mana); font-size: 1.15rem;">0</span></div>
                 <div><strong>Condições:</strong> <span id="psConditionsView" style="color: var(--color-warning);">Nenhuma</span></div>
-                <button class="btn btn-secondary btn-sm" id="psToggleEditStateBtn" style="padding: 2px 8px; font-size: 0.7rem;">Editar Estado</button>
+                <button class="btn btn-secondary btn-sm" id="psToggleEditStateBtn" style="padding: 4px 12px;">Estado</button>
             </div>
 
             <!-- Formulário Oculto de Dano/Cura -->
-            <form id="psStateForm" style="display: none; background: var(--color-surface-hover); padding: var(--space-md); border-radius: var(--radius-sm); margin-bottom: var(--space-lg); border: 1px solid var(--color-border-strong);">
-                <div style="display: flex; gap: var(--space-sm); flex-wrap: wrap;">
+            <form id="psStateForm" style="display: none; background: rgba(0,0,0,0.5); padding: var(--space-16); border-radius: var(--radius-sm); margin-bottom: var(--space-24); border: 1px solid var(--theme-border-strong);">
+                <div style="display: flex; gap: var(--space-12); flex-wrap: wrap;">
                     <div class="form-group flex-1 m-0"><label class="form-label">PV Atual</label><input type="number" id="psHp" class="form-input"></div>
                     <div class="form-group flex-1 m-0"><label class="form-label">MP Atual</label><input type="number" id="psMana" class="form-input"></div>
                 </div>
                 <div class="form-group mt-2 mb-2"><label class="form-label">Condições</label><input type="text" id="psConditions" class="form-input" placeholder="Ex: Envenenado, Cego"></div>
-                <button type="submit" class="btn btn-primary btn-sm w-full">Salvar Alterações Vitais</button>
+                <button type="submit" class="btn btn-primary btn-sm w-full">Salvar Alterações</button>
             </form>
 
-            <h4 style="margin-bottom: var(--space-xs); color: var(--color-primary);">Atributos (Clique para Rolar)</h4>
-            <div id="psAttributesGrid" style="display: grid; grid-template-columns: repeat(4, 1fr); gap: var(--space-sm); margin-bottom: var(--space-lg);">
+            <h4 style="margin-bottom: var(--space-8); color: var(--theme-primary);">Atributos (Clique para Rolar)</h4>
+            <div id="psAttributesGrid" style="display: grid; grid-template-columns: repeat(4, 1fr); gap: var(--space-8); margin-bottom: var(--space-24);">
                 <!-- Preenchido via JS -->
             </div>
 
-            <h4 style="margin-bottom: var(--space-xs); color: var(--color-primary);">Inventário & Equipamentos</h4>
-            <div id="psInventory" style="background: var(--color-bg-secondary); padding: var(--space-md); border-radius: var(--radius-sm); font-size: 0.9rem; max-height: 120px; overflow-y: auto; margin-bottom: var(--space-md); white-space: pre-wrap;">Vazio</div>
+            <h4 style="margin-bottom: var(--space-8); color: var(--theme-primary);">Inventário & Equipamentos</h4>
+            <div id="psInventory" style="background: rgba(0,0,0,0.3); padding: var(--space-16); border-radius: var(--radius-sm); font-size: 0.9rem; max-height: 120px; overflow-y: auto; margin-bottom: var(--space-16); white-space: pre-wrap; border: 1px solid var(--theme-border);">Vazio</div>
 
-            <h4 style="margin-bottom: var(--space-xs); color: var(--color-primary);">Técnicas e Poderes</h4>
-            <div id="psSkills" style="background: var(--color-bg-secondary); padding: var(--space-md); border-radius: var(--radius-sm); font-size: 0.9rem; max-height: 120px; overflow-y: auto; white-space: pre-wrap;">Nenhuma</div>
+            <h4 style="margin-bottom: var(--space-8); color: var(--theme-primary);">Técnicas e Poderes</h4>
+            <div id="psSkills" style="background: rgba(0,0,0,0.3); padding: var(--space-16); border-radius: var(--radius-sm); font-size: 0.9rem; max-height: 120px; overflow-y: auto; white-space: pre-wrap; border: 1px solid var(--theme-border);">Nenhuma</div>
         </div>
     </div>
 
-    <!-- MODAL: GESTÃO DE ESTADO (Mestre sobre Jogador) -->
+    <!-- MODAL: GESTÃO DE ESTADO (Mestre) -->
     <div id="characterStateModal" class="modal-backdrop">
         <div class="modal-surface">
             <button class="modal-close" id="closeCharacterStateModal">×</button>
@@ -377,13 +377,13 @@
 
     <!-- TOAST DE SOLICITAÇÃO DE TESTE -->
     <div id="requestToast" class="modal-backdrop" style="align-items: flex-end; padding-bottom: 5vh;">
-        <div class="modal-surface text-center" style="max-width: 400px; border-color: var(--color-primary);">
-            <div style="font-size: 2rem; margin-bottom: 8px;">🎲</div>
-            <h3 id="requestToastMsg" style="color: var(--color-primary); margin-bottom: 8px;">Teste Solicitado</h3>
-            <p class="text-muted mb-4" style="font-size: 0.9rem;">O Mestre exigiu uma resposta dos seus dados.</p>
-            <div style="display: flex; gap: var(--space-sm);">
+        <div class="modal-surface text-center" style="max-width: 400px; border-color: var(--theme-primary); box-shadow: 0 0 30px rgba(0,0,0,0.8);">
+            <div style="font-size: 2.5rem; margin-bottom: 12px; filter: drop-shadow(0 0 10px var(--theme-primary));">🎲</div>
+            <h3 id="requestToastMsg" style="color: var(--theme-primary); margin-bottom: 8px;">Teste Solicitado</h3>
+            <p class="text-muted mb-4" style="font-size: 0.95rem;">O Mestre exige um teste aos dados do destino.</p>
+            <div style="display: flex; gap: var(--space-8);">
                 <button class="btn btn-secondary flex-1" id="requestToastCloseBtn">Ignorar</button>
-                <button class="btn btn-primary flex-1" id="requestToastRollBtn">Rolar Agora</button>
+                <button class="btn btn-primary flex-1" id="requestToastRollBtn">Rolar Dados</button>
             </div>
         </div>
     </div>
