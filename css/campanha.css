@@ -1,19 +1,41 @@
 /* =========================================================
    AERIOM — ESTILOS DA MESA DIGITAL (VTT)
-   Fase de Refatoração: Dark Fantasy Premium
+   Fase de Refatoração: Mobile Real & Sistema de Temas
    Dependência: css/style.css
 ========================================================= */
 
 /* =========================================================
-   1. LAYOUT PRINCIPAL (APP LAYOUT)
-   Ocupa 100vh. Sem scroll na página, apenas nas áreas internas.
+   1. LAYOUT PRINCIPAL E CAMADAS DE TEMA (APP LAYOUT)
+   Ocupa 100dvh (Dynamic Viewport para Mobile).
 ========================================================= */
 .app-layout {
     display: flex;
-    height: 100vh;
-    width: 100vw;
+    height: 100dvh;
+    width: 100%;
     overflow: hidden;
-    background-color: var(--color-bg);
+    background-color: var(--theme-bg, var(--color-bg));
+    position: relative;
+}
+
+/* Camada 0: Imagem do Tema */
+.theme-background {
+    position: absolute;
+    inset: 0;
+    background-image: var(--theme-background-image, none);
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    z-index: var(--z-background);
+    transition: background-image 0.6s ease;
+}
+
+/* Camada 1: Overlay Atmosférico */
+.theme-overlay {
+    position: absolute;
+    inset: 0;
+    background: var(--theme-overlay, rgba(9, 9, 11, 0.7));
+    z-index: 1;
+    transition: background 0.6s ease;
 }
 
 /* =========================================================
@@ -21,12 +43,13 @@
 ========================================================= */
 .app-sidebar {
     width: 280px;
-    background: var(--color-surface-raised);
-    border-right: 1px solid var(--color-border);
+    background: var(--theme-surface-raised, var(--color-surface-raised));
+    border-right: 1px solid var(--theme-border, var(--color-border));
     display: flex;
     flex-direction: column;
     z-index: var(--z-sidebar);
     flex-shrink: 0;
+    position: relative; /* Fica acima das camadas de tema */
 }
 
 .sidebar-brand {
@@ -34,19 +57,19 @@
     display: flex;
     align-items: center;
     gap: var(--space-sm);
-    border-bottom: 1px solid var(--color-border-strong);
+    border-bottom: 1px solid var(--theme-border-strong, var(--color-border-strong));
 }
 
 .campaign-info-mini {
     padding: var(--space-lg);
-    border-bottom: 1px solid var(--color-border);
+    border-bottom: 1px solid var(--theme-border, var(--color-border));
 }
 
 .campaign-info-mini span {
     font-size: 0.7rem;
     text-transform: uppercase;
     letter-spacing: 0.05em;
-    color: var(--color-text-disabled);
+    color: var(--theme-muted, var(--color-text-disabled));
     font-weight: 600;
     display: block;
     margin-bottom: var(--space-xs);
@@ -54,7 +77,7 @@
 
 .campaign-info-mini h2 {
     font-size: 1.1rem;
-    color: var(--color-text);
+    color: var(--theme-text, var(--color-text));
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -68,7 +91,7 @@
 
 .nav-category {
     font-size: 0.7rem;
-    color: var(--color-text-disabled);
+    color: var(--theme-muted, var(--color-text-disabled));
     text-transform: uppercase;
     letter-spacing: 0.1em;
     margin: var(--space-lg) var(--space-lg) var(--space-xs);
@@ -84,34 +107,37 @@
     background: transparent;
     border: none;
     border-left: 3px solid transparent;
-    color: var(--color-text-muted);
+    color: var(--theme-text-muted, var(--color-text-muted));
     font-size: 0.95rem;
     font-family: var(--font-ui);
     font-weight: 500;
     cursor: pointer;
     transition: all var(--transition-fast);
     text-align: left;
+    min-height: 44px; /* Touch target seguro */
 }
 
 .dash-tab:hover {
-    color: var(--color-text);
-    background: var(--color-surface-hover);
+    color: var(--theme-text, var(--color-text));
+    background: var(--theme-surface-hover, var(--color-surface-hover));
 }
 
 .dash-tab.active {
-    color: var(--color-primary);
-    background: var(--color-primary-muted);
-    border-left-color: var(--color-primary);
+    color: var(--theme-primary, var(--color-primary));
+    background: var(--theme-surface-hover, var(--color-primary-muted));
+    border-left-color: var(--theme-primary, var(--color-primary));
 }
 
 /* =========================================================
-   3. ÁREA PRINCIPAL (MAIN VIEW)
+   3. ÁREA PRINCIPAL (MAIN VIEW - LAYER 2)
 ========================================================= */
 .app-main {
     flex: 1;
+    min-width: 0; /* Previne overflow flexbox em mobile */
     display: flex;
     flex-direction: column;
     position: relative;
+    z-index: var(--z-content); /* Layer 2: Acima do tema e overlay */
     overflow-y: auto;
     overflow-x: hidden;
     scroll-behavior: smooth;
@@ -137,7 +163,7 @@
 }
 
 /* =========================================================
-   4. BANNER DA CAMPANHA
+   4. BANNER DA CAMPANHA (Mantido mas otimizado)
 ========================================================= */
 .campaign-banner {
     position: relative;
@@ -148,16 +174,15 @@
     display: flex;
     align-items: flex-end;
     padding: var(--space-xl);
-    margin-bottom: var(--space-lg);
-    border: 1px solid var(--color-border);
-    background-color: var(--color-surface-raised);
-    /* A imagem de fundo real é inserida via JS (theme) */
+    margin-bottom: var(--space-md);
+    border: 1px solid var(--theme-border, var(--color-border));
+    background-color: transparent;
 }
 
 .banner-overlay {
     position: absolute;
     inset: 0;
-    background: linear-gradient(to top, var(--color-bg) 0%, rgba(9, 9, 11, 0.2) 100%);
+    background: linear-gradient(to top, var(--theme-bg, var(--color-bg)) 0%, transparent 100%);
     z-index: 1;
 }
 
@@ -165,26 +190,29 @@
     position: relative;
     z-index: 2;
     font-size: 2.5rem;
-    color: var(--color-text);
+    color: var(--theme-text, var(--color-text));
     text-shadow: var(--shadow-md);
     margin: 0;
+    word-break: break-word; /* Previne quebra de layout com nomes longos */
 }
 
 /* =========================================================
    5. PAINÉIS (PANELS)
 ========================================================= */
 .panel {
-    background: var(--color-surface);
-    border: 1px solid var(--color-border);
+    background: var(--theme-surface, var(--color-surface));
+    border: 1px solid var(--theme-border, var(--color-border));
     border-radius: var(--radius-md);
     padding: var(--space-lg);
     margin-bottom: var(--space-lg);
     box-shadow: var(--shadow-sm);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
 }
 
 .master-panel {
-    border-color: var(--color-accent);
-    box-shadow: 0 0 20px rgba(242, 107, 29, 0.05); /* Brilho Laranja suave */
+    border-color: var(--theme-accent, var(--color-accent));
+    box-shadow: 0 0 20px rgba(242, 107, 29, 0.05);
 }
 
 .panel-header {
@@ -193,12 +221,15 @@
     align-items: flex-end;
     margin-bottom: var(--space-lg);
     padding-bottom: var(--space-md);
-    border-bottom: 1px solid var(--color-border-strong);
+    border-bottom: 1px solid var(--theme-border-strong, var(--color-border-strong));
+    flex-wrap: wrap;
+    gap: var(--space-md);
 }
 
 .panel-header h3 {
-    color: var(--color-primary);
+    color: var(--theme-primary, var(--color-primary));
     margin-bottom: var(--space-xs);
+    word-break: break-word;
 }
 
 .panel-header p {
@@ -212,9 +243,10 @@
     align-items: center;
     justify-content: center;
     text-align: center;
-    padding: var(--space-xl);
-    background: var(--color-surface-hover);
-    border: 2px dashed var(--color-border-strong);
+    padding: var(--space-xl) var(--space-md);
+    background: var(--theme-surface-hover, var(--color-surface-hover));
+    border: 2px dashed var(--theme-border-strong, var(--color-border-strong));
+    border-radius: var(--radius-md);
 }
 
 .placeholder-icon {
@@ -224,17 +256,18 @@
 }
 
 /* =========================================================
-   6. FERRAMENTAS DO MESTRE
+   6. FERRAMENTAS DO MESTRE E GRIDS GERAIS
 ========================================================= */
 .master-tools-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    /* min(100%, 260px) garante que não vaze em telas menores que 260px */
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 260px), 1fr));
     gap: var(--space-md);
 }
 
 .tool-box {
-    background: var(--color-bg-secondary);
-    border: 1px solid var(--color-border-strong);
+    background: var(--theme-surface-raised, var(--color-bg-secondary));
+    border: 1px solid var(--theme-border-strong, var(--color-border-strong));
     border-radius: var(--radius-sm);
     padding: var(--space-md);
 }
@@ -242,7 +275,7 @@
 .tool-box-header {
     display: block;
     font-size: 0.75rem;
-    color: var(--color-text-disabled);
+    color: var(--theme-muted, var(--color-text-disabled));
     text-transform: uppercase;
     font-weight: 600;
     margin-bottom: var(--space-md);
@@ -258,10 +291,11 @@
 .master-dice-btn {
     flex: 1;
     min-width: 60px;
+    min-height: 44px; /* Touch target responsivo */
     padding: var(--space-sm);
-    background: var(--color-surface-raised);
-    border: 1px solid var(--color-border);
-    color: var(--color-text);
+    background: var(--theme-surface-raised, var(--color-surface-raised));
+    border: 1px solid var(--theme-border, var(--color-border));
+    color: var(--theme-text, var(--color-text));
     border-radius: var(--radius-sm);
     font-family: var(--font-heading);
     cursor: pointer;
@@ -269,16 +303,9 @@
 }
 
 .master-dice-btn:hover {
-    background: var(--color-primary-muted);
-    border-color: var(--color-primary);
-    color: var(--color-primary);
-}
-
-.dice-d20 {
-    background: var(--color-primary-muted);
-    border-color: var(--color-primary);
-    color: var(--color-primary);
-    font-weight: bold;
+    background: var(--theme-primary-soft, var(--color-primary-muted));
+    border-color: var(--theme-primary, var(--color-primary));
+    color: var(--theme-primary, var(--color-primary));
 }
 
 /* =========================================================
@@ -286,13 +313,13 @@
 ========================================================= */
 .campaign-characters-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 280px), 1fr));
     gap: var(--space-md);
 }
 
 .campaign-char-card {
-    background: linear-gradient(145deg, var(--color-surface-raised), var(--color-surface));
-    border: 1px solid var(--color-border-strong);
+    background: linear-gradient(145deg, var(--theme-surface-raised, var(--color-surface-raised)), var(--theme-surface, var(--color-surface)));
+    border: 1px solid var(--theme-border-strong, var(--color-border-strong));
     border-radius: var(--radius-md);
     padding: var(--space-md);
     display: flex;
@@ -302,8 +329,8 @@
 }
 
 .campaign-char-card.own-character {
-    border-color: var(--color-primary-muted);
-    box-shadow: var(--shadow-glow);
+    border-color: var(--theme-primary, var(--color-primary-muted));
+    box-shadow: var(--theme-glow, var(--shadow-glow));
 }
 
 .char-card-avatar {
@@ -311,31 +338,27 @@
     height: 56px;
     border-radius: 50%;
     object-fit: cover;
-    border: 2px solid var(--color-border-strong);
+    border: 2px solid var(--theme-border-strong, var(--color-border-strong));
     flex-shrink: 0;
-}
-
-.campaign-char-card.own-character .char-card-avatar {
-    border-color: var(--color-primary);
 }
 
 .char-card-fallback {
     width: 56px;
     height: 56px;
     border-radius: 50%;
-    background: var(--color-bg);
-    border: 2px solid var(--color-border-strong);
+    background: var(--theme-bg, var(--color-bg));
+    border: 2px solid var(--theme-border-strong, var(--color-border-strong));
     display: grid;
     place-items: center;
     font-size: 1.5rem;
-    color: var(--color-text-muted);
+    color: var(--theme-muted, var(--color-text-muted));
     font-family: var(--font-heading);
     flex-shrink: 0;
 }
 
 .char-card-info {
     flex: 1;
-    min-width: 0;
+    min-width: 0; /* Previne overflow de textos grandes no flex */
 }
 
 .char-card-info h4 {
@@ -344,11 +367,12 @@
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+    color: var(--theme-text, var(--color-text));
 }
 
 .char-card-info .subtitle {
     font-size: 0.75rem;
-    color: var(--color-text-disabled);
+    color: var(--theme-muted, var(--color-text-disabled));
     display: block;
     margin-bottom: 6px;
 }
@@ -386,16 +410,18 @@
 .combatant-card {
     display: flex;
     align-items: center;
-    background: var(--color-bg-secondary);
-    border: 1px solid var(--color-border);
+    background: var(--theme-surface-raised, var(--color-bg-secondary));
+    border: 1px solid var(--theme-border, var(--color-border));
     border-radius: var(--radius-sm);
     padding: var(--space-sm) var(--space-md);
     transition: var(--transition-fast);
+    flex-wrap: wrap; /* Segurança para mobile pequeno */
+    gap: var(--space-sm);
 }
 
 .combatant-card.active-turn {
-    background: var(--color-surface-hover);
-    border-color: var(--color-accent); /* Destaque Laranja Fogo */
+    background: var(--theme-surface-hover, var(--color-surface-hover));
+    border-color: var(--theme-accent, var(--color-accent));
     box-shadow: 0 0 10px rgba(242, 107, 29, 0.2);
     transform: scale(1.01);
 }
@@ -405,37 +431,41 @@
     height: 40px;
     display: grid;
     place-items: center;
-    background: var(--color-surface-raised);
+    background: var(--theme-surface, var(--color-surface-raised));
     border-radius: var(--radius-sm);
     font-family: var(--font-heading);
     font-size: 1.2rem;
-    color: var(--color-primary);
-    margin-right: var(--space-md);
+    color: var(--theme-primary, var(--color-primary));
+    flex-shrink: 0;
 }
 
 .active-turn .combatant-init {
-    background: var(--color-accent);
+    background: var(--theme-accent, var(--color-accent));
     color: #fff;
 }
 
 .combatant-name {
     flex: 1;
+    min-width: 120px;
     font-size: 1.1rem;
     font-weight: 500;
+    color: var(--theme-text, var(--color-text));
+    word-break: break-word;
 }
 
 .active-turn .combatant-name {
     font-weight: 700;
-    color: var(--color-text);
 }
 
 .remove-combatant-btn {
     background: transparent;
     border: none;
-    color: var(--color-text-muted);
+    color: var(--theme-muted, var(--color-text-muted));
     font-size: 1.5rem;
     cursor: pointer;
     padding: 0 var(--space-xs);
+    min-width: 44px; /* Touch target */
+    min-height: 44px;
 }
 .remove-combatant-btn:hover { color: var(--color-danger); }
 
@@ -444,7 +474,7 @@
 ========================================================= */
 .mural-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 250px), 1fr));
     gap: var(--space-md);
 }
 
@@ -460,7 +490,7 @@
     bottom: 0;
     left: 15px;
     width: 2px;
-    background: var(--color-border-strong);
+    background: var(--theme-border-strong, var(--color-border-strong));
 }
 
 .timeline-item {
@@ -475,8 +505,8 @@
     left: -32px;
     width: 32px;
     height: 32px;
-    background: var(--color-surface-raised);
-    border: 2px solid var(--color-border-strong);
+    background: var(--theme-surface-raised, var(--color-surface-raised));
+    border: 2px solid var(--theme-border-strong, var(--color-border-strong));
     border-radius: 50%;
     display: grid;
     place-items: center;
@@ -484,66 +514,68 @@
     z-index: 2;
 }
 
-.tl-system .tl-icon { border-color: var(--color-text-muted); }
+.tl-system .tl-icon { border-color: var(--theme-muted, var(--color-text-muted)); }
 .tl-combat .tl-icon { border-color: var(--color-danger); }
-.tl-roll .tl-icon { border-color: var(--color-primary); }
-.tl-scene .tl-icon { border-color: #a855f7; }
+.tl-roll .tl-icon { border-color: var(--theme-primary, var(--color-primary)); }
+.tl-scene .tl-icon { border-color: var(--theme-accent, #a855f7); }
 
 .tl-content {
-    background: var(--color-bg-secondary);
-    border: 1px solid var(--color-border);
+    background: var(--theme-surface-raised, var(--color-bg-secondary));
+    border: 1px solid var(--theme-border, var(--color-border));
     border-radius: var(--radius-sm);
     padding: var(--space-md);
     flex: 1;
+    min-width: 0;
+    word-wrap: break-word;
 }
 
 .tl-time {
     display: block;
     font-size: 0.75rem;
-    color: var(--color-text-disabled);
+    color: var(--theme-muted, var(--color-text-disabled));
     margin-bottom: var(--space-xs);
 }
 
 .tl-desc {
-    color: var(--color-text);
+    color: var(--theme-text, var(--color-text));
     font-size: 0.95rem;
 }
 
 /* =========================================================
-   10. HUD DO JOGADOR (GAVETA DIREITA)
+   10. HUD DO JOGADOR (GAVETA DIREITA / MODAL)
 ========================================================= */
 .ps-roll-btn {
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    background: var(--color-bg);
-    border: 1px solid var(--color-border-strong);
+    background: var(--theme-surface, var(--color-bg));
+    border: 1px solid var(--theme-border-strong, var(--color-border-strong));
     border-radius: var(--radius-sm);
     padding: var(--space-sm);
     cursor: pointer;
     transition: var(--transition-fast);
+    min-height: 60px; /* Melhor área de clique */
 }
 
 .ps-roll-btn:hover {
-    background: var(--color-surface-hover);
-    border-color: var(--color-primary);
+    background: var(--theme-surface-hover, var(--color-surface-hover));
+    border-color: var(--theme-primary, var(--color-primary));
 }
 
 .ps-roll-btn .attr-label {
     font-size: 0.65rem;
     text-transform: uppercase;
-    color: var(--color-text-muted);
+    color: var(--theme-muted, var(--color-text-muted));
     margin-bottom: 2px;
 }
 
 .ps-roll-btn .attr-val {
     font-family: var(--font-heading);
     font-size: 1.25rem;
-    color: var(--color-primary);
+    color: var(--theme-primary, var(--color-primary));
 }
 
-/* Microinterações: Dano e Cura Flutuantes */
 .floating-number {
     position: fixed;
     font-family: var(--font-heading);
@@ -575,7 +607,7 @@
     left: 50%;
     transform: translateX(-50%);
     background: rgba(0, 0, 0, 0.85);
-    border: 1px solid var(--color-accent);
+    border: 1px solid var(--theme-accent, var(--color-accent));
     border-radius: var(--radius-sm);
     padding: var(--space-sm) var(--space-lg);
     z-index: 9999;
@@ -587,59 +619,7 @@
 }
 
 /* =========================================================
-   12. CENÁRIOS IMERSIVOS (MODO CENA)
-========================================================= */
-#globalSceneOverlay {
-    background-color: #000;
-    background-size: cover;
-    background-position: center;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    text-align: center;
-    padding: var(--space-xl);
-}
-
-#globalSceneOverlay::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    background: radial-gradient(circle, rgba(0,0,0,0.4) 0%, rgba(0,0,0,0.9) 100%);
-    z-index: 1;
-}
-
-#sceneDisplayTitle {
-    position: relative;
-    z-index: 2;
-    font-size: 4rem;
-    color: var(--color-primary);
-    text-shadow: 0 4px 20px rgba(0,0,0,1);
-    margin-bottom: var(--space-md);
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-}
-
-#sceneDisplayDesc {
-    position: relative;
-    z-index: 2;
-    font-size: 1.25rem;
-    max-width: 800px;
-    color: var(--color-text);
-    text-shadow: 0 2px 10px rgba(0,0,0,1);
-    line-height: 1.6;
-}
-
-#closeSceneViewBtn {
-    position: absolute;
-    top: var(--space-lg);
-    right: var(--space-lg);
-    z-index: 3;
-    background: rgba(0,0,0,0.5);
-}
-
-/* =========================================================
-   13. MOBILE & BOTTOM NAV
+   12. MOBILE & BOTTOM NAV (RESPONSIVIDADE ESTRUTURAL)
 ========================================================= */
 .mobile-topbar {
     display: none;
@@ -647,9 +627,12 @@
     justify-content: space-between;
     padding: 0 var(--space-md);
     height: 4rem;
-    background: var(--color-surface);
-    border-bottom: 1px solid var(--color-border);
+    width: 100%;
+    background: var(--theme-surface, var(--color-surface));
+    border-bottom: 1px solid var(--theme-border, var(--color-border));
     z-index: var(--z-header);
+    position: relative;
+    flex-shrink: 0;
 }
 
 .mobile-topbar h1 {
@@ -660,6 +643,7 @@
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+    padding: 0 var(--space-sm);
 }
 
 .bottom-nav {
@@ -668,11 +652,13 @@
     bottom: 0;
     left: 0;
     right: 0;
-    height: 4rem;
-    background: var(--color-surface-raised);
-    border-top: 1px solid var(--color-border-strong);
+    width: 100%;
+    height: 4rem; /* Se alterar esta altura, ajuste o padding-bottom em .main-container do mobile */
+    background: var(--theme-surface-raised, var(--color-surface-raised));
+    border-top: 1px solid var(--theme-border-strong, var(--color-border-strong));
     z-index: var(--z-header);
     box-shadow: 0 -4px 10px rgba(0,0,0,0.5);
+    padding-bottom: env(safe-area-inset-bottom); /* iOS SafeArea */
 }
 
 .nav-mob-btn {
@@ -683,9 +669,11 @@
     justify-content: center;
     background: transparent;
     border: none;
-    color: var(--color-text-muted);
+    color: var(--theme-muted, var(--color-text-muted));
     font-size: 0.7rem;
     padding: var(--space-xs);
+    min-height: 44px;
+    cursor: pointer;
 }
 
 .nav-mob-icon {
@@ -694,12 +682,12 @@
 }
 
 .nav-mob-btn.active {
-    color: var(--color-primary);
+    color: var(--theme-primary, var(--color-primary));
 }
 
 @media (max-width: 768px) {
     .app-sidebar {
-        display: none; /* Sidebar nativa escondida, usamos a global */
+        display: none; 
     }
     
     .mobile-topbar {
@@ -710,12 +698,17 @@
         display: flex;
     }
     
+    /* A área principal não deve ter padding-bottom direto se os elementos internos 
+       já tiverem. Vamos usar o padding do main-container para empurrar o conteúdo. */
     .app-main {
-        padding-bottom: 4rem; /* Espaço para a bottom nav */
+        padding-bottom: 0; 
     }
     
     .main-container {
         padding: var(--space-md);
+        /* Padding seguro: 4rem (nav) + 1rem (folga) + SafeArea */
+        padding-bottom: calc(5rem + env(safe-area-inset-bottom));
+        gap: var(--space-md);
     }
     
     .campaign-banner {
@@ -727,7 +720,8 @@
         font-size: 1.5rem;
     }
     
-    #sceneDisplayTitle {
-        font-size: 2.5rem;
+    /* Forçar inputs a não ultrapassarem a largura do pai no mobile */
+    .form-input, .form-select, .form-textarea {
+        max-width: 100%;
     }
 }
