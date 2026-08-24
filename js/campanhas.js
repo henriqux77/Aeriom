@@ -1,19 +1,19 @@
 /* =========================================================
    AERIOM — GERENCIADOR DE CAMPANHAS (js/campanhas.js)
-   Fase 2: Correção de IDs, Estados e Erros do Supabase
+   Fase 3: Diagnóstico, Fim do Loading Infinito e Integração
 ========================================================= */
 document.addEventListener("DOMContentLoaded", async () => {
     "use strict";
 
     const supabase = window.supabaseClient;
     if (!supabase) {
-        console.error("❌ Supabase não inicializado.");
+        console.error("[AERIOM] ❌ Supabase não inicializado.");
         return;
     }
 
     let currentUser = null;
 
-    // 1. Elementos de Estado da Interface (Garantidos pela nova estrutura HTML)
+    // 1. Elementos de Estado da Interface
     const loadingCampaigns = document.getElementById("loadingCampaigns");
     const emptyCampaigns = document.getElementById("emptyCampaigns");
     const campaignsList = document.getElementById("campaignsList");
@@ -27,16 +27,32 @@ document.addEventListener("DOMContentLoaded", async () => {
     const submitCampaignBtn = document.getElementById("submitCampaignBtn");
 
     // =========================================================
+    // DIAGNÓSTICO E LOGS SUPABASE
+    // =========================================================
+    function logSupabaseError(arquivo, funcao, tabela, operacao, error) {
+        console.error(`
+[AERIOM][SUPABASE]
+Arquivo: ${arquivo}
+Função: ${funcao}
+Tabela: ${tabela}
+Operação: ${operacao}
+Código: ${error.code || 'N/A'}
+Mensagem: ${error.message || 'N/A'}
+Detalhes: ${error.details || 'N/A'}
+Hint: ${error.hint || 'N/A'}
+        `);
+    }
+
+    // =========================================================
     // UTILITÁRIOS
     // =========================================================
     function showMessage(msg, isError = false) {
         if (!campaignsMessage) return;
         campaignsMessage.textContent = msg;
         campaignsMessage.className = `msg-box mb-4 ${isError ? 'msg-error' : 'msg-success'} active`;
-        setTimeout(() => { campaignsMessage.classList.remove('active'); }, 4000);
+        setTimeout(() => { campaignsMessage.classList.remove('active'); }, 6000); // 6s para leitura em dev
     }
 
-    // Gerencia as transições visuais sem "esconder tudo", protegendo contra nulls
     function showState(state) {
         if (loadingCampaigns) loadingCampaigns.style.display = "none";
         if (emptyCampaigns) emptyCampaigns.style.display = "none";
@@ -63,17 +79,18 @@ document.addEventListener("DOMContentLoaded", async () => {
             
             currentUser = session.user;
 
-            /* 
-               CRÍTICO (Bug 42703 resolvido): 
-               Removido `.order('created_at', ...)` pois a tabela de relação não possui a coluna.
-               O banco processava a query como Bad Request e abortava o script.
-            */
+            // Busca as mesas nas quais o jogador é membro.
+            // Sem `.order('created_at')` pois a tabela 'campaign_members' não possui essa coluna no schema,
+            // o que causaria o erro 42703 (Bad Request) e o infame "Loading Infinito".
             const { data: memberships, error: dbError } = await supabase
                 .from('campaign_members')
                 .select('role, campaigns(id, name, description, cover_url)')
                 .eq('user_id', currentUser.id);
 
-            if (dbError) throw dbError;
+            if (dbError) {
+                logSupabaseError('js/campanhas.js', 'loadCampaigns', 'campaign_members', 'SELECT', dbError);
+                throw dbError;
+            }
 
             if (!memberships || memberships.length === 0) {
                 showState('empty');
@@ -84,9 +101,8 @@ document.addEventListener("DOMContentLoaded", async () => {
             showState('list');
 
         } catch (error) {
-            console.error("Erro ao consultar campanhas:", error);
-            showState('empty'); // Mostra vazio de forma gracefully, mas avisa o usuário.
-            showMessage("Erro de comunicação com os servidores. Tente novamente.", true);
+            showState('empty'); 
+            showMessage(`Falha ao carregar campanhas: ${error.message || 'Erro de comunicação'}. Verifique o console.`, true);
         }
     }
 
@@ -101,7 +117,6 @@ document.addEventListener("DOMContentLoaded", async () => {
             const camp = member.campaigns;
             if (!camp) return;
 
-            // Container do Card Interativo
             const card = document.createElement("div");
             card.className = "aeriom-card-interactive";
             card.style.padding = "0"; 
@@ -109,7 +124,7 @@ document.addEventListener("DOMContentLoaded", async () => {
             card.style.flexDirection = "column";
             card.style.overflow = "hidden";
 
-            // Capa
+            // Capa da Campanha
             const cover = document.createElement("div");
             cover.style.height = "140px";
             cover.style.width = "100%";
@@ -202,7 +217,10 @@ document.addEventListener("DOMContentLoaded", async () => {
     createCampaignForm?.addEventListener("submit", async (e) => {
         e.preventDefault();
         
-        if (!currentUser) return showMessage("Precisa estar autenticado para fundar uma campanha.", true);
+        if (!currentUser) {
+            showMessage("Precisa estar autenticado para fundar uma campanha.", true);
+            return;
+        }
 
         if (submitCampaignBtn) {
             submitCampaignBtn.disabled = true;
@@ -214,32 +232,36 @@ document.addEventListener("DOMContentLoaded", async () => {
         const cover = document.getElementById("campaignCover").value.trim(); 
 
         try {
-            // Insere na tabela 'campaigns'
+            // 1. Insere na tabela 'campaigns'
             const { data: newCampaign, error: campError } = await supabase
                 .from('campaigns')
                 .insert([{ name: name, description: desc, cover_url: cover }])
                 .select()
                 .single();
 
-            if (campError) throw campError;
+            if (campError) {
+                logSupabaseError('js/campanhas.js', 'Submit', 'campaigns', 'INSERT', campError);
+                throw campError;
+            }
 
-            // Insere imediatamente a ligação como 'master'
+            // 2. Associa imediatamente o criador como 'master'
             const { error: memberError } = await supabase
                 .from('campaign_members')
                 .insert([{ campaign_id: newCampaign.id, user_id: currentUser.id, role: 'master' }]);
 
-            if (memberError) throw memberError;
+            if (memberError) {
+                logSupabaseError('js/campanhas.js', 'Submit', 'campaign_members', 'INSERT', memberError);
+                throw memberError;
+            }
 
             showMessage("Mesa fundada com sucesso!");
             createCampaignForm.reset();
             if (createCampaignModal) createCampaignModal.classList.remove("active");
             
-            // Recarrega a UI para mostrar a nova mesa
             await loadCampaigns();
 
         } catch (error) {
-            console.error("Erro ao fundar campanha:", error);
-            showMessage("Uma falha impediu a fundação da mesa. Verifique a consola.", true);
+            showMessage(`Falha ao fundar mesa: ${error.message || 'Erro desconhecido'}. Verifique o console.`, true);
         } finally {
             if (submitCampaignBtn) {
                 submitCampaignBtn.disabled = false;
