@@ -1,6 +1,6 @@
 /* =========================================================
    AERIOM — GERENCIADOR DE TEMAS E ATMOSFERA (js/theme.js)
-   Correção de Integração: Tokens Unificados e Prevenção FOUC
+   Fase 2: Prevenção de FOUC, Correção de null body e Tokens
 ========================================================= */
 (function() {
     "use strict";
@@ -11,9 +11,9 @@
     const AeriomThemes = {
         default: {
             name: "Obsidiana (Padrão)",
-            primary: "#d4af37",          // Bronze/Dourado Escuro
+            primary: "#d4af37",          // Dourado Envelhecido / Bronze
             primaryHover: "#f1cf5b",
-            bg: "#09090b",               // Carvão
+            bg: "#09090b",               // Obsidiana
             surface: "rgba(24, 24, 27, 0.85)", 
             backgroundImage: ""          
         },
@@ -56,9 +56,9 @@
 
         applyTheme: function(themeId) {
             const theme = AeriomThemes[themeId] || AeriomThemes.default;
-            const root = document.documentElement; // :root garante injeção síncrona no <head>
+            const root = document.documentElement; // Aplicação síncrona no :root para evitar FOUC
 
-            // Injeção usando o novo sistema arquitetural de tokens (--color-*)
+            // Injeção utilizando exclusivamente o novo sistema de tokens (--color-*)
             root.style.setProperty('--color-primary', theme.primary);
             root.style.setProperty('--color-primary-hover', theme.primaryHover);
             
@@ -71,31 +71,23 @@
 
             localStorage.setItem('aeriom_active_theme', themeId);
 
-            // Injeção dinâmica da variável CSS de background, delegando o controle real ao style.css
+            // A manipulação da imagem de fundo exige o document.body
             const applyBackground = () => {
                 if (theme.backgroundImage) {
                     document.body.style.setProperty('--campaign-background-image', theme.backgroundImage);
                 } else {
                     document.body.style.setProperty('--campaign-background-image', 'none');
                 }
+                
+                // Dispara o evento para módulos dependentes (ex: Motor de dados, se houver)
+                document.dispatchEvent(new CustomEvent('aeriomThemeChanged', { detail: { themeId: themeId, theme: theme } }));
             };
 
-            // Proteção contra chamadas antes do DOM existir (ex: no <head>)
+            // Proteção crírica: se o body já existe aplica direto, senão aguarda o DOMContentLoaded
             if (document.body) {
                 applyBackground();
             } else {
                 document.addEventListener('DOMContentLoaded', applyBackground);
-            }
-            
-            // Disparo de Evento para módulos que precisem reagir (ex: Canvas de Dados)
-            const dispatchEventSafe = () => {
-                document.dispatchEvent(new CustomEvent('aeriomThemeChanged', { detail: { themeId: themeId, theme: theme } }));
-            };
-
-            if (document.body) {
-                dispatchEventSafe();
-            } else {
-                document.addEventListener('DOMContentLoaded', dispatchEventSafe);
             }
         },
 
@@ -119,6 +111,10 @@
     };
 
     window.AeriomThemeManager = ThemeManager;
-    ThemeManager.init(); // Executa imediatamente para prevenir Flash of Unstyled Content (FOUC)
+    
+    // Executa a inicialização imediatamente (no <head>). 
+    // Como implementámos a proteção, as variáveis no :root são aplicadas e previnem FOUC, 
+    // mas o body.style só é alterado quando o body existir.
+    ThemeManager.init();
 
 })();
