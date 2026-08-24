@@ -39,6 +39,7 @@
             <button id="createCampaignBtn" class="btn btn-primary">+ Nova Campanha</button>
         </div>
 
+        <!-- MENSAGENS GLOBAIS DESTA TELA -->
         <div id="campaignsMessage" class="msg-box mb-4"></div>
 
         <!-- =========================================================
@@ -46,15 +47,15 @@
         ========================================================= -->
         
         <!-- ESTADO 1: LOADING -->
-        <div id="loadingCampaigns" class="placeholder-panel">
-            <div class="placeholder-icon">⏳</div>
+        <div id="loadingCampaigns" class="placeholder-panel text-center" style="padding: var(--space-xl);">
+            <div class="placeholder-icon" style="font-size: 3rem; margin-bottom: var(--space-md); animation: pulse 1.5s infinite opacity;">⏳</div>
             <h3 style="color: var(--color-primary); margin-bottom: 8px;">A consultar os registos...</h3>
             <p class="text-muted">A procurar as suas campanhas nos salões de Aeriom.</p>
         </div>
 
         <!-- ESTADO 2: VAZIO (EMPTY STATE) -->
-        <div id="emptyCampaigns" class="placeholder-panel" style="display: none;">
-            <div class="placeholder-icon">🏕️</div>
+        <div id="emptyCampaigns" class="placeholder-panel text-center" style="display: none; padding: var(--space-xl);">
+            <div class="placeholder-icon" style="font-size: 3rem; margin-bottom: var(--space-md);">🏕️</div>
             <h3 style="color: var(--color-primary); margin-bottom: 8px;">Nenhuma Mesa Encontrada</h3>
             <p class="text-muted">Ainda não faz parte de nenhuma campanha.</p>
             <button class="btn btn-secondary mt-4" onclick="document.getElementById('createCampaignBtn').click()">Criar a Primeira Campanha</button>
@@ -119,7 +120,10 @@
     <div id="profilePanel" class="modal-backdrop">
         <div class="modal-surface text-center">
             <button id="closeProfile" class="modal-close">×</button>
-            <div style="width: 80px; height: 80px; border-radius: 50%; background: var(--color-surface-hover); margin: 0 auto 1.5rem; border: 1px solid var(--color-border-strong); display: grid; place-items: center; font-size: 2rem; font-family: var(--font-heading); color: var(--color-primary);">♙</div>
+            <div style="width: 80px; height: 80px; border-radius: 50%; background: var(--color-surface-hover); margin: 0 auto 1.5rem; border: 1px solid var(--color-border-strong); display: grid; place-items: center; font-size: 2rem; font-family: var(--font-heading); color: var(--color-primary); overflow: hidden;">
+                <img id="profileAvatar" src="" alt="Avatar" style="width: 100%; height: 100%; object-fit: cover; display: none;">
+                <span id="profileFallback">♙</span>
+            </div>
             <h2 id="profileName" style="margin-bottom: 0.25rem;">Carregando...</h2>
             <p id="profileEmail" class="text-muted mb-4">Aguarde...</p>
             <div class="form-group mb-0">
@@ -129,18 +133,14 @@
     </div>
 
     <!-- =========================================================
-         SCRIPTS
+         SCRIPTS CORE E MODULARES
     ========================================================= -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="js/supabase.js"></script>
     <script src="js/auth.js"></script>
-    <script src="js/main.js"></script>
     <script src="js/menu.js"></script>
-    
-    <!-- Lógica de Campanhas (O próximo arquivo a ser alinhado) -->
     <script src="js/campanhas.js"></script>
 
-    <!-- Script Inline da Command Bar -->
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             const cmdModal = document.getElementById('commandBarModal');
