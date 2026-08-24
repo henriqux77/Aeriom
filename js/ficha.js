@@ -1,6 +1,7 @@
 /* =========================================================
    AERIOM — MOTOR DE CRIAÇÃO DE FICHAS V4.0 (js/ficha.js)
    Fase 3: Lógica, Wizard, Alocação Interativa e Supabase
+   Correção de Integração: Proteção de Schema e Anti-XSS
 ========================================================= */
 document.addEventListener("DOMContentLoaded", async () => {
     "use strict";
@@ -55,16 +56,16 @@ document.addEventListener("DOMContentLoaded", async () => {
             else step.classList.remove('completed');
         });
 
-        btnPrev.disabled = currentStep === 1;
+        if (btnPrev) btnPrev.disabled = currentStep === 1;
         
         if (currentStep === totalSteps) {
-            btnNext.style.display = 'none';
-            generateChecklist(); // Atualiza a revisão final
+            if (btnNext) btnNext.style.display = 'none';
+            generateChecklist(); 
         } else {
-            btnNext.style.display = 'block';
+            if (btnNext) btnNext.style.display = 'block';
         }
         
-        // Scroll tracker into view if on mobile
+        // Mobile scroll para a aba ativa
         const activeStep = document.querySelector('.progress-step.active');
         if(activeStep) activeStep.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
     }
@@ -97,7 +98,8 @@ document.addEventListener("DOMContentLoaded", async () => {
                 card.classList.add("selected");
                 
                 const value = card.getAttribute(`data-${hiddenInputId.replace('char', '').toLowerCase()}`);
-                document.getElementById(hiddenInputId).value = value;
+                const hiddenInput = document.getElementById(hiddenInputId);
+                if (hiddenInput) hiddenInput.value = value;
                 
                 if (onSelectCallback) onSelectCallback(card);
             });
@@ -105,12 +107,14 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
 
     setupCards("raceGrid", "charRace", (card) => {
-        document.getElementById("charRaceAbility").value = card.getAttribute("data-ability");
+        const abilityInput = document.getElementById("charRaceAbility");
+        if (abilityInput) abilityInput.value = card.getAttribute("data-ability") || "";
     });
     
     setupCards("classGrid", "charClass", (card) => {
         const bonus = parseInt(card.getAttribute("data-manabonus")) || 0;
-        document.getElementById("charManaBonus").value = bonus;
+        const bonusInput = document.getElementById("charManaBonus");
+        if (bonusInput) bonusInput.value = bonus;
         updateManaDisplay();
     });
 
@@ -120,46 +124,44 @@ document.addEventListener("DOMContentLoaded", async () => {
     const initialDicePool = [4, 6, 6, 8, 10, 12, 20, 20];
     let allocatedAttrs = { Presença: null, Precisão: null, Intelecto: null, Controle: null, Percepção: null, Vigor: null, Agilidade: null, Força: null };
     
-    let selectedDieMobile = null; // Para interações Click/Tap
+    let selectedDieMobile = null; 
 
     function renderDicePool() {
         const pool = document.getElementById("dicePool");
+        if (!pool) return;
         pool.innerHTML = '';
         
-        // Conta os dados usados
         let usedValues = Object.values(allocatedAttrs).filter(v => v !== null);
         let tempPool = [...initialDicePool];
         
-        // Remove da pool virtual os que já estão alocados
         usedValues.forEach(val => {
             const index = tempPool.indexOf(val);
             if (index > -1) tempPool.splice(index, 1);
         });
 
-        // Renderiza os restantes
         tempPool.forEach(val => {
             const die = createSafeElement("div", "die-token", `D${val}`);
             die.setAttribute("draggable", "true");
             die.setAttribute("data-type", `D${val}`);
             die.setAttribute("data-val", val);
             
-            // Eventos Drag & Drop (Desktop)
+            // Drag & Drop
             die.addEventListener("dragstart", (e) => {
                 die.classList.add("dragging");
                 e.dataTransfer.setData("text/plain", val);
-                selectedDieMobile = null; // Limpa estado mobile ao arrastar
+                selectedDieMobile = null; 
                 clearMobileHighlights();
             });
             die.addEventListener("dragend", () => {
                 die.classList.remove("dragging");
             });
 
-            // Evento Touch/Click (Mobile)
-            die.addEventListener("click", (e) => {
+            // Touch / Click
+            die.addEventListener("click", () => {
                 document.querySelectorAll(".die-token").forEach(d => d.classList.remove("selected-mobile"));
                 die.classList.add("selected-mobile");
                 selectedDieMobile = val;
-                document.getElementById("attributesList").classList.add("awaiting-drop");
+                document.getElementById("attributesList")?.classList.add("awaiting-drop");
             });
 
             pool.appendChild(die);
@@ -172,7 +174,6 @@ document.addEventListener("DOMContentLoaded", async () => {
         slots.forEach(slot => {
             const attrName = slot.getAttribute("data-slot");
             
-            // Funcionalidade Drag & Drop
             slot.addEventListener("dragover", (e) => {
                 e.preventDefault();
                 slot.classList.add("drag-over");
@@ -189,14 +190,12 @@ document.addEventListener("DOMContentLoaded", async () => {
                 allocateDie(attrName, val);
             });
 
-            // Funcionalidade Click/Tap (Mobile)
             slot.parentElement.addEventListener("click", () => {
                 if (selectedDieMobile !== null) {
                     allocateDie(attrName, selectedDieMobile);
                     selectedDieMobile = null;
                     clearMobileHighlights();
                 } else if (allocatedAttrs[attrName] !== null) {
-                    // Clicar num atributo preenchido devolve o dado à pool
                     allocatedAttrs[attrName] = null;
                     updateAttrUI();
                 }
@@ -205,14 +204,13 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
 
     function allocateDie(attrName, value) {
-        // Se a slot já tiver um dado, devolve-o
-        // Retira o dado escolhido e coloca na slot
         allocatedAttrs[attrName] = value;
         updateAttrUI();
     }
 
     function clearMobileHighlights() {
-        document.getElementById("attributesList").classList.remove("awaiting-drop");
+        const attrList = document.getElementById("attributesList");
+        if (attrList) attrList.classList.remove("awaiting-drop");
         document.querySelectorAll(".die-token").forEach(d => d.classList.remove("selected-mobile"));
     }
 
@@ -226,6 +224,10 @@ document.addEventListener("DOMContentLoaded", async () => {
             
             slot.innerHTML = '';
             
+            // Normaliza o ID escondido (ex: attrPresenca)
+            const normalizedKey = attrName.replace(/ç/g,'c').replace(/ã/g,'a');
+            const hiddenInput = document.getElementById(`attr${normalizedKey}`);
+            
             if (val !== null) {
                 const die = createSafeElement("div", "die-token", `D${val}`);
                 die.setAttribute("data-type", `D${val}`);
@@ -233,14 +235,11 @@ document.addEventListener("DOMContentLoaded", async () => {
                 die.title = "Clique para devolver o dado";
                 slot.appendChild(die);
                 
-                // Grava no input escondido removendo os acentos para bater com o Supabase
-                const normalizedKey = attrName.replace('ç','c').replace('ã','a').replace('ç','c');
-                document.getElementById(`attr${normalizedKey}`).value = val;
+                if (hiddenInput) hiddenInput.value = val;
             } else {
                 const empty = createSafeElement("span", "slot-empty-text", "D?");
                 slot.appendChild(empty);
-                const normalizedKey = attrName.replace('ç','c').replace('ã','a').replace('ç','c');
-                document.getElementById(`attr${normalizedKey}`).value = "";
+                if (hiddenInput) hiddenInput.value = "";
             }
         });
         
@@ -248,15 +247,15 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
 
     // =========================================================
-    // 4. SISTEMAS V4.0 (PODER, MANA E PERÍCIAS)
+    // 4. SISTEMAS V4.0 E UTILITÁRIOS
     // =========================================================
     document.getElementById("rollRandomPowerBtn")?.addEventListener("click", () => {
         const powers = ["Fogo", "Ar", "Terra", "Água", "Gelo", "Eletricidade/Magnetismo", "Vegetação/Natureza", "Gravidade", "Luz/Sombras", "Tecnologia/Construtos"];
         const select = document.getElementById("charPower");
+        if (!select) return;
         
-        // Simulação rápida de rolar 1d100
         let roll = Math.floor(Math.random() * 100) + 1;
-        let index = Math.floor((roll - 1) / 10); // 1-10=0, 11-20=1, etc.
+        let index = Math.floor((roll - 1) / 10);
         if (index > 9) index = 9;
         
         select.value = powers[index];
@@ -264,12 +263,16 @@ document.addEventListener("DOMContentLoaded", async () => {
     });
 
     function updateManaDisplay() {
-        const classBonus = parseInt(document.getElementById("charManaBonus").value) || 0;
+        const bonusInput = document.getElementById("charManaBonus");
+        const classBonus = parseInt(bonusInput ? bonusInput.value : 0) || 0;
         const controleAttr = allocatedAttrs["Controle"] || 0;
         
         const totalCM = classBonus + controleAttr;
-        document.getElementById("displayManaControl").textContent = totalCM;
-        document.getElementById("charManaControl").value = totalCM;
+        const display = document.getElementById("displayManaControl");
+        const hidden = document.getElementById("charManaControl");
+        
+        if (display) display.textContent = totalCM;
+        if (hidden) hidden.value = totalCM;
     }
 
     const officialSkills = ["Acrobacia", "Atletismo", "Furtividade", "Percepção", "Investigação", "Conhecimento", "Medicina", "Sobrevivência", "Persuasão", "Intuição", "Enganação", "Tática", "Ofício", "Controle de Mana"];
@@ -304,7 +307,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
 
     // =========================================================
-    // 5. TÉCNICAS E EQUIPAMENTOS (MODULARES)
+    // 5. TÉCNICAS E EQUIPAMENTOS
     // =========================================================
     function attachDynamicList(btnId, containerId, templateFn) {
         document.getElementById(btnId)?.addEventListener("click", () => {
@@ -312,11 +315,11 @@ document.addEventListener("DOMContentLoaded", async () => {
             if (placeholder) placeholder.style.display = 'none';
             
             const card = createSafeElement("div", "dynamic-card");
-            card.innerHTML = templateFn();
+            card.innerHTML = templateFn(); // HTML estático do template é seguro (sem dados de BD direto aqui)
             
             card.querySelector(".btn-remove-card").addEventListener("click", () => {
                 card.remove();
-                if (document.getElementById(containerId).children.length === 1) {
+                if (document.getElementById(containerId).children.length === 1 && placeholder) {
                     placeholder.style.display = 'flex';
                 }
             });
@@ -349,10 +352,11 @@ document.addEventListener("DOMContentLoaded", async () => {
     `);
 
     // =========================================================
-    // 6. CHECKLIST E REVISÃO
+    // 6. CHECKLIST DE REVISÃO E COMPILADORES
     // =========================================================
     function generateChecklist() {
         const checklist = document.getElementById("reviewChecklist");
+        if (!checklist) return;
         checklist.innerHTML = '';
         
         let allValid = true;
@@ -368,41 +372,46 @@ document.addEventListener("DOMContentLoaded", async () => {
             if (!isValid) allValid = false;
         };
 
-        checkItem("Identidade Básica", document.getElementById("charName").value.trim() !== '', 1);
-        checkItem("Raça Definida", document.getElementById("charRace").value.trim() !== '', 2);
-        checkItem("Classe Selecionada", document.getElementById("charClass").value.trim() !== '', 3);
+        const charName = document.getElementById("charName")?.value.trim() || "";
+        const charRace = document.getElementById("charRace")?.value.trim() || "";
+        const charClass = document.getElementById("charClass")?.value.trim() || "";
+        const hpMax = document.getElementById("charHpMax")?.value || "";
+        const def = document.getElementById("charDefense")?.value || "";
+        const bg = document.getElementById("bgHistory")?.value.trim() || "";
+
+        checkItem("Identidade Básica", charName !== '', 1);
+        checkItem("Raça Definida", charRace !== '', 2);
+        checkItem("Classe Selecionada", charClass !== '', 3);
         
         const attrsFilled = Object.values(allocatedAttrs).every(val => val !== null);
         checkItem("Atributos Distribuídos", attrsFilled, 4);
         
-        checkItem("Pontos de Vida & Defesa", (document.getElementById("charHpMax").value !== '' && document.getElementById("charDefense").value !== ''), 8);
-        checkItem("História Elaborada", document.getElementById("bgHistory").value.trim() !== '', 11);
+        checkItem("Pontos de Vida & Defesa", (hpMax !== '' && def !== ''), 8);
+        checkItem("História Elaborada", bg !== '', 11);
 
-        const btn = document.getElementById("saveCharacterBtn");
-        if (allValid) {
-            btn.disabled = false;
-            btn.textContent = "Forjar Personagem (Concluir)";
-            btn.classList.add("btn-primary");
-            btn.classList.remove("btn-secondary");
-        } else {
-            btn.disabled = true;
-            btn.textContent = "Forjar Personagem (Incompleto)";
+        if (saveBtn) {
+            if (allValid) {
+                saveBtn.disabled = false;
+                saveBtn.textContent = "Forjar Personagem (Concluir)";
+                saveBtn.classList.add("btn-primary");
+                saveBtn.classList.remove("btn-secondary");
+            } else {
+                saveBtn.disabled = true;
+                saveBtn.textContent = "Forjar Personagem (Incompleto)";
+            }
         }
     }
 
-    // =========================================================
-    // 7. COMPILADORES (Formatadores Elegantes para BD)
-    // =========================================================
     function compileTechniques() {
         const cards = document.querySelectorAll("#techniquesList .dynamic-card");
         let compiledText = "";
         cards.forEach(card => {
-            const name = card.querySelector(".tech-name")?.value || "Sem Nome";
-            const cost = card.querySelector(".tech-cost")?.value || "-";
-            const test = card.querySelector(".tech-test")?.value || "-";
-            const dmg = card.querySelector(".tech-dmg")?.value || "-";
-            const range = card.querySelector(".tech-range")?.value || "-";
-            const desc = card.querySelector(".tech-desc")?.value || "";
+            const name = card.querySelector(".tech-name")?.value.trim() || "Sem Nome";
+            const cost = card.querySelector(".tech-cost")?.value.trim() || "-";
+            const test = card.querySelector(".tech-test")?.value.trim() || "-";
+            const dmg = card.querySelector(".tech-dmg")?.value.trim() || "-";
+            const range = card.querySelector(".tech-range")?.value.trim() || "-";
+            const desc = card.querySelector(".tech-desc")?.value.trim() || "";
             
             compiledText += `**${name}** (Custo: ${cost} PM | Teste: ${test})\n`;
             compiledText += `*Efeito:* ${dmg} | *Alcance:* ${range}\n`;
@@ -413,11 +422,13 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     function compileEquipment() {
         const cards = document.querySelectorAll("#equipList .dynamic-card");
-        let compiledText = `**Dinheiro Inicial:** ${document.getElementById("charMoney").value || "0 moedas"}\n\n**Mochila:**\n`;
+        const money = document.getElementById("charMoney")?.value.trim() || "0 moedas";
+        let compiledText = `**Dinheiro Inicial:** ${money}\n\n**Mochila:**\n`;
+        
         cards.forEach(card => {
-            const name = card.querySelector(".equip-name")?.value;
-            const dmg = card.querySelector(".equip-dmg")?.value;
-            const prop = card.querySelector(".equip-prop")?.value;
+            const name = card.querySelector(".equip-name")?.value.trim();
+            const dmg = card.querySelector(".equip-dmg")?.value.trim();
+            const prop = card.querySelector(".equip-prop")?.value.trim();
             
             if (name) {
                 let line = `- ${name}`;
@@ -429,16 +440,19 @@ document.addEventListener("DOMContentLoaded", async () => {
         return compiledText.trim();
     }
 
-    function compileSkills() {
-        let skillsObj = {};
+    function compileSkillsText() {
+        let skillsText = "";
         document.querySelectorAll(".skill-input").forEach(input => {
-            skillsObj[input.getAttribute("data-skill")] = parseInt(input.value) || 0;
+            const val = parseInt(input.value) || 0;
+            if (val > 0) {
+                skillsText += `${input.getAttribute("data-skill")}: +${val} | `;
+            }
         });
-        return JSON.stringify(skillsObj);
+        return skillsText.replace(/ \|\ $/, '');
     }
 
     // =========================================================
-    // 8. INIT (MODO EDIÇÃO) E SALVAMENTO
+    // 7. INIT (MODO EDIÇÃO) E SALVAMENTO
     // =========================================================
     async function loadCharacterData(id) {
         try {
@@ -446,16 +460,13 @@ document.addEventListener("DOMContentLoaded", async () => {
             if (error) throw error;
             if (!char) return;
 
-            // Step 1
-            document.getElementById("charName").value = char.name || "";
-            document.getElementById("charLevel").value = char.level || 1;
-            document.getElementById("charAvatar").value = char.avatar_url || "";
+            if(document.getElementById("charName")) document.getElementById("charName").value = char.name || "";
+            if(document.getElementById("charLevel")) document.getElementById("charLevel").value = char.level || 1;
+            if(document.getElementById("charAvatar")) document.getElementById("charAvatar").value = char.avatar_url || "";
             
-            // Step 2 & 3 (Aciona o click para visual selection)
             if(char.race) document.querySelector(`.choice-card[data-race="${char.race}"]`)?.click();
             if(char.class) document.querySelector(`.choice-card[data-class="${char.class}"]`)?.click();
 
-            // Step 4 (Atributos)
             const attrs = char.attributes || char;
             allocatedAttrs = {
                 Presença: attrs.presenca || null,
@@ -469,15 +480,9 @@ document.addEventListener("DOMContentLoaded", async () => {
             };
             updateAttrUI();
 
-            // Recursos
-            document.getElementById("charHpMax").value = char.hp_max || 0;
-            document.getElementById("charManaMax").value = char.mana_max || 0;
-            document.getElementById("bgHistory").value = char.history || "";
-
-            // Nota: Para edição perfeita de técnicas/inventário a partir do texto compilado, 
-            // precisaríamos de um parser reverso. Por agora, eles continuam formatados na textbox
-            // ou podem ser reconstruídos numa v2. 
-            // O Modo Edição focará na estrutura principal que nunca quebra a DB.
+            if(document.getElementById("charHpMax")) document.getElementById("charHpMax").value = char.hp_max || 0;
+            if(document.getElementById("charManaMax")) document.getElementById("charManaMax").value = char.mana_max || 0;
+            if(document.getElementById("bgHistory")) document.getElementById("bgHistory").value = char.history || "";
 
         } catch (err) {
             console.error("Erro ao carregar ficha:", err);
@@ -501,32 +506,39 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     characterForm?.addEventListener("submit", async (e) => {
         e.preventDefault();
-        saveBtn.disabled = true;
-        saveBtn.textContent = "A Forjar...";
+        if (saveBtn) {
+            saveBtn.disabled = true;
+            saveBtn.textContent = "A Forjar...";
+        }
 
         const compiledTechs = compileTechniques();
         const compiledEquip = compileEquipment();
         
-        // Atributos Secundários V4 (Gravados num JSON para não quebrar tabelas fixas)
-        const secondaryStats = {
-            poder: document.getElementById("charPower").value,
-            defesa: parseInt(document.getElementById("charDefense").value) || 0,
-            iniciativa: parseInt(document.getElementById("charInitiative").value) || 0,
-            deslocamento: parseInt(document.getElementById("charSpeed").value) || 0,
-            pericias: compileSkills()
-        };
+        // CRÍTICO (Proteção de Schema e Bug 42703): 
+        // Em vez de inserir 'secondary_stats' numa coluna que pode não existir, 
+        // concatenamos as informações vitais da V4 no final do background (history) 
+        // para preservar a leitura visual na plataforma inteira, sem explodir a Base de Dados.
+        const baseHistory = document.getElementById("bgHistory")?.value.trim() || "";
+        const elPower = document.getElementById("charPower")?.value || "Nenhum";
+        const elDef = document.getElementById("charDefense")?.value || "0";
+        const elInit = document.getElementById("charInitiative")?.value || "0";
+        const elSpeed = document.getElementById("charSpeed")?.value || "0";
+        const skillsText = compileSkillsText();
+
+        const historyWithStats = `${baseHistory}\n\n=== ESTATÍSTICAS SECUNDÁRIAS ===\nElemento: ${elPower}\nDefesa: ${elDef} | Iniciativa: ${elInit} | Deslocamento: ${elSpeed}m\nPerícias: ${skillsText || 'Nenhuma'}`;
 
         const characterData = {
             user_id: currentUser.id,
-            name: document.getElementById("charName").value.trim(),
-            race: document.getElementById("charRace").value.trim(),
-            class: document.getElementById("charClass").value.trim(),
-            level: parseInt(document.getElementById("charLevel").value) || 1,
-            avatar_url: document.getElementById("charAvatar").value.trim(),
+            name: document.getElementById("charName")?.value.trim() || "Herói",
+            race: document.getElementById("charRace")?.value.trim() || "",
+            class: document.getElementById("charClass")?.value.trim() || "",
+            level: parseInt(document.getElementById("charLevel")?.value) || 1,
+            avatar_url: document.getElementById("charAvatar")?.value.trim() || "",
             
-            hp_max: parseInt(document.getElementById("charHpMax").value) || 0,
-            mana_max: parseInt(document.getElementById("charManaMax").value) || 0,
+            hp_max: parseInt(document.getElementById("charHpMax")?.value) || 0,
+            mana_max: parseInt(document.getElementById("charManaMax")?.value) || 0,
             
+            // Colunas rasas que respeitam o schema original:
             forca: allocatedAttrs["Força"],
             agilidade: allocatedAttrs["Agilidade"],
             vigor: allocatedAttrs["Vigor"],
@@ -538,18 +550,8 @@ document.addEventListener("DOMContentLoaded", async () => {
             
             skills: compiledTechs,
             inventory: compiledEquip,
-            history: document.getElementById("bgHistory").value.trim(),
-            
-            // Reutiliza a coluna JSON "attributes" ou injeta na "history" via append, 
-            // Para ser 100% safe, usaremos a coluna existente JSON 'attributes' (se existir)
-            // ou caso não exista estruturação JSON, os secondaryStats podem ser lidos a partir de lógica auxiliar,
-            // mas aqui enviaremos rasos para compatibilidade com a tabela genérica.
+            history: historyWithStats.trim()
         };
-
-        // Inject secondary stats via JSON into existing text/json column
-        characterData.secondary_stats = secondaryStats; // Supabase aceitará se a coluna JSONB existir, caso contrário falha.
-        // Para garantir sucesso sem alterar o DB, vamos concatenar as infos cruciais na history se não houver coluna própria.
-        // Como o prompt disse: "Não alterar o schema sem necessidade". O VTT não lê "defesa" nativamente ainda, lê HP/Mana.
 
         try {
             if (currentCharacterId) {
@@ -568,7 +570,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         } catch (err) {
             console.error("Erro ao salvar:", err);
             showMessage("Uma falha impediu o registo. Verifique a consola.", true);
-            saveBtn.disabled = false;
+            if (saveBtn) saveBtn.disabled = false;
         }
     });
 
