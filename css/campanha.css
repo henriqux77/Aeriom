@@ -10,6 +10,7 @@
 ========================================================= */
 .app-layout {
     display: flex;
+    flex-direction: row; /* Desktop padrão: Sidebar ao lado do Conteúdo */
     height: 100dvh;
     width: 100%;
     overflow: hidden;
@@ -49,7 +50,7 @@
     flex-direction: column;
     z-index: var(--z-sidebar);
     flex-shrink: 0;
-    position: relative; /* Fica acima das camadas de tema */
+    position: relative; 
 }
 
 .sidebar-brand {
@@ -114,7 +115,7 @@
     cursor: pointer;
     transition: all var(--transition-fast);
     text-align: left;
-    min-height: 44px; /* Touch target seguro */
+    min-height: 44px; 
 }
 
 .dash-tab:hover {
@@ -133,11 +134,11 @@
 ========================================================= */
 .app-main {
     flex: 1;
-    min-width: 0; /* Previne overflow flexbox em mobile */
+    min-width: 0; 
     display: flex;
     flex-direction: column;
     position: relative;
-    z-index: var(--z-content); /* Layer 2: Acima do tema e overlay */
+    z-index: var(--z-content); 
     overflow-y: auto;
     overflow-x: hidden;
     scroll-behavior: smooth;
@@ -163,7 +164,7 @@
 }
 
 /* =========================================================
-   4. BANNER DA CAMPANHA (Mantido mas otimizado)
+   4. BANNER DA CAMPANHA 
 ========================================================= */
 .campaign-banner {
     position: relative;
@@ -193,7 +194,7 @@
     color: var(--theme-text, var(--color-text));
     text-shadow: var(--shadow-md);
     margin: 0;
-    word-break: break-word; /* Previne quebra de layout com nomes longos */
+    word-break: break-word; 
 }
 
 /* =========================================================
@@ -260,7 +261,6 @@
 ========================================================= */
 .master-tools-grid {
     display: grid;
-    /* min(100%, 260px) garante que não vaze em telas menores que 260px */
     grid-template-columns: repeat(auto-fit, minmax(min(100%, 260px), 1fr));
     gap: var(--space-md);
 }
@@ -291,7 +291,7 @@
 .master-dice-btn {
     flex: 1;
     min-width: 60px;
-    min-height: 44px; /* Touch target responsivo */
+    min-height: 44px; 
     padding: var(--space-sm);
     background: var(--theme-surface-raised, var(--color-surface-raised));
     border: 1px solid var(--theme-border, var(--color-border));
@@ -358,7 +358,7 @@
 
 .char-card-info {
     flex: 1;
-    min-width: 0; /* Previne overflow de textos grandes no flex */
+    min-width: 0; 
 }
 
 .char-card-info h4 {
@@ -415,7 +415,7 @@
     border-radius: var(--radius-sm);
     padding: var(--space-sm) var(--space-md);
     transition: var(--transition-fast);
-    flex-wrap: wrap; /* Segurança para mobile pequeno */
+    flex-wrap: wrap; 
     gap: var(--space-sm);
 }
 
@@ -464,7 +464,7 @@
     font-size: 1.5rem;
     cursor: pointer;
     padding: 0 var(--space-xs);
-    min-width: 44px; /* Touch target */
+    min-width: 44px; 
     min-height: 44px;
 }
 .remove-combatant-btn:hover { color: var(--color-danger); }
@@ -555,7 +555,7 @@
     padding: var(--space-sm);
     cursor: pointer;
     transition: var(--transition-fast);
-    min-height: 60px; /* Melhor área de clique */
+    min-height: 60px; 
 }
 
 .ps-roll-btn:hover {
@@ -599,7 +599,7 @@
 }
 
 /* =========================================================
-   11. CRONÓMETRO GLOBAL
+   11. CRONÓMETRO GLOBAL E ELEMENTOS FIXOS
 ========================================================= */
 .global-timer {
     position: fixed;
@@ -619,7 +619,7 @@
 }
 
 /* =========================================================
-   12. MOBILE & BOTTOM NAV (RESPONSIVIDADE ESTRUTURAL)
+   12. MOBILE & BOTTOM NAV (A CORREÇÃO ESTRUTURAL VITAL)
 ========================================================= */
 .mobile-topbar {
     display: none;
@@ -653,12 +653,12 @@
     left: 0;
     right: 0;
     width: 100%;
-    height: 4rem; /* Se alterar esta altura, ajuste o padding-bottom em .main-container do mobile */
+    height: 4rem; 
     background: var(--theme-surface-raised, var(--color-surface-raised));
     border-top: 1px solid var(--theme-border-strong, var(--color-border-strong));
     z-index: var(--z-header);
     box-shadow: 0 -4px 10px rgba(0,0,0,0.5);
-    padding-bottom: env(safe-area-inset-bottom); /* iOS SafeArea */
+    padding-bottom: env(safe-area-inset-bottom); 
 }
 
 .nav-mob-btn {
@@ -686,6 +686,12 @@
 }
 
 @media (max-width: 768px) {
+    /* CORREÇÃO CRÍTICA DO VAZIO NEGRO: 
+       Força o layout a empilhar a Topbar e a Área Principal em Coluna */
+    .app-layout {
+        flex-direction: column;
+    }
+    
     .app-sidebar {
         display: none; 
     }
@@ -698,15 +704,13 @@
         display: flex;
     }
     
-    /* A área principal não deve ter padding-bottom direto se os elementos internos 
-       já tiverem. Vamos usar o padding do main-container para empurrar o conteúdo. */
     .app-main {
         padding-bottom: 0; 
     }
     
     .main-container {
         padding: var(--space-md);
-        /* Padding seguro: 4rem (nav) + 1rem (folga) + SafeArea */
+        /* Padding inferior para a Bottom Nav não sobrepor os painéis finais */
         padding-bottom: calc(5rem + env(safe-area-inset-bottom));
         gap: var(--space-md);
     }
@@ -720,7 +724,6 @@
         font-size: 1.5rem;
     }
     
-    /* Forçar inputs a não ultrapassarem a largura do pai no mobile */
     .form-input, .form-select, .form-textarea {
         max-width: 100%;
     }
