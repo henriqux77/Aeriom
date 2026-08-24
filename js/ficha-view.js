@@ -1,13 +1,13 @@
 /* =========================================================
    AERIOM — VISUALIZAÇÃO DE FICHA (js/ficha-view.js)
-   Fase 4: Grimório Seguro, Parsers V4 e Tokens de Dados
+   Fase 4: Diagnóstico, Grimório Seguro e Parsers V4
 ========================================================= */
 document.addEventListener("DOMContentLoaded", async () => {
     "use strict";
 
     const supabase = window.supabaseClient;
     if (!supabase) {
-        console.error("❌ Supabase não inicializado.");
+        console.error("[AERIOM] ❌ Supabase não inicializado.");
         return;
     }
 
@@ -16,8 +16,22 @@ document.addEventListener("DOMContentLoaded", async () => {
     const msgBox = document.getElementById("fichaViewMessage");
 
     // =========================================================
-    // 1. UTILITÁRIOS SEGUROS
+    // 1. DIAGNÓSTICO E UTILITÁRIOS SEGUROS
     // =========================================================
+    function logSupabaseError(arquivo, funcao, tabela, operacao, error) {
+        console.error(`
+[AERIOM][SUPABASE]
+Arquivo: ${arquivo}
+Função: ${funcao}
+Tabela: ${tabela}
+Operação: ${operacao}
+Código: ${error.code || 'N/A'}
+Mensagem: ${error.message || 'N/A'}
+Detalhes: ${error.details || 'N/A'}
+Hint: ${error.hint || 'N/A'}
+        `);
+    }
+
     function showMessage(msg, isError = false) {
         if (!msgBox) return;
         msgBox.textContent = msg;
@@ -29,7 +43,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         if (el) el.textContent = (text !== null && text !== undefined && text !== '') ? text : fallback;
     }
 
-    // Cria o Token de Dado Visual (V4.0) em vez de apenas texto solto
+    // Cria o Token de Dado Visual (V4.0)
     function renderDieToken(value, containerId) {
         const container = document.getElementById(containerId);
         if (!container) return;
@@ -49,11 +63,9 @@ document.addEventListener("DOMContentLoaded", async () => {
         die.setAttribute("data-type", `D${value}`);
         die.textContent = `D${value}`;
         
-        // Remove interatividade (Pois é modo leitura)
         die.style.cursor = "default";
         die.style.boxShadow = "none";
         die.style.transform = "none";
-        // Ajuste de tamanho para o modo de leitura
         die.style.width = "48px";
         die.style.height = "48px";
         die.style.fontSize = "1.1rem";
@@ -77,13 +89,17 @@ document.addEventListener("DOMContentLoaded", async () => {
                 return;
             }
 
+            // SELECT blindado conforme o schema real
             const { data: char, error } = await supabase
                 .from('characters')
                 .select('*')
                 .eq('id', currentCharacterId)
                 .single();
 
-            if (error) throw error;
+            if (error) {
+                logSupabaseError('js/ficha-view.js', 'loadCharacterView', 'characters', 'SELECT', error);
+                throw error;
+            }
             if (!char) {
                 showMessage("Os registos deste herói não foram encontrados.", true);
                 return;
@@ -128,7 +144,6 @@ document.addEventListener("DOMContentLoaded", async () => {
             setContent("viewCharManaMax", char.mana_max, "0");
 
             // 4. Parser Inteligente das Estatísticas Secundárias (V4.0)
-            // Extrai a Defesa, Iniciativa e Deslocamento que foram salvas em formato de texto no "history"
             let historyText = char.history || "";
             let power = "Nenhum", def = "0", init = "0", speed = "0";
             
@@ -137,11 +152,10 @@ document.addEventListener("DOMContentLoaded", async () => {
             
             if (statsIndex !== -1) {
                 const statsBlock = historyText.substring(statsIndex);
-                // Limpa a história para exibir apenas a narrativa ao jogador
                 historyText = historyText.substring(0, statsIndex).trim(); 
                 
-                const powerMatch = statsBlock.match(/Elemento:\s*(.+)/);
-                if (powerMatch) power = powerMatch[1];
+                const powerMatch = statsBlock.match(/Elemento:\s*([^\n]+)/);
+                if (powerMatch) power = powerMatch[1].trim();
                 
                 const defMatch = statsBlock.match(/Defesa:\s*(\d+)/);
                 if (defMatch) def = defMatch[1];
@@ -153,22 +167,20 @@ document.addEventListener("DOMContentLoaded", async () => {
                 if (speedMatch) speed = speedMatch[1];
             }
 
-            // Preenche os campos táticos se existirem no HTML
             setContent("viewCharPower", power, "Nenhum");
             setContent("viewCharDefense", def, "0");
             setContent("viewCharInitiative", init, "0");
             setContent("viewCharSpeed", speed, "0");
 
-            // 5. Atributos Visuais (Renderiza os Tokens D4, D6, D20...)
-            const attrs = char.attributes || char;
-            renderDieToken(attrs.forca, "viewAttrForca");
-            renderDieToken(attrs.agilidade, "viewAttrAgilidade");
-            renderDieToken(attrs.vigor, "viewAttrVigor");
-            renderDieToken(attrs.intelecto, "viewAttrIntelecto");
-            renderDieToken(attrs.percepcao, "viewAttrPercepcao");
-            renderDieToken(attrs.presenca, "viewAttrPresenca");
-            renderDieToken(attrs.precisao, "viewAttrPrecisao");
-            renderDieToken(attrs.controle, "viewAttrControle");
+            // 5. Atributos Visuais (Renderiza os Tokens)
+            renderDieToken(char.forca, "viewAttrForca");
+            renderDieToken(char.agilidade, "viewAttrAgilidade");
+            renderDieToken(char.vigor, "viewAttrVigor");
+            renderDieToken(char.intelecto, "viewAttrIntelecto");
+            renderDieToken(char.percepcao, "viewAttrPercepcao");
+            renderDieToken(char.presenca, "viewAttrPresenca");
+            renderDieToken(char.precisao, "viewAttrPrecisao");
+            renderDieToken(char.controle, "viewAttrControle");
 
             // 6. Blocos de Texto Resilientes
             setContent("viewCharSkills", char.skills, "Nenhum poder ou técnica registado.");
@@ -176,8 +188,7 @@ document.addEventListener("DOMContentLoaded", async () => {
             setContent("viewCharHistory", historyText, "As crónicas ainda não registaram a história deste herói...");
 
         } catch (err) {
-            console.error("Erro ao carregar visualização:", err);
-            showMessage("Erro ao decifrar o grimório do personagem.", true);
+            showMessage(`Erro ao decifrar o grimório: ${err.message || 'Falha de comunicação'}. Veja o console.`, true);
         }
     }
 
@@ -185,7 +196,6 @@ document.addEventListener("DOMContentLoaded", async () => {
     // 3. AÇÕES
     // =========================================================
     document.getElementById("editCharacterBtn")?.addEventListener("click", () => {
-        // Redireciona para o Creator, que buscará o ID no localStorage para carregar os dados
         window.location.href = "ficha.html";
     });
 
