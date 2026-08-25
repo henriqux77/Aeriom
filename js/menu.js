@@ -23,7 +23,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
     sidebar.innerHTML = `
         <div class="sidebar-header">
-            <h2 style="font-family: var(--font-heading); color: var(--color-primary); margin: 0;">Aeriom</h2>
+            <!-- Trocado texto H2 pela classe de Logo -->
+            <div class="brand-logo" style="width: 120px; height: 32px; background-position: left center;"></div>
             <button class="modal-close" id="closeSidebarBtn" title="Fechar Menu">×</button>
         </div>
         <nav class="sidebar-nav">
