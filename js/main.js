@@ -190,36 +190,15 @@ document.addEventListener("DOMContentLoaded", async () => {
     const loggedInActions = document.getElementById("loggedInActions");
     const recentCampaignContainer = document.getElementById("recentCampaignContainer");
 
-    async function loadDashboardData(user) {
-        const profile = await loadUserProfile(user);
-        const welcomeText = document.getElementById("welcomeUserText");
-        if (welcomeText && profile) {
-            welcomeText.textContent = `Saudações, ${profile.name.split(' ')[0]}.`;
-        }
-
-        if (!recentCampaignContainer) return;
-
-        try {
-            // CRÍTICO: Removido o `.order('created_at', { ascending: false })`
-            // Isso previne o erro 42703 que travava o carregamento do Dashboard.
-            const { data: memberships, error } = await supabaseClient
-                .from('campaign_members')
-                .select('role, campaigns(id, name, cover_url)')
-                .eq('user_id', user.id)
-                .limit(1);
-
-            recentCampaignContainer.innerHTML = '';
+        async function loadDashboardData(user) {
+        // ... (código anterior até a criação do card) ...
 
             if (memberships && memberships.length > 0 && memberships[0].campaigns) {
                 const camp = memberships[0].campaigns;
                 const roleText = memberships[0].role === 'master' ? '👑 Mestre' : '⚔️ Aventureiro';
                 
                 const card = document.createElement('div');
-                card.className = "aeriom-card-interactive";
-                card.style.display = "flex";
-                card.style.alignItems = "center";
-                card.style.gap = "var(--space-md)";
-                card.style.padding = "var(--space-md)";
+                card.className = "recent-campaign-card"; // Usa a nova classe CSS
                 
                 const avatar = document.createElement("div");
                 avatar.style.width = "64px";
@@ -245,39 +224,47 @@ document.addEventListener("DOMContentLoaded", async () => {
                 }
 
                 const infoContainer = document.createElement("div");
-                infoContainer.style.flex = "1";
-                infoContainer.style.minWidth = "0";
+                infoContainer.className = "recent-campaign-info"; // Usa a nova classe CSS
 
                 const label = createSafeElement("p", "text-muted", "SUA ÚLTIMA AVENTURA");
                 label.style.fontSize = "0.75rem";
                 label.style.fontWeight = "600";
                 label.style.letterSpacing = "0.05em";
-                label.style.marginBottom = "4px";
 
                 const title = createSafeElement("h3", "", camp.name);
-                title.style.margin = "0 0 4px 0";
                 title.style.color = "var(--color-text)";
-                title.style.whiteSpace = "nowrap";
-                title.style.overflow = "hidden";
-                title.style.textOverflow = "ellipsis";
 
+                // Correção do Crachá (Badge)
                 const badge = createSafeElement("span", "", roleText);
-                badge.style.fontSize = "0.8rem";
-                badge.style.padding = "2px 8px";
+                badge.style.fontSize = "0.75rem";
+                badge.style.padding = "4px 8px";
                 badge.style.borderRadius = "var(--radius-sm)";
-                badge.style.background = "var(--color-surface-hover)";
-                badge.style.color = memberships[0].role === 'master' ? "var(--color-accent)" : "var(--color-primary)";
-                badge.style.border = "1px solid var(--color-border)";
+                badge.style.fontWeight = "600";
+                badge.style.display = "inline-block";
+                badge.style.width = "fit-content"; // Impede que ocule a linha toda
+                
+                if (memberships[0].role === 'master') {
+                    badge.style.background = "rgba(217, 119, 6, 0.2)"; // Fundo translúcido do accent
+                    badge.style.color = "var(--color-accent)";
+                    badge.style.border = "1px solid var(--color-accent)";
+                } else {
+                    badge.style.background = "var(--color-surface-hover)";
+                    badge.style.color = "var(--color-primary)";
+                    badge.style.border = "1px solid var(--color-border)";
+                }
 
                 infoContainer.appendChild(label);
                 infoContainer.appendChild(title);
                 infoContainer.appendChild(badge);
 
+                const actionContainer = document.createElement("div");
+                actionContainer.className = "recent-campaign-action"; // Usa a nova classe CSS
                 const btn = createSafeElement("button", "btn btn-primary", "Continuar");
+                actionContainer.appendChild(btn);
                 
                 card.appendChild(avatar);
                 card.appendChild(infoContainer);
-                card.appendChild(btn);
+                card.appendChild(actionContainer);
 
                 card.addEventListener("click", () => {
                     localStorage.setItem('aeriom_active_campaign', camp.id);
@@ -285,43 +272,5 @@ document.addEventListener("DOMContentLoaded", async () => {
                 });
 
                 recentCampaignContainer.appendChild(card);
-            } else {
-                const emptyCard = document.createElement('div');
-                emptyCard.className = "placeholder-panel";
-                emptyCard.style.padding = "var(--space-lg)";
-                
-                emptyCard.innerHTML = `
-                    <div class="placeholder-icon" style="font-size: 2rem; margin-bottom: 8px;">🏕️</div>
-                    <h3 style="color: var(--color-primary); margin-bottom: 4px;">Nenhuma Mesa Ativa</h3>
-                    <p class="text-muted" style="font-size: 0.9rem; margin-bottom: var(--space-md);">Ainda não iniciou a sua jornada.</p>
-                    <button class="btn btn-secondary" onclick="window.location.href='campanhas.html'">Encontrar uma Mesa</button>
-                `;
-                recentCampaignContainer.appendChild(emptyCard);
             }
-        } catch (err) {
-            console.error("Erro ao carregar dashboard:", err);
-        }
-    }
-
-    function updateHomeActions(session) {
-        if (!loggedOutActions || !loggedInActions) return;
-        if (session) {
-            loggedOutActions.style.display = "none";
-            loggedInActions.style.display = "block";
-            loadDashboardData(session.user);
-        } else {
-            loggedOutActions.style.display = "block";
-            loggedInActions.style.display = "none";
-        }
-    }
-
-    supabaseClient.auth.onAuthStateChange((event, session) => updateHomeActions(session));
-
-    try {
-        const { data: { session } } = await supabaseClient.auth.getSession();
-        updateHomeActions(session);
-    } catch (error) {
-        updateHomeActions(null);
-    }
-
-});
+// ...
