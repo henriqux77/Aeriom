@@ -391,7 +391,6 @@ a:hover {
     cursor: not-allowed;
     background: rgba(0, 0, 0, 0.2);
 }
-
 /* =========================================================
    8. HEADER (APLICAÇÃO GLOBAL)
 ========================================================= */
@@ -410,13 +409,28 @@ a:hover {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    height: 4rem; /* Mais enxuto */
+    height: 4rem;
+    padding: 0 var(--space-16); /* Adicionado padding para afastar das bordas */
 }
 
-/* LOGO OFFICIAL RESPONSIVA E SEM DISTORÇÃO */
+/* Área da esquerda (Menu e Logo) */
+.topbar-left {
+    display: flex;
+    align-items: center;
+    gap: var(--space-12);
+}
+
+/* Área da direita (Ações rápidas) */
+.topbar-right {
+    display: flex;
+    align-items: center;
+    gap: var(--space-8);
+}
+
+/* LOGO OFFICIAL RESPONSIVA */
 .logo, .brand-logo {
     display: block;
-    height: 32px; /* Proporção elegante e contida */
+    height: 36px; /* Ligeiramente maior */
     width: 140px; 
     background-image: var(--aeriom-logo-url);
     background-size: contain;
@@ -428,6 +442,70 @@ a:hover {
 
 .brand-logo:hover {
     opacity: 0.85;
+}
+
+/* =========================================================
+   12. UTILITÁRIOS GLOBAIS E RESPONSIVIDADE
+========================================================= */
+/* MOBILE AJUSTES GERAIS */
+@media (max-width: 768px) {
+    h1 { font-size: 1.75rem; }
+    h2 { font-size: 1.5rem; }
+    h3 { font-size: 1.15rem; }
+    
+    .app-container, .container { padding: 0 var(--space-16); }
+    
+    .btn { width: 100%; justify-content: center; }
+    
+    .topbar-content { height: 4rem; }
+    
+    .logo, .brand-logo { 
+        width: 130px; /* Garante tamanho razoável no mobile */
+        height: 32px;
+        background-position: left center; /* Mantém alinhado com o menu */
+    }
+}
+
+/* Fix do Card de Campanha Recente no Mobile (Main Dashboard) */
+.recent-campaign-card {
+    display: flex;
+    flex-wrap: wrap; /* Permite quebrar linha */
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 1.25rem;
+    background: var(--color-surface-raised, #18181b);
+    border: 1px solid var(--color-border-strong, #27272a);
+    border-radius: var(--radius-lg, 12px);
+}
+
+.recent-campaign-info {
+    display: flex;
+    flex-direction: column; /* Força empilhamento vertical */
+    gap: 0.5rem;
+    flex: 1 1 200px;
+    min-width: 0;
+}
+
+.recent-campaign-info h3, 
+.recent-campaign-info p {
+    word-break: break-word;
+    margin: 0;
+}
+
+.recent-campaign-action {
+    flex: 0 0 auto;
+    width: auto;
+}
+
+@media (max-width: 480px) {
+    .recent-campaign-action {
+        width: 100%;
+        margin-top: 0.5rem; /* Espaço extra antes do botão no mobile */
+    }
+    .recent-campaign-action .btn {
+        width: 100%;
+    }
 }
 
 /* =========================================================
