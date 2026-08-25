@@ -2,6 +2,17 @@
    AERIOM — NÚCLEO DA MESA DIGITAL (js/campanha.js)
    Fase 5: Integração Premium, Motor de Dados e Sincronia
 ========================================================= */
+    function parseCampaignTheme(desc) {
+        if (!desc) return { cleanDesc: "", themeId: "default" };
+        const marker = "=== TEMA ===";
+        const index = desc.indexOf(marker);
+        if (index !== -1) {
+            const cleanDesc = desc.substring(0, index).trim();
+            return { cleanDesc };
+        }
+        return { cleanDesc: desc };
+    }
+
 document.addEventListener("DOMContentLoaded", async () => {
     "use strict";
 
