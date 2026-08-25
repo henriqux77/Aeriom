@@ -85,7 +85,7 @@
     --space-32: 32px;
     --space-48: 48px;
 
-    /* Aliases de retrocompatibilidade (até refatorarmos os HTMLs) */
+    /* Aliases de retrocompatibilidade */
     --space-xs: var(--space-4);
     --space-sm: var(--space-8);
     --space-md: var(--space-16);
@@ -140,7 +140,7 @@ body {
     position: relative;
 }
 
-/* Atmosfera base para o site inteiro (quando há imagem global) */
+/* Atmosfera base para o site inteiro */
 body::before {
     content: '';
     position: fixed;
@@ -158,7 +158,7 @@ h1, h2, h3, h4, h5, h6 {
     color: var(--color-text);
     line-height: 1.25;
     letter-spacing: 0.01em;
-    font-weight: 500; /* Cinzel fica muito bruto com 700. 500 é mais elegante. */
+    font-weight: 500;
 }
 
 h1 { font-size: 2.25rem; font-weight: 600; }
@@ -222,14 +222,13 @@ a:hover {
     transition: all var(--transition-fast);
     user-select: none;
     position: relative;
-    min-height: 44px; /* Touch target acessível */
+    min-height: 44px;
     text-decoration: none;
 }
 
 .btn:active:not(:disabled) { transform: scale(0.98); }
 .btn:disabled { opacity: 0.4; cursor: not-allowed; filter: grayscale(100%); }
 
-/* Primary: Dourado, texto escuro. Aparência de ferramenta principal. */
 .btn-primary {
     background: var(--color-primary);
     color: #000;
@@ -243,7 +242,6 @@ a:hover {
     box-shadow: var(--shadow-md), var(--shadow-glow);
 }
 
-/* Secondary: Material escuro com borda metálica/dourada sutil */
 .btn-secondary {
     background: var(--color-surface-raised);
     color: var(--color-text);
@@ -257,7 +255,6 @@ a:hover {
     color: var(--color-primary);
 }
 
-/* Ghost: Sem fundo, sutil */
 .btn-ghost {
     background: transparent;
     color: var(--color-text-muted);
@@ -268,10 +265,9 @@ a:hover {
     color: var(--color-text);
 }
 
-/* Danger */
 .btn-danger {
     background: var(--color-danger-muted);
-    color: #fecdd3; /* vermelho bem claro */
+    color: #fecdd3;
     border: 1px solid var(--color-danger);
 }
 
@@ -334,139 +330,7 @@ a:hover {
     border-color: var(--color-primary-muted);
 }
 
-/* =========================================================
-   7. FORMULÁRIOS E INPUTS
-========================================================= */
-.form-group {
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-8);
-    margin-bottom: var(--space-16);
-}
-
-.form-label {
-    font-size: 0.75rem;
-    font-weight: 600;
-    color: var(--color-text-muted);
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-}
-
-.form-input, .form-select, .form-textarea {
-    width: 100%;
-    padding: var(--space-12) var(--space-16);
-    background: rgba(0, 0, 0, 0.4);
-    border: 1px solid var(--color-border);
-    border-radius: var(--radius-sm);
-    color: var(--color-text);
-    font-family: var(--font-ui);
-    font-size: 0.95rem;
-    transition: all var(--transition-fast);
-    outline: none;
-    box-shadow: inset 0 2px 4px rgba(0,0,0,0.5); /* Imita baixo-relevo */
-}
-
-.form-textarea {
-    resize: vertical;
-    min-height: 100px;
-    line-height: 1.5;
-}
-
-.form-input::placeholder, .form-textarea::placeholder {
-    color: var(--color-text-disabled);
-}
-
-.form-input:hover, .form-select:hover, .form-textarea:hover {
-    border-color: rgba(255, 255, 255, 0.15);
-}
-
-.form-input:focus, .form-select:focus, .form-textarea:focus {
-    border-color: var(--color-border-focus);
-    background: rgba(0, 0, 0, 0.6);
-    box-shadow: inset 0 2px 4px rgba(0,0,0,0.5), 0 0 0 1px var(--color-primary-muted);
-}
-
-.form-input:disabled, .form-select:disabled, .form-textarea:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-    background: rgba(0, 0, 0, 0.2);
-}
-/* =========================================================
-   8. HEADER (APLICAÇÃO GLOBAL)
-========================================================= */
-.topbar {
-    position: sticky;
-    top: 0;
-    z-index: var(--z-header);
-    background: var(--color-surface);
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
-    border-bottom: 1px solid var(--color-border);
-    box-shadow: var(--shadow-sm);
-}
-
-.topbar-content {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    height: 4rem;
-    padding: 0 var(--space-16); /* Adicionado padding para afastar das bordas */
-}
-
-/* Área da esquerda (Menu e Logo) */
-.topbar-left {
-    display: flex;
-    align-items: center;
-    gap: var(--space-12);
-}
-
-/* Área da direita (Ações rápidas) */
-.topbar-right {
-    display: flex;
-    align-items: center;
-    gap: var(--space-8);
-}
-
-/* LOGO OFFICIAL RESPONSIVA */
-.logo, .brand-logo {
-    display: block;
-    height: 36px; /* Ligeiramente maior */
-    width: 140px; 
-    background-image: var(--aeriom-logo-url);
-    background-size: contain;
-    background-position: left center;
-    background-repeat: no-repeat;
-    filter: drop-shadow(0 2px 4px rgba(0,0,0,0.8));
-    transition: opacity var(--transition-fast);
-}
-
-.brand-logo:hover {
-    opacity: 0.85;
-}
-
-/* =========================================================
-   12. UTILITÁRIOS GLOBAIS E RESPONSIVIDADE
-========================================================= */
-/* MOBILE AJUSTES GERAIS */
-@media (max-width: 768px) {
-    h1 { font-size: 1.75rem; }
-    h2 { font-size: 1.5rem; }
-    h3 { font-size: 1.15rem; }
-    
-    .app-container, .container { padding: 0 var(--space-16); }
-    
-    .btn { width: 100%; justify-content: center; }
-    
-    .topbar-content { height: 4rem; }
-    
-    .logo, .brand-logo { 
-        width: 130px; /* Garante tamanho razoável no mobile */
-        height: 32px;
-        background-position: left center; /* Mantém alinhado com o menu */
-    }
-}
-
-/* Fix do Card de Campanha Recente no Mobile (Main Dashboard) */
+/* Fix do Card de Campanha Recente no Dashboard */
 .recent-campaign-card {
     display: flex;
     flex-wrap: wrap; /* Permite quebrar linha */
@@ -498,14 +362,115 @@ a:hover {
     width: auto;
 }
 
-@media (max-width: 480px) {
-    .recent-campaign-action {
-        width: 100%;
-        margin-top: 0.5rem; /* Espaço extra antes do botão no mobile */
-    }
-    .recent-campaign-action .btn {
-        width: 100%;
-    }
+/* =========================================================
+   7. FORMULÁRIOS E INPUTS
+========================================================= */
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-8);
+    margin-bottom: var(--space-16);
+}
+
+.form-label {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--color-text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.form-input, .form-select, .form-textarea {
+    width: 100%;
+    padding: var(--space-12) var(--space-16);
+    background: rgba(0, 0, 0, 0.4);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-sm);
+    color: var(--color-text);
+    font-family: var(--font-ui);
+    font-size: 0.95rem;
+    transition: all var(--transition-fast);
+    outline: none;
+    box-shadow: inset 0 2px 4px rgba(0,0,0,0.5); 
+}
+
+.form-textarea {
+    resize: vertical;
+    min-height: 100px;
+    line-height: 1.5;
+}
+
+.form-input::placeholder, .form-textarea::placeholder {
+    color: var(--color-text-disabled);
+}
+
+.form-input:hover, .form-select:hover, .form-textarea:hover {
+    border-color: rgba(255, 255, 255, 0.15);
+}
+
+.form-input:focus, .form-select:focus, .form-textarea:focus {
+    border-color: var(--color-border-focus);
+    background: rgba(0, 0, 0, 0.6);
+    box-shadow: inset 0 2px 4px rgba(0,0,0,0.5), 0 0 0 1px var(--color-primary-muted);
+}
+
+.form-input:disabled, .form-select:disabled, .form-textarea:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    background: rgba(0, 0, 0, 0.2);
+}
+
+/* =========================================================
+   8. HEADER (APLICAÇÃO GLOBAL)
+========================================================= */
+.topbar {
+    position: sticky;
+    top: 0;
+    z-index: var(--z-header);
+    background: var(--color-surface);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border-bottom: 1px solid var(--color-border);
+    box-shadow: var(--shadow-sm);
+}
+
+.topbar-content {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 4rem;
+    padding: 0 var(--space-16);
+}
+
+/* Área da esquerda (Menu e Logo) */
+.topbar-left {
+    display: flex;
+    align-items: center;
+    gap: var(--space-12);
+}
+
+/* Área da direita (Ações rápidas) */
+.topbar-right {
+    display: flex;
+    align-items: center;
+    gap: var(--space-8);
+}
+
+/* LOGO OFFICIAL RESPONSIVA */
+.logo, .brand-logo {
+    display: block;
+    height: 36px; 
+    width: 140px; 
+    background-image: var(--aeriom-logo-url);
+    background-size: contain;
+    background-position: left center;
+    background-repeat: no-repeat;
+    filter: drop-shadow(0 2px 4px rgba(0,0,0,0.8));
+    transition: opacity var(--transition-fast);
+}
+
+.brand-logo:hover {
+    opacity: 0.85;
 }
 
 /* =========================================================
@@ -634,7 +599,7 @@ a:hover {
     border: 1px solid var(--color-border-strong);
     border-radius: var(--radius-md);
     width: 100%;
-    max-width: 520px; /* Pouco mais largo e confortável */
+    max-width: 520px; 
     padding: var(--space-32);
     position: relative;
     box-shadow: var(--shadow-lg), var(--shadow-inner);
@@ -754,12 +719,23 @@ a:hover {
     
     .app-container, .container { padding: 0 var(--space-16); }
     
-    .btn { width: 100%; justify-content: center; } /* Botões expandem em mobile para touch */
+    .btn { width: 100%; justify-content: center; } 
     
-    .topbar-content { height: 3.5rem; }
+    .topbar-content { height: 4rem; }
     
     .logo, .brand-logo { 
-        width: 120px; 
-        background-position: center; /* Centraliza no mobile se necessário */
+        width: 130px; 
+        height: 32px;
+        background-position: left center;
+    }
+}
+
+@media (max-width: 480px) {
+    .recent-campaign-action {
+        width: 100%;
+        margin-top: 0.5rem;
+    }
+    .recent-campaign-action .btn {
+        width: 100%;
     }
 }
