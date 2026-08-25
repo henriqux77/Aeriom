@@ -645,7 +645,6 @@
     80% { transform: translateY(-40px) scale(1); opacity: 1; }
     100% { transform: translateY(-60px) scale(1); opacity: 0; }
 }
-
 /* =========================================================
    11. MOBILE & BOTTOM NAV (ARQUITETURA SEGURA)
 ========================================================= */
@@ -665,108 +664,17 @@
     -webkit-backdrop-filter: blur(12px);
 }
 
-/* Logo centralizada no mobile topbar */
-.mobile-topbar .brand-logo {
-    margin: 0 auto;
-    height: 28px;
-    width: 120px;
-    background-position: center;
-}
-
-.bottom-nav {
-    display: none;
-    position: fixed;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    width: 100%;
-    height: 4.5rem; /* Levemente mais alta para conforto de toque */
-    background: var(--theme-surface-raised, var(--color-surface-raised));
-    border-top: 1px solid var(--theme-border-strong, var(--color-border-strong));
-    z-index: var(--z-header);
-    box-shadow: 0 -4px 16px rgba(0,0,0,0.6);
-    padding-bottom: env(safe-area-inset-bottom); 
-}
-
-.nav-mob-btn {
-    flex: 1;
+.mobile-topbar-left {
     display: flex;
-    flex-direction: column;
     align-items: center;
-    justify-content: center;
-    background: transparent;
-    border: none;
-    color: var(--theme-muted, var(--color-text-muted));
-    font-size: 0.7rem;
-    font-family: var(--font-ui);
-    font-weight: 500;
-    padding: var(--space-4);
-    min-height: 44px;
-    cursor: pointer;
-    transition: all var(--transition-fast);
+    gap: var(--space-12);
 }
 
-.nav-mob-icon {
-    font-size: 1.35rem;
-    margin-bottom: 4px;
-    transition: transform var(--transition-fast);
-    opacity: 0.7;
+/* Logo na VTT Mobile */
+.mobile-topbar .brand-logo {
+    height: 32px;
+    width: 130px;
+    background-position: left center;
 }
 
-.nav-mob-btn.active {
-    color: var(--theme-primary, var(--color-primary));
-}
-
-.nav-mob-btn.active .nav-mob-icon {
-    opacity: 1;
-    transform: translateY(-2px);
-    filter: drop-shadow(0 0 6px var(--theme-primary-muted));
-}
-
-@media (max-width: 768px) {
-    /* CORREÇÃO ESTRUTURAL MOBILE */
-    .app-layout {
-        flex-direction: column;
-    }
-    
-    .app-sidebar {
-        display: none; 
-    }
-    
-    .mobile-topbar {
-        display: flex;
-    }
-    
-    .bottom-nav {
-        display: flex;
-    }
-    
-    .app-main {
-        padding-bottom: 0; 
-    }
-    
-    .main-container {
-        padding: var(--space-16);
-        /* Padding inferior crucial: 4.5rem (nav) + 1rem (folga) + SafeArea */
-        padding-bottom: calc(5.5rem + env(safe-area-inset-bottom));
-        gap: var(--space-16);
-    }
-    
-    .campaign-banner {
-        height: 140px;
-        padding: var(--space-24);
-        margin-bottom: var(--space-8);
-    }
-    
-    .campaign-banner h2 {
-        font-size: 1.75rem;
-    }
-
-    .panel {
-        padding: var(--space-24) var(--space-16);
-    }
-    
-    .form-input, .form-select, .form-textarea {
-        max-width: 100%;
-    }
-}
+/* ... (resto do código) ... */
