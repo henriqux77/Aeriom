@@ -190,15 +190,30 @@ document.addEventListener("DOMContentLoaded", async () => {
     const loggedInActions = document.getElementById("loggedInActions");
     const recentCampaignContainer = document.getElementById("recentCampaignContainer");
 
-        async function loadDashboardData(user) {
-        // ... (código anterior até a criação do card) ...
+    async function loadDashboardData(user) {
+        const profile = await loadUserProfile(user);
+        const welcomeText = document.getElementById("welcomeUserText");
+        if (welcomeText && profile) {
+            welcomeText.textContent = `Saudações, ${profile.name.split(' ')[0]}.`;
+        }
+
+        if (!recentCampaignContainer) return;
+
+        try {
+            const { data: memberships, error } = await supabaseClient
+                .from('campaign_members')
+                .select('role, campaigns(id, name, cover_url)')
+                .eq('user_id', user.id)
+                .limit(1);
+
+            recentCampaignContainer.innerHTML = '';
 
             if (memberships && memberships.length > 0 && memberships[0].campaigns) {
                 const camp = memberships[0].campaigns;
                 const roleText = memberships[0].role === 'master' ? '👑 Mestre' : '⚔️ Aventureiro';
                 
                 const card = document.createElement('div');
-                card.className = "recent-campaign-card"; // Usa a nova classe CSS
+                card.className = "recent-campaign-card"; // Nova classe CSS flexível
                 
                 const avatar = document.createElement("div");
                 avatar.style.width = "64px";
@@ -224,7 +239,7 @@ document.addEventListener("DOMContentLoaded", async () => {
                 }
 
                 const infoContainer = document.createElement("div");
-                infoContainer.className = "recent-campaign-info"; // Usa a nova classe CSS
+                infoContainer.className = "recent-campaign-info"; // Nova classe CSS
 
                 const label = createSafeElement("p", "text-muted", "SUA ÚLTIMA AVENTURA");
                 label.style.fontSize = "0.75rem";
@@ -234,17 +249,17 @@ document.addEventListener("DOMContentLoaded", async () => {
                 const title = createSafeElement("h3", "", camp.name);
                 title.style.color = "var(--color-text)";
 
-                // Correção do Crachá (Badge)
+                // Correção de Estilização do Badge
                 const badge = createSafeElement("span", "", roleText);
                 badge.style.fontSize = "0.75rem";
                 badge.style.padding = "4px 8px";
                 badge.style.borderRadius = "var(--radius-sm)";
                 badge.style.fontWeight = "600";
                 badge.style.display = "inline-block";
-                badge.style.width = "fit-content"; // Impede que ocule a linha toda
+                badge.style.width = "fit-content";
                 
                 if (memberships[0].role === 'master') {
-                    badge.style.background = "rgba(217, 119, 6, 0.2)"; // Fundo translúcido do accent
+                    badge.style.background = "rgba(217, 119, 6, 0.2)";
                     badge.style.color = "var(--color-accent)";
                     badge.style.border = "1px solid var(--color-accent)";
                 } else {
@@ -258,7 +273,7 @@ document.addEventListener("DOMContentLoaded", async () => {
                 infoContainer.appendChild(badge);
 
                 const actionContainer = document.createElement("div");
-                actionContainer.className = "recent-campaign-action"; // Usa a nova classe CSS
+                actionContainer.className = "recent-campaign-action"; // Nova classe CSS
                 const btn = createSafeElement("button", "btn btn-primary", "Continuar");
                 actionContainer.appendChild(btn);
                 
@@ -272,5 +287,43 @@ document.addEventListener("DOMContentLoaded", async () => {
                 });
 
                 recentCampaignContainer.appendChild(card);
+            } else {
+                const emptyCard = document.createElement('div');
+                emptyCard.className = "placeholder-panel";
+                emptyCard.style.padding = "var(--space-lg)";
+                
+                emptyCard.innerHTML = `
+                    <div class="placeholder-icon" style="font-size: 2rem; margin-bottom: 8px;">🏕️</div>
+                    <h3 style="color: var(--color-primary); margin-bottom: 4px;">Nenhuma Mesa Ativa</h3>
+                    <p class="text-muted" style="font-size: 0.9rem; margin-bottom: var(--space-md);">Ainda não iniciou a sua jornada.</p>
+                    <button class="btn btn-secondary" onclick="window.location.href='campanhas.html'">Encontrar uma Mesa</button>
+                `;
+                recentCampaignContainer.appendChild(emptyCard);
             }
-// ...
+        } catch (err) {
+            console.error("Erro ao carregar dashboard:", err);
+        }
+    }
+
+    function updateHomeActions(session) {
+        if (!loggedOutActions || !loggedInActions) return;
+        if (session) {
+            loggedOutActions.style.display = "none";
+            loggedInActions.style.display = "block";
+            loadDashboardData(session.user);
+        } else {
+            loggedOutActions.style.display = "block";
+            loggedInActions.style.display = "none";
+        }
+    }
+
+    supabaseClient.auth.onAuthStateChange((event, session) => updateHomeActions(session));
+
+    try {
+        const { data: { session } } = await supabaseClient.auth.getSession();
+        updateHomeActions(session);
+    } catch (error) {
+        updateHomeActions(null);
+    }
+
+});
