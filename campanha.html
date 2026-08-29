@@ -392,7 +392,238 @@
 
     <!-- CONTÊINER DO MOTOR VISUAL DE DADOS (js/dice.js) -->
     <div id="aeriomDiceContainer"></div>
+<!-- =========================================================
+     MODAL / PAINEL — CRONÓMETRO NARRATIVO
+========================================================= -->
 
+<div id="globalTimerDisplay"
+     class="panel"
+     hidden
+     style="
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        z-index: 10001;
+        min-width: 220px;
+        text-align: center;
+        border-color: var(--theme-primary);
+        box-shadow: 0 0 25px rgba(0,0,0,.45);
+     ">
+
+    <div id="timerLabel"
+         style="
+            color: var(--theme-primary);
+            font-family: var(--font-heading);
+            font-size: 1rem;
+            margin-bottom: 4px;
+         ">
+        Tempo Restante
+    </div>
+
+    <div id="timerCountdown"
+         style="
+            font-family: var(--font-heading);
+            font-size: 2.4rem;
+            font-weight: 700;
+            letter-spacing: .08em;
+         ">
+        00:00
+    </div>
+</div>
+
+
+<!-- Ferramenta do Mestre -->
+<div id="sessionTimerPanel"
+     class="tool-box master-only"
+     style="display:none;">
+
+    <span class="tool-box-header">
+        ⏱️ Cronómetro Narrativo
+    </span>
+
+    <div style="
+        display:flex;
+        gap:8px;
+        flex-wrap:wrap;
+        margin-top:8px;
+    ">
+
+        <input
+            type="text"
+            id="timerInputLabel"
+            class="form-input"
+            placeholder="Ex: A ponte vai desabar..."
+            style="flex:2; min-width:180px;"
+        >
+
+        <input
+            type="number"
+            id="timerInputMinutes"
+            class="form-input"
+            min="1"
+            max="1440"
+            value="10"
+            style="width:110px;"
+        >
+
+        <button
+            type="button"
+            id="startTimerBtn"
+            class="btn btn-primary">
+            Iniciar
+        </button>
+
+        <button
+            type="button"
+            id="stopTimerBtn"
+            class="btn btn-secondary">
+            Parar
+        </button>
+
+    </div>
+</div>
+<!-- =========================================================
+     MODAL — CRIAR SEGREDO
+========================================================= -->
+
+<div id="createSecretModal" class="modal-backdrop">
+
+    <div class="modal-surface">
+
+        <button
+            id="closeCreateSecretModalBtn"
+            class="modal-close"
+            type="button">
+            ×
+        </button>
+
+        <div class="modal-header">
+            <h2>🔐 Novo Segredo</h2>
+            <p class="text-muted">
+                Envie uma informação privada para aventureiros específicos.
+            </p>
+        </div>
+
+        <form id="createSecretForm">
+
+            <div class="form-group">
+                <label class="form-label" for="secretTitleInput">
+                    Título
+                </label>
+
+                <input
+                    id="secretTitleInput"
+                    class="form-input"
+                    type="text"
+                    maxlength="120"
+                    required
+                    placeholder="Ex: A verdadeira identidade do rei"
+                >
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="secretContentInput">
+                    Segredo
+                </label>
+
+                <textarea
+                    id="secretContentInput"
+                    class="form-textarea"
+                    rows="6"
+                    maxlength="5000"
+                    required
+                    placeholder="Escreva aqui a informação confidencial..."
+                ></textarea>
+            </div>
+
+            <div class="form-group">
+
+                <label class="form-label">
+                    Revelar para
+                </label>
+
+                <div
+                    id="secretTargetsContainer"
+                    style="
+                        max-height:220px;
+                        overflow-y:auto;
+                        padding:12px;
+                        border:1px solid var(--theme-border);
+                        border-radius:var(--radius-sm);
+                    ">
+                </div>
+
+            </div>
+
+            <button
+                id="saveSecretBtn"
+                type="submit"
+                class="btn btn-primary w-full">
+                Enviar Segredo
+            </button>
+
+        </form>
+    </div>
+</div>
+
+
+<!-- =========================================================
+     TOAST — SEGREDO RECEBIDO
+========================================================= -->
+
+<div
+    id="privateCardToast"
+    class="modal-backdrop"
+    style="
+        align-items:flex-end;
+        padding-bottom:5vh;
+    ">
+
+    <div
+        class="modal-surface"
+        style="
+            max-width:500px;
+            border-color:var(--theme-primary);
+        ">
+
+        <div style="
+            font-size:2.5rem;
+            text-align:center;
+            margin-bottom:10px;
+        ">
+            🔐
+        </div>
+
+        <h2
+            id="privateCardTitle"
+            style="
+                color:var(--theme-primary);
+                text-align:center;
+            ">
+            Segredo
+        </h2>
+
+        <div
+            id="privateCardContent"
+            style="
+                white-space:pre-wrap;
+                line-height:1.6;
+                margin-top:16px;
+                padding:16px;
+                border-radius:var(--radius-sm);
+                background:rgba(0,0,0,.25);
+            ">
+        </div>
+
+        <button
+            id="closePrivateCardBtn"
+            type="button"
+            class="btn btn-primary w-full mt-4">
+            Compreendi
+        </button>
+
+    </div>
+</div>
     <!-- =========================================================
          SCRIPTS
     ========================================================= -->
