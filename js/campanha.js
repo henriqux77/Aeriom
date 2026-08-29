@@ -1,624 +1,2501 @@
 /* =========================================================
-   AERIOM — NÚCLEO DA MESA DIGITAL (js/campanha.js)
-   Fase 5: Integração Premium, Motor de Dados e Sincronia
+   AERIOM — NÚCLEO DA MESA DIGITAL
+   Arquivo: js/campanha.js
+
+   Responsabilidades:
+   - Inicialização da Mesa
+   - Autenticação
+   - Carregamento da campanha
+   - Controle Mestre/Jogador
+   - Temas da campanha
+   - Navegação entre abas
+   - Personagens da campanha
+   - Ficha rápida do jogador
+   - Alteração de PV/Mana/Condições
+   - Rolagens
+   - Pedidos de teste
+   - Tracker de combate
+   - Realtime
+   - Integração com módulos externos
+
+   Dependências:
+   - window.supabaseClient
+   - js/dice.js
+   - sistema de tema
+   - módulos opcionais da Mesa
 ========================================================= */
+
 document.addEventListener("DOMContentLoaded", async () => {
     "use strict";
 
+    /* =====================================================
+       0. SUPABASE
+    ===================================================== */
+
     const supabase = window.supabaseClient;
-    if (!supabase) return;
+
+    if (!supabase) {
+        console.error("[AERIOM] Supabase não encontrado.");
+        return;
+    }
+
+    /* =====================================================
+       1. ESTADO GLOBAL DA MESA
+    ===================================================== */
 
     let currentUser = null;
     let currentCampaign = null;
     let userRole = null;
-    
-    // IDs de controle de estado
+
     let activeStateLinkId = null;
+
     let playerSheetLinkId = null;
     let playerSheetCharName = "";
-    
-    // Controle Tático
-    let combatState = null;
+    let playerSheetCharacter = null;
+
+    let combatState = createEmptyCombatState();
+
     let currentRequestAttrValue = 0;
     let currentRequestAttrName = "";
 
-    // Elementos Base
+    let realtimeChannel = null;
+
+    let initialized = false;
+
+    /* =====================================================
+       2. ELEMENTOS PRINCIPAIS
+    ===================================================== */
+
     const campaignId = localStorage.getItem("aeriom_active_campaign");
+
     const loadingEl = document.getElementById("loadingDash");
     const contentEl = document.getElementById("dashContent");
     const roleLabel = document.getElementById("campaignRoleLabel");
-    
+
     const bannerNameSidebar = document.getElementById("bannerName");
     const bannerNameMobile = document.getElementById("bannerNameMobile");
     const bannerTitleDisplay = document.getElementById("bannerTitleDisplay");
+
     const masterPanel = document.getElementById("masterPanel");
 
-    // Elementos de Combate
+    /* =====================================================
+       3. ELEMENTOS DE COMBATE
+    ===================================================== */
+
     const toggleCombatBtn = document.getElementById("toggleCombatBtn");
     const combatMasterPanel = document.getElementById("combatMasterPanel");
-    const combatTrackerContainer = document.getElementById("combatTrackerContainer");
-    const noCombatPlaceholder = document.getElementById("noCombatPlaceholder");
-    const initiativeList = document.getElementById("initiativeList");
-    const addCombatantForm = document.getElementById("addCombatantForm");
+    const combatTrackerContainer =
+        document.getElementById("combatTrackerContainer");
 
-    // =========================================================
-    // 1. UTILITÁRIOS E PARSERS
-    // =========================================================
-    function createSafeElement(tag, className, text = null) {
+    const noCombatPlaceholder =
+        document.getElementById("noCombatPlaceholder");
+
+    const initiativeList =
+        document.getElementById("initiativeList");
+
+    const addCombatantForm =
+        document.getElementById("addCombatantForm");
+
+    /* =====================================================
+       4. UTILITÁRIOS
+    ===================================================== */
+
+    function createSafeElement(tag, className = "", text = null) {
         const el = document.createElement(tag);
-        if (className) el.className = className;
-        if (text !== null && text !== undefined) el.textContent = text;
+
+        if (className) {
+            el.className = className;
+        }
+
+        if (text !== null && text !== undefined) {
+            el.textContent = String(text);
+        }
+
         return el;
     }
 
-    function parseCampaignTheme(desc) {
-        if (!desc) return { cleanDesc: "", themeId: "default" };
-        const marker = "=== TEMA ===";
-        const index = desc.indexOf(marker);
-        if (index !== -1) {
-            const block = desc.substring(index);
-            const cleanDesc = desc.substring(0, index).trim();
-            const match = block.match(/ID:\s*([a-zA-Z0-9_]+)/);
-            const themeId = match ? match[1] : "default";
-            return { cleanDesc, themeId };
+    function safeText(value, fallback = "") {
+        if (value === null || value === undefined) {
+            return fallback;
         }
-        return { cleanDesc: desc, themeId: "default" };
+
+        return String(value);
     }
 
-    // =========================================================
-    // 2. INICIALIZAÇÃO BLINDADA
-    // =========================================================
-    async function init() {
-        if (!campaignId) { window.location.href = "campanhas.html"; return; }
-        
-        // Activa a UI imediatamente, não espera a rede
-        setupTabs();
-        setupThemeModal();
+    function safeNumber(value, fallback = 0) {
+        const number = Number(value);
+
+        return Number.isFinite(number)
+            ? number
+            : fallback;
+    }
+
+    function parseJSON(value, fallback = null) {
+        if (value === null || value === undefined || value === "") {
+            return fallback;
+        }
+
+        if (typeof value === "object") {
+            return value;
+        }
+
+        if (typeof value !== "string") {
+            return fallback;
+        }
 
         try {
-            const { data: { session }, error } = await supabase.auth.getSession();
-            if (error || !session) { window.location.href = "index.html"; return; }
-            currentUser = session.user;
+            return JSON.parse(value);
+        } catch (error) {
+            console.warn(
+                "[AERIOM] JSON inválido:",
+                value,
+                error
+            );
+
+            return fallback;
+        }
+    }
+
+    function normalizeArray(value) {
+        const parsed = parseJSON(value, value);
+
+        return Array.isArray(parsed)
+            ? parsed
+            : [];
+    }
+
+    function normalizeObject(value) {
+        const parsed = parseJSON(value, value);
+
+        if (
+            parsed &&
+            typeof parsed === "object" &&
+            !Array.isArray(parsed)
+        ) {
+            return parsed;
+        }
+
+        return {};
+    }
+
+    function getElement(id) {
+        return document.getElementById(id);
+    }
+
+    function setText(id, value, fallback = "") {
+        const element = getElement(id);
+
+        if (!element) {
+            return;
+        }
+
+        element.textContent =
+            value === null || value === undefined
+                ? fallback
+                : String(value);
+    }
+
+    function setValue(id, value, fallback = "") {
+        const element = getElement(id);
+
+        if (!element) {
+            return;
+        }
+
+        element.value =
+            value === null || value === undefined
+                ? fallback
+                : value;
+    }
+
+    function getValue(id, fallback = "") {
+        const element = getElement(id);
+
+        if (!element) {
+            return fallback;
+        }
+
+        return element.value;
+    }
+
+    /* =====================================================
+       5. ESTADO PADRÃO DE COMBATE
+    ===================================================== */
+
+    function createEmptyCombatState() {
+        return {
+            id: null,
+            campaign_id: campaignId || null,
+            is_active: false,
+            round_number: 1,
+            turn_index: 0,
+            combatants: []
+        };
+    }
+
+    function normalizeCombatState(value) {
+        const source = normalizeObject(value);
+
+        const combatants = normalizeArray(
+            source.combatants
+        )
+            .filter(Boolean)
+            .map((combatant) => ({
+                name: safeText(
+                    combatant.name,
+                    "Combatente"
+                ).trim() || "Combatente",
+
+                init: safeNumber(
+                    combatant.init,
+                    0
+                )
+            }));
+
+        let turnIndex = safeNumber(
+            source.turn_index,
+            0
+        );
+
+        if (combatants.length === 0) {
+            turnIndex = 0;
+        } else {
+            turnIndex = Math.max(
+                0,
+                Math.min(
+                    turnIndex,
+                    combatants.length - 1
+                )
+            );
+        }
+
+        return {
+            id: source.id || null,
+
+            campaign_id:
+                source.campaign_id ||
+                campaignId,
+
+            is_active:
+                Boolean(source.is_active),
+
+            round_number:
+                Math.max(
+                    1,
+                    safeNumber(
+                        source.round_number,
+                        1
+                    )
+                ),
+
+            turn_index: turnIndex,
+
+            combatants
+        };
+    }
+
+    /* =====================================================
+       6. PARSER DE TEMA
+    ===================================================== */
+
+    function parseCampaignTheme(description) {
+        const desc = safeText(description, "");
+
+        if (!desc) {
+            return {
+                cleanDesc: "",
+                themeId: "default"
+            };
+        }
+
+        const marker = "=== TEMA ===";
+        const index = desc.indexOf(marker);
+
+        if (index === -1) {
+            return {
+                cleanDesc: desc.trim(),
+                themeId: "default"
+            };
+        }
+
+        const cleanDesc =
+            desc
+                .substring(0, index)
+                .trim();
+
+        const block =
+            desc.substring(index);
+
+        const match =
+            block.match(
+                /ID:\s*([a-zA-Z0-9_-]+)/
+            );
+
+        return {
+            cleanDesc,
+            themeId:
+                match && match[1]
+                    ? match[1]
+                    : "default"
+        };
+    }
+
+    /* =====================================================
+       7. APLICAR DADOS VISUAIS DA CAMPANHA
+    ===================================================== */
+
+    function updateCampaignVisuals() {
+        if (!currentCampaign) {
+            return;
+        }
+
+        const name =
+            safeText(
+                currentCampaign.name,
+                "Campanha"
+            );
+
+        setText(
+            "bannerName",
+            name
+        );
+
+        setText(
+            "bannerNameMobile",
+            name
+        );
+
+        setText(
+            "bannerTitleDisplay",
+            name
+        );
+
+        const parsed =
+            parseCampaignTheme(
+                currentCampaign.description
+            );
+
+        if (
+            window.AeriomThemeManager &&
+            typeof window.AeriomThemeManager.applyTheme === "function"
+        ) {
+            try {
+                window.AeriomThemeManager.applyTheme(
+                    parsed.themeId,
+                    currentCampaign.cover_url || null
+                );
+            } catch (error) {
+                console.error(
+                    "[AERIOM] Erro ao aplicar tema:",
+                    error
+                );
+            }
+        }
+    }
+
+    /* =====================================================
+       8. CONTROLE DE ACESSO VISUAL
+    ===================================================== */
+
+    function updateRoleInterface() {
+        const isMaster =
+            userRole === "master";
+
+        if (roleLabel) {
+            roleLabel.textContent =
+                isMaster
+                    ? "Mestre"
+                    : "Aventureiro";
+
+            roleLabel.style.color =
+                isMaster
+                    ? "var(--theme-accent, var(--color-warning))"
+                    : "var(--theme-primary, var(--color-primary))";
+        }
+
+        if (masterPanel) {
+            masterPanel.style.display =
+                isMaster
+                    ? "block"
+                    : "none";
+        }
+
+        document
+            .querySelectorAll(".master-only")
+            .forEach((element) => {
+                element.style.display =
+                    isMaster
+                        ? ""
+                        : "none";
+            });
+
+        const masterThemeMobile =
+            getElement(
+                "openMasterThemeMobile"
+            );
+
+        if (masterThemeMobile) {
+            masterThemeMobile.style.display =
+                isMaster
+                    ? "block"
+                    : "none";
+        }
+    }
+
+    /* =====================================================
+       9. ESTADOS DE LOADING
+    ===================================================== */
+
+    function showLoading() {
+        if (loadingEl) {
+            loadingEl.style.display = "flex";
+        }
+
+        if (contentEl) {
+            contentEl.style.display = "none";
+        }
+    }
+
+    function showContent() {
+        if (loadingEl) {
+            loadingEl.style.display = "none";
+        }
+
+        if (contentEl) {
+            contentEl.style.display = "flex";
+        }
+    }
+
+    function showFatalError(error) {
+        console.error(
+            "[AERIOM] Falha na Mesa:",
+            error
+        );
+
+        if (!loadingEl) {
+            return;
+        }
+
+        loadingEl.innerHTML = "";
+
+        const icon =
+            createSafeElement(
+                "div",
+                "placeholder-icon",
+                "⚠️"
+            );
+
+        const title =
+            createSafeElement(
+                "h3",
+                "",
+                "A Magia Falhou"
+            );
+
+        title.style.color =
+            "var(--color-danger)";
+
+        const message =
+            createSafeElement(
+                "p",
+                "text-muted",
+                "Os tomos desta campanha não puderam ser abertos. Verifique a conexão e tente novamente."
+            );
+
+        const button =
+            createSafeElement(
+                "button",
+                "btn btn-primary",
+                "Voltar para Campanhas"
+            );
+
+        button.addEventListener(
+            "click",
+            () => {
+                window.location.href =
+                    "campanhas.html";
+            }
+        );
+
+        loadingEl.appendChild(icon);
+        loadingEl.appendChild(title);
+        loadingEl.appendChild(message);
+        loadingEl.appendChild(button);
+
+        loadingEl.style.display = "flex";
+
+        if (contentEl) {
+            contentEl.style.display =
+                "none";
+        }
+    }
+
+    /* =====================================================
+       10. INICIALIZAÇÃO
+    ===================================================== */
+
+    async function init() {
+        if (initialized) {
+            return;
+        }
+
+        initialized = true;
+
+        showLoading();
+
+        if (!campaignId) {
+            console.warn(
+                "[AERIOM] Nenhuma campanha ativa."
+            );
+
+            window.location.href =
+                "campanhas.html";
+
+            return;
+        }
+
+        setupTabs();
+        setupThemeModal();
+        setupPlayerSheetEvents();
+        setupCharacterStateEvents();
+        setupCombatEvents();
+        setupRollEvents();
+
+        try {
+            const {
+                data: {
+                    session
+                },
+                error
+            } =
+                await supabase.auth.getSession();
+
+            if (
+                error ||
+                !session ||
+                !session.user
+            ) {
+                console.warn(
+                    "[AERIOM] Sessão inexistente."
+                );
+
+                window.location.href =
+                    "index.html";
+
+                return;
+            }
+
+            currentUser =
+                session.user;
 
             await loadCampaignData();
+
             setupRealtime();
 
-            // Desperta os submódulos da mesa
-            if (window.initTimelineSystem) window.initTimelineSystem(supabase, campaignId);
-            if (window.initCookingSystem) window.initCookingSystem(supabase, campaignId);
-            if (window.initSessionSystem) window.initSessionSystem(supabase, campaignId);
-            if (window.initSecretsSystem) window.initSecretsSystem(supabase, campaignId, currentUser, userRole);
-            if (window.initMapSystem) window.initMapSystem(supabase, campaignId, userRole);
-            
-        } catch (err) {
-            console.error("[AERIOM] Falha na conjuração da Mesa:", err);
-            if (loadingEl) {
-                loadingEl.innerHTML = `
-                    <div class="placeholder-icon" style="color: var(--color-danger);">⚠️</div>
-                    <h3 style="color: var(--color-danger); margin-bottom: 8px;">A Magia Falhou</h3>
-                    <p class="text-muted">Os tomos desta campanha não puderam ser abertos. Verifique a sua conexão.</p>
-                `;
-            }
+            initializeExternalModules();
+
+            await loadCombatState();
+
+        } catch (error) {
+            showFatalError(error);
         }
     }
 
-    // =========================================================
-    // 3. SINCRONIA EM TEMPO REAL (REALTIME)
-    // =========================================================
-    function setupRealtime() {
-        supabase.channel('campaign-events')
-            .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'campaigns', filter: `id=eq.${campaignId}` }, (payload) => {
-                currentCampaign = payload.new;
-                const parsed = parseCampaignTheme(currentCampaign.description);
-                if (window.AeriomThemeManager) window.AeriomThemeManager.applyTheme(parsed.themeId, currentCampaign.cover_url);
-                
-                if (bannerNameSidebar) bannerNameSidebar.textContent = currentCampaign.name;
-                if (bannerNameMobile) bannerNameMobile.textContent = currentCampaign.name;
-                if (bannerTitleDisplay) bannerTitleDisplay.textContent = currentCampaign.name;
-            })
-            .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'campaign_logs', filter: `campaign_id=eq.${campaignId}` }, async (payload) => {
-                const newLog = payload.new;
-                if (document.getElementById('tab-logs')?.classList.contains('active') && window.loadTimeline) window.loadTimeline(); 
-                if (newLog.log_type === 'request_roll' && userRole !== 'master') showRollRequest(newLog.description);
-            })
-            .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'campaign_mural', filter: `campaign_id=eq.${campaignId}` }, () => {
-                if (document.getElementById('tab-mural')?.classList.contains('active') && window.loadMural) window.loadMural(); 
-            })
-            .on('postgres_changes', { event: '*', schema: 'public', table: 'campaign_combat', filter: `campaign_id=eq.${campaignId}` }, (payload) => {
-                if (payload.eventType === 'DELETE') {
-                    combatState = { is_active: false, round_number: 1, turn_index: 0, combatants: [] };
-                } else if (payload.new && Object.keys(payload.new).length > 0) {
-                    combatState = payload.new;
-                }
-                renderCombat();
-            })
-            .subscribe();
+    /* =====================================================
+       11. MÓDULOS EXTERNOS
+    ===================================================== */
+
+    function initializeExternalModules() {
+        try {
+            if (
+                typeof window.initTimelineSystem ===
+                "function"
+            ) {
+                window.initTimelineSystem(
+                    supabase,
+                    campaignId
+                );
+            }
+
+            if (
+                typeof window.initCookingSystem ===
+                "function"
+            ) {
+                window.initCookingSystem(
+                    supabase,
+                    campaignId
+                );
+            }
+
+            if (
+                typeof window.initSessionSystem ===
+                "function"
+            ) {
+                window.initSessionSystem(
+                    supabase,
+                    campaignId
+                );
+            }
+
+            if (
+                typeof window.initSecretsSystem ===
+                "function"
+            ) {
+                window.initSecretsSystem(
+                    supabase,
+                    campaignId,
+                    currentUser,
+                    userRole
+                );
+            }
+
+            if (
+                typeof window.initMapSystem ===
+                "function"
+            ) {
+                window.initMapSystem(
+                    supabase,
+                    campaignId,
+                    userRole
+                );
+            }
+        } catch (error) {
+            console.error(
+                "[AERIOM] Erro ao inicializar módulo externo:",
+                error
+            );
+        }
     }
 
-    // =========================================================
-    // 4. INTERFACE E NAVEGAÇÃO
-    // =========================================================
-    function setupTabs() {
-        const tabs = document.querySelectorAll('.dash-tab, .nav-mob-btn');
-        const tabContents = document.querySelectorAll('.dash-tab-content');
-        
-        tabs.forEach(tab => {
-            tab.addEventListener('click', () => {
-                const targetId = tab.getAttribute('data-tab');
-                if (!targetId) return;
-
-                tabs.forEach(t => t.classList.remove('active'));
-                tabContents.forEach(c => c.classList.remove('active'));
-                
-                document.querySelectorAll(`[data-tab="${targetId}"]`).forEach(btn => btn.classList.add('active'));
-                
-                const targetContent = document.getElementById(targetId);
-                if (targetContent) targetContent.classList.add('active');
-
-                // Dispara os carregamentos contextuais de outras abas
-                if (targetId === 'tab-mural' && window.loadMural) window.loadMural();
-                if (targetId === 'tab-logs' && window.loadTimeline) window.loadTimeline();
-                if (targetId === 'tab-overview') loadCampaignCharacters();
-                if (targetId === 'tab-combate') loadCombatState();
-            });
-        });
-    }
+    /* =====================================================
+       12. CARREGAMENTO DA CAMPANHA
+    ===================================================== */
 
     async function loadCampaignData() {
-        const { data: memberData, error: memberErr } = await supabase.from('campaign_members').select('role').eq('campaign_id', campaignId).eq('user_id', currentUser.id).maybeSingle();
-        if (memberErr) throw memberErr;
-        userRole = memberData ? memberData.role : 'player';
-
-        const { data: campData, error: campErr } = await supabase.from('campaigns').select('*').eq('id', campaignId).single();
-        if (campErr) throw campErr;
-        currentCampaign = campData;
-
-        if (loadingEl) loadingEl.style.display = "none";
-        if (contentEl) contentEl.style.display = "flex";
-        
-        if (roleLabel) {
-            roleLabel.textContent = userRole === 'master' ? 'Mestre' : 'Aventureiro';
-            roleLabel.style.color = userRole === 'master' ? 'var(--theme-accent)' : 'var(--theme-primary)';
-        }
-        
-        if (bannerNameSidebar) bannerNameSidebar.textContent = currentCampaign.name;
-        if (bannerNameMobile) bannerNameMobile.textContent = currentCampaign.name;
-        if (bannerTitleDisplay) bannerTitleDisplay.textContent = currentCampaign.name;
-        
-        // Applica a Atmosfera da Campanha
-        const parsedTheme = parseCampaignTheme(currentCampaign.description);
-        if (window.AeriomThemeManager) {
-            window.AeriomThemeManager.applyTheme(parsedTheme.themeId, currentCampaign.cover_url);
+        if (!currentUser) {
+            throw new Error(
+                "Usuário não autenticado."
+            );
         }
 
-        const masterThemeBtn = document.getElementById('openMasterThemeMobile');
+        /* -----------------------------------------------
+           MEMBRO DA CAMPANHA
+        ------------------------------------------------ */
 
-        // Controlo de Acesso (Mestre vs Jogador)
-        if (userRole === 'master') {
-            if (masterPanel) masterPanel.style.display = 'block';
-            document.querySelectorAll('.master-only').forEach(el => el.style.display = '');
-            if (masterThemeBtn) masterThemeBtn.style.display = 'block';
-        } else {
-            if (masterPanel) masterPanel.style.display = 'none';
-            document.querySelectorAll('.master-only').forEach(el => el.style.display = 'none');
-            if (masterThemeBtn) masterThemeBtn.style.display = 'none';
+        const {
+            data: memberData,
+            error: memberError
+        } =
+            await supabase
+                .from("campaign_members")
+                .select("role")
+                .eq(
+                    "campaign_id",
+                    campaignId
+                )
+                .eq(
+                    "user_id",
+                    currentUser.id
+                )
+                .maybeSingle();
+
+        if (memberError) {
+            throw memberError;
         }
-        
+
+        /*
+         * Não assumimos acesso de jogador quando não
+         * existe membro. Isso evita abrir uma campanha
+         * inválida silenciosamente.
+         */
+        if (!memberData) {
+            console.warn(
+                "[AERIOM] Usuário não pertence à campanha."
+            );
+
+            window.location.href =
+                "campanhas.html";
+
+            return;
+        }
+
+        userRole =
+            memberData.role === "master"
+                ? "master"
+                : "player";
+
+        /* -----------------------------------------------
+           CAMPANHA
+        ------------------------------------------------ */
+
+        const {
+            data: campaignData,
+            error: campaignError
+        } =
+            await supabase
+                .from("campaigns")
+                .select("*")
+                .eq(
+                    "id",
+                    campaignId
+                )
+                .single();
+
+        if (campaignError) {
+            throw campaignError;
+        }
+
+        if (!campaignData) {
+            throw new Error(
+                "Campanha não encontrada."
+            );
+        }
+
+        currentCampaign =
+            campaignData;
+
+        updateCampaignVisuals();
+        updateRoleInterface();
+        showContent();
+
         await loadCampaignCharacters();
     }
 
-    // =========================================================
-    // 5. GESTÃO DE ATMOSFERA E TEMAS
-    // =========================================================
-    function setupThemeModal() {
-        const themeModal = document.getElementById("themeConfigModal");
-        const themeSelect = document.getElementById("themeSelectDropdown");
-        const customUrlInput = document.getElementById("customThemeBgUrl");
-        
-        document.getElementById("openThemeConfigModalBtn")?.addEventListener('click', openModal);
-        document.getElementById("openThemeModalBtn")?.addEventListener('click', openModal);
-        document.getElementById("openMasterThemeMobile")?.addEventListener('click', openModal);
-        document.getElementById("closeThemeModalBtn")?.addEventListener('click', () => themeModal?.classList.remove('active'));
-        
-        function openModal() {
-            if (!window.AeriomThemeManager || !currentCampaign || !themeModal) return;
-            
-            themeSelect.innerHTML = '';
-            const options = window.AeriomThemeManager.getThemeOptions();
-            options.forEach(opt => {
-                const el = document.createElement("option");
-                el.value = opt.id;
-                el.textContent = opt.name;
-                themeSelect.appendChild(el);
-            });
+    /* =====================================================
+       13. REALTIME
+    ===================================================== */
 
-            const parsed = parseCampaignTheme(currentCampaign.description);
-            themeSelect.value = parsed.themeId;
-            customUrlInput.value = currentCampaign.cover_url || "";
-            
-            themeModal.classList.add('active');
+    function setupRealtime() {
+        if (realtimeChannel) {
+            try {
+                supabase.removeChannel(
+                    realtimeChannel
+                );
+            } catch (_) {}
         }
 
-        document.getElementById("themeConfigForm")?.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const selectedTheme = themeSelect.value;
-            const customUrl = customUrlInput.value.trim();
-            const parsed = parseCampaignTheme(currentCampaign.description);
-            const newDescription = `${parsed.cleanDesc}\n\n=== TEMA ===\nID: ${selectedTheme}`;
+        realtimeChannel =
+            supabase
+                .channel(
+                    `campaign-events-${campaignId}`
+                )
 
-            const btn = e.target.querySelector('button[type="submit"]');
-            const originalText = btn.textContent;
-            btn.textContent = "A Sincronizar Atmosfera...";
-            btn.disabled = true;
+                /* ---------------------------------------
+                   CAMPANHA
+                ---------------------------------------- */
 
-            await supabase.from('campaigns').update({ description: newDescription, cover_url: customUrl === "" ? null : customUrl }).eq('id', campaignId);
-            
-            btn.textContent = originalText;
-            btn.disabled = false;
-            if (themeModal) themeModal.classList.remove('active');
-            
-            if(window.generateLog) window.generateLog(`A atmosfera do ambiente mudou sutilmente...`, 'system');
-        });
-    }
+                .on(
+                    "postgres_changes",
+                    {
+                        event: "UPDATE",
+                        schema: "public",
+                        table: "campaigns",
+                        filter:
+                            `id=eq.${campaignId}`
+                    },
+                    (payload) => {
+                        if (
+                            !payload ||
+                            !payload.new
+                        ) {
+                            return;
+                        }
 
-    // =========================================================
-    // 6. HUD DO GRUPO (CARTÕES DE HERÓI)
-    // =========================================================
-    async function loadCampaignCharacters() {
-        const list = document.getElementById("campaignCharactersList");
-        if (!list) return;
-        const { data, error } = await supabase.from('campaign_characters').select(`id, user_id, character_id, current_hp, current_mana, conditions, characters(id, name, race, class, avatar_url)`).eq('campaign_id', campaignId);
-        
-        if (error) throw error;
+                        currentCampaign =
+                            payload.new;
 
-        list.innerHTML = '';
-        if (!data || data.length === 0) { 
-            const empty = createSafeElement("p", "text-muted w-full text-center", "Nenhum aventureiro respondeu ao chamamento da mesa ainda.");
-            empty.style.gridColumn = "1/-1";
-            empty.style.padding = "var(--space-24)";
-            list.appendChild(empty);
-            return; 
-        }
+                        updateCampaignVisuals();
+                    }
+                )
 
-        data.forEach(link => {
-            const char = link.characters;
-            if (!char) return;
-            const isOwnCharacter = link.user_id === currentUser.id;
-            
-            const card = document.createElement('div');
-            card.className = `campaign-char-card ${isOwnCharacter ? 'own-character' : ''}`;
-            
-            const avatarContainer = document.createElement("div");
-            avatarContainer.className = "char-avatar-container";
-            const initial = char.name ? char.name.charAt(0).toUpperCase() : '?';
-            
-            if (char.avatar_url) {
-                const img = document.createElement("img");
-                img.src = char.avatar_url;
-                img.className = "char-card-avatar";
-                img.alt = char.name;
-                img.onerror = () => { avatarContainer.innerHTML = `<div class="char-card-fallback">${initial}</div>`; };
-                avatarContainer.appendChild(img);
-            } else {
-                avatarContainer.innerHTML = `<div class="char-card-fallback">${initial}</div>`;
-            }
+                /* ---------------------------------------
+                   LOGS
+                ---------------------------------------- */
 
-            const infoDiv = document.createElement('div');
-            infoDiv.className = "char-card-info";
-            infoDiv.appendChild(createSafeElement("h4", "", char.name));
-            infoDiv.appendChild(createSafeElement("span", "subtitle", `${char.race || '?'} • ${char.class || '?'}`));
-            
-            const stats = document.createElement('div');
-            stats.className = "char-stats-mini";
-            stats.appendChild(createSafeElement("span", "pv", `PV: ${link.current_hp || 0}`));
-            stats.appendChild(createSafeElement("span", "mp", `MP: ${link.current_mana || 0}`));
-            infoDiv.appendChild(stats);
+                .on(
+                    "postgres_changes",
+                    {
+                        event: "INSERT",
+                        schema: "public",
+                        table: "campaign_logs",
+                        filter:
+                            `campaign_id=eq.${campaignId}`
+                    },
+                    async (payload) => {
+                        const newLog =
+                            payload?.new;
 
-            if (link.conditions && link.conditions.trim() !== '') {
-                infoDiv.appendChild(createSafeElement("div", "char-state-badge", "Condições"));
-            }
+                        if (!newLog) {
+                            return;
+                        }
 
-            const actionDiv = document.createElement('div');
-            if (userRole === 'master') {
-                const btn = createSafeElement("button", "btn btn-secondary btn-sm", "Gerir");
-                btn.addEventListener('click', () => {
-                    activeStateLinkId = link.id;
-                    document.getElementById("stateHp").value = link.current_hp;
-                    document.getElementById("stateMana").value = link.current_mana;
-                    document.getElementById("stateConditions").value = link.conditions;
-                    document.getElementById("characterStateModal").classList.add('active');
+                        const logsTab =
+                            getElement(
+                                "tab-logs"
+                            );
+
+                        if (
+                            logsTab?.classList
+                                .contains("active") &&
+                            typeof window.loadTimeline ===
+                                "function"
+                        ) {
+                            try {
+                                await window.loadTimeline();
+                            } catch (error) {
+                                console.error(
+                                    "[AERIOM] Erro ao atualizar timeline:",
+                                    error
+                                );
+                            }
+                        }
+
+                        if (
+                            newLog.log_type ===
+                                "request_roll" &&
+                            userRole !== "master"
+                        ) {
+                            showRollRequest(
+                                newLog.description
+                            );
+                        }
+                    }
+                )
+
+                /* ---------------------------------------
+                   MURAL
+                ---------------------------------------- */
+
+                .on(
+                    "postgres_changes",
+                    {
+                        event: "INSERT",
+                        schema: "public",
+                        table: "campaign_mural",
+                        filter:
+                            `campaign_id=eq.${campaignId}`
+                    },
+                    async () => {
+                        const muralTab =
+                            getElement(
+                                "tab-mural"
+                            );
+
+                        if (
+                            muralTab?.classList
+                                .contains("active") &&
+                            typeof window.loadMural ===
+                                "function"
+                        ) {
+                            try {
+                                await window.loadMural();
+                            } catch (error) {
+                                console.error(
+                                    "[AERIOM] Erro ao atualizar mural:",
+                                    error
+                                );
+                            }
+                        }
+                    }
+                )
+
+                /* ---------------------------------------
+                   COMBATE
+                ---------------------------------------- */
+
+                .on(
+                    "postgres_changes",
+                    {
+                        event: "*",
+                        schema: "public",
+                        table: "campaign_combat",
+                        filter:
+                            `campaign_id=eq.${campaignId}`
+                    },
+                    (payload) => {
+                        if (
+                            payload.eventType ===
+                            "DELETE"
+                        ) {
+                            combatState =
+                                createEmptyCombatState();
+                        } else if (
+                            payload.new &&
+                            Object.keys(
+                                payload.new
+                            ).length > 0
+                        ) {
+                            combatState =
+                                normalizeCombatState(
+                                    payload.new
+                                );
+                        }
+
+                        renderCombat();
+                    }
+                )
+
+                .subscribe((status) => {
+                    if (
+                        status === "CHANNEL_ERROR"
+                    ) {
+                        console.error(
+                            "[AERIOM] Falha no canal Realtime."
+                        );
+                    }
                 });
-                actionDiv.appendChild(btn);
-            } else if (isOwnCharacter) {
-                const btn = createSafeElement("button", "btn btn-primary btn-sm", "Ficha");
-                btn.addEventListener('click', () => openPlayerSheet(link.character_id, link.id, link.current_hp, link.current_mana, link.conditions));
-                actionDiv.appendChild(btn);
-            }
-
-            card.appendChild(avatarContainer);
-            card.appendChild(infoDiv);
-            card.appendChild(actionDiv);
-            list.appendChild(card);
-        });
     }
 
-    async function openPlayerSheet(characterId, linkId, currentHp, currentMana, conditions) {
-        playerSheetLinkId = linkId;
-        const { data: char } = await supabase.from('characters').select('*').eq('id', characterId).single();
-        if (!char) return;
-        playerSheetCharName = char.name;
+    /* =====================================================
+       14. NAVEGAÇÃO DAS ABAS
+    ===================================================== */
 
-        document.getElementById("psName").textContent = char.name;
-        document.getElementById("psSubinfo").textContent = `${char.race || '?'} • ${char.class || '?'}`;
-        document.getElementById("psHpView").textContent = currentHp || 0;
-        document.getElementById("psManaView").textContent = currentMana || 0;
-        document.getElementById("psConditionsView").textContent = conditions || "Nenhuma";
-        document.getElementById("psHp").value = currentHp || 0;
-        document.getElementById("psMana").value = currentMana || 0;
-        document.getElementById("psConditions").value = conditions || "";
+    function setupTabs() {
+        const tabs =
+            document.querySelectorAll(
+                ".dash-tab, .nav-mob-btn"
+            );
 
-        const attrGrid = document.getElementById("psAttributesGrid");
-        attrGrid.innerHTML = '';
-        
-        const standardAttributes = [
-            { key: 'forca', label: 'Força' }, { key: 'agilidade', label: 'Agilidade' }, 
-            { key: 'vigor', label: 'Vigor' }, { key: 'intelecto', label: 'Intelecto' }, 
-            { key: 'percepcao', label: 'Percepção' }, { key: 'presenca', label: 'Presença' }, 
-            { key: 'precisao', label: 'Precisão' }, { key: 'controle', label: 'Controle' }
-        ];
-        
-        const attrsData = char.attributes || char;
+        const contents =
+            document.querySelectorAll(
+                ".dash-tab-content"
+            );
 
-        standardAttributes.forEach(attr => {
-            let val = parseInt(attrsData[attr.key]) || 0;
-            const btn = document.createElement('button');
-            btn.className = 'ps-roll-btn';
-            
-            const labelSpan = createSafeElement("span", "attr-label", attr.label);
-            const valSpan = createSafeElement("span", "attr-val", val);
-            
-            btn.appendChild(labelSpan);
-            btn.appendChild(valSpan);
-            
-            // INTEGRAÇÃO COM MOTOR VISUAL (DICE.JS)
-            btn.addEventListener('click', async () => {
-                document.getElementById("playerSheetModal").classList.remove('active'); 
-                
-                if (window.AeriomDice) {
-                    const result = await window.AeriomDice.roll({
-                        quantity: 1, 
-                        sides: 20, 
-                        modifier: val, 
-                        label: `Teste de ${attr.label}`
+        tabs.forEach((tab) => {
+            if (
+                tab.dataset.aeriomTabBound ===
+                "true"
+            ) {
+                return;
+            }
+
+            tab.dataset.aeriomTabBound =
+                "true";
+
+            tab.addEventListener(
+                "click",
+                async () => {
+                    const targetId =
+                        tab.getAttribute(
+                            "data-tab"
+                        );
+
+                    if (!targetId) {
+                        return;
+                    }
+
+                    tabs.forEach((item) => {
+                        item.classList.remove(
+                            "active"
+                        );
                     });
-                    
-                    if (window.generateLog) {
-                        const sinal = val >= 0 ? '+' : '';
-                        window.generateLog(`${char.name} rolou ${attr.label}: 1d20 (${result.rolls[0]}) ${sinal} ${val} = **${result.total}**`, 'roll');
-                    }
-                }
-            });
-            attrGrid.appendChild(btn);
-        });
 
-        document.getElementById("psInventory").textContent = char.inventory || "Vazio";
-        document.getElementById("psSkills").textContent = char.skills || "Nenhum registo.";
-        
-        document.getElementById("playerSheetModal").classList.add('active');
-    }
+                    contents.forEach(
+                        (content) => {
+                            content.classList.remove(
+                                "active"
+                            );
+                        }
+                    );
 
-    document.getElementById('psToggleEditStateBtn')?.addEventListener('click', () => {
-        const form = document.getElementById('psStateForm');
-        form.style.display = form.style.display === 'none' ? 'block' : 'none';
-    });
-
-    // =========================================================
-    // 7. MICROINTERAÇÕES VITAI (DANO/CURA FLOATING)
-    // =========================================================
-    document.getElementById('psStateForm')?.addEventListener('submit', async (e) => {
-        e.preventDefault();
-        
-        const oldHp = parseInt(document.getElementById("psHpView").textContent) || 0;
-        const oldMana = parseInt(document.getElementById("psManaView").textContent) || 0;
-        const hp = parseInt(document.getElementById("psHp").value) || 0;
-        const mana = parseInt(document.getElementById("psMana").value) || 0;
-        const cond = document.getElementById("psConditions").value.trim();
-        
-        const hpDiff = hp - oldHp;
-        const manaDiff = mana - oldMana;
-        const rect = document.getElementById('psHpView').getBoundingClientRect();
-        
-        const spawnFloatingNumber = (diff, isHp) => {
-            if (diff === 0) return;
-            const el = document.createElement('div');
-            el.className = `floating-number ${isHp ? (diff > 0 ? 'float-heal' : 'float-damage') : 'float-mana-loss'}`;
-            const randomX = Math.random() * 30 - 15;
-            el.style.left = `${rect.left + 20 + randomX}px`;
-            el.style.top = `${rect.top - 20}px`;
-            el.textContent = diff > 0 ? `+${diff}` : diff;
-            if (!isHp) el.textContent += " MP";
-            document.body.appendChild(el);
-            setTimeout(() => el.remove(), 1200); 
-        };
-
-        spawnFloatingNumber(hpDiff, true);
-        setTimeout(() => spawnFloatingNumber(manaDiff, false), 150);
-
-        document.getElementById("psHpView").textContent = hp;
-        document.getElementById("psManaView").textContent = mana;
-        document.getElementById("psConditionsView").textContent = cond || "Nenhuma";
-        document.getElementById('psStateForm').style.display = 'none';
-
-        await supabase.from('campaign_characters').update({ current_hp: hp, current_mana: mana, conditions: cond }).eq('id', playerSheetLinkId);
-        
-        if (window.generateLog && (hpDiff !== 0 || manaDiff !== 0)) {
-            window.generateLog(`${playerSheetCharName} alterou o seu estado vital (PV: ${hp}, Mana: ${mana}).`, 'system');
-        }
-        await loadCampaignCharacters();
-    });
-
-    document.getElementById('characterStateForm')?.addEventListener('submit', async (e) => {
-        e.preventDefault();
-        const hp = parseInt(document.getElementById("stateHp").value) || 0;
-        const mana = parseInt(document.getElementById("stateMana").value) || 0;
-        const cond = document.getElementById("stateConditions").value.trim();
-        await supabase.from('campaign_characters').update({ current_hp: hp, current_mana: mana, conditions: cond }).eq('id', activeStateLinkId);
-        await loadCampaignCharacters();
-        document.getElementById("characterStateModal").classList.remove('active');
-    });
-
-    // =========================================================
-    // 8. TRACKER TÁTICO DE COMBATE
-    // =========================================================
-    async function loadCombatState() {
-        const { data } = await supabase.from('campaign_combat').select('*').eq('campaign_id', campaignId).maybeSingle();
-        combatState = data || { is_active: false, round_number: 1, turn_index: 0, combatants: [] };
-        renderCombat();
-    }
-
-    function renderCombat() {
-        if (!combatState || !combatState.is_active) {
-            if (combatTrackerContainer) combatTrackerContainer.style.display = "none";
-            if (noCombatPlaceholder) noCombatPlaceholder.style.display = "flex";
-            
-            if (userRole === 'master') { 
-                if (toggleCombatBtn) { toggleCombatBtn.textContent = "Iniciar Combate"; toggleCombatBtn.className = "btn btn-primary master-only"; }
-                if (combatMasterPanel) combatMasterPanel.style.display = "none";
-                if (addCombatantForm) addCombatantForm.style.setProperty('display', 'none', 'important');
-            }
-        } else {
-            if (noCombatPlaceholder) noCombatPlaceholder.style.display = "none";
-            if (combatTrackerContainer) combatTrackerContainer.style.display = "block";
-            if (document.getElementById("combatRoundDisplay")) document.getElementById("combatRoundDisplay").textContent = combatState.round_number;
-            
-            if (userRole === 'master') { 
-                if (toggleCombatBtn) { toggleCombatBtn.textContent = "Encerrar Combate"; toggleCombatBtn.className = "btn btn-danger master-only"; }
-                if (combatMasterPanel) combatMasterPanel.style.display = "block";
-                if (addCombatantForm) addCombatantForm.style.setProperty('display', 'flex', 'important');
-            } else {
-                if (addCombatantForm) addCombatantForm.style.setProperty('display', 'none', 'important');
-            }
-            
-            if (initiativeList) {
-                initiativeList.innerHTML = '';
-                combatState.combatants.forEach((c, index) => {
-                    const isActive = index === combatState.turn_index;
-                    const card = document.createElement('div');
-                    card.className = `combatant-card ${isActive ? 'active-turn' : ''}`;
-                    
-                    card.appendChild(createSafeElement("div", "combatant-init", c.init));
-                    card.appendChild(createSafeElement("div", "combatant-name", c.name));
-                    
-                    if (userRole === 'master') {
-                        const removeBtn = createSafeElement("button", "remove-combatant-btn", "×");
-                        removeBtn.title = "Remover";
-                        removeBtn.addEventListener('click', async () => {
-                            combatState.combatants.splice(index, 1);
-                            await supabase.from('campaign_combat').upsert({ campaign_id: campaignId, ...combatState });
+                    document
+                        .querySelectorAll(
+                            `[data-tab="${CSS.escape(targetId)}"]`
+                        )
+                        .forEach((button) => {
+                            button.classList.add(
+                                "active"
+                            );
                         });
-                        card.appendChild(removeBtn);
+
+                    const target =
+                        getElement(
+                            targetId
+                        );
+
+                    if (target) {
+                        target.classList.add(
+                            "active"
+                        );
                     }
-                    initiativeList.appendChild(card);
-                });
-            }
-        }
-    }
 
-    document.getElementById("toggleCombatBtn")?.addEventListener('click', async () => {
-        combatState.is_active = !combatState.is_active;
-        if (!combatState.is_active) { 
-            combatState.combatants = []; 
-            combatState.turn_index = 0; 
-            combatState.round_number = 1; 
-        }
-        await supabase.from('campaign_combat').upsert({ campaign_id: campaignId, ...combatState });
-        if (window.generateLog) window.generateLog(combatState.is_active ? "O Mestre conjurou o Tracker de Combate!" : "As lâminas foram guardadas. O combate terminou.", "combat");
-    });
+                    try {
+                        switch (targetId) {
+                            case "tab-overview":
+                                await loadCampaignCharacters();
+                                break;
 
-    document.getElementById("nextTurnBtn")?.addEventListener('click', async () => {
-        if (!combatState.combatants.length) return;
-        combatState.turn_index++;
-        if (combatState.turn_index >= combatState.combatants.length) { combatState.turn_index = 0; combatState.round_number++; }
-        await supabase.from('campaign_combat').upsert({ campaign_id: campaignId, ...combatState });
-    });
+                            case "tab-combate":
+                                await loadCombatState();
+                                break;
 
-    document.getElementById("addCombatantForm")?.addEventListener('submit', async (e) => {
-        e.preventDefault();
-        combatState.combatants.push({ 
-            name: document.getElementById("combatantName").value.trim(), 
-            init: parseInt(document.getElementById("combatantInit").value) || 0 
-        });
-        combatState.combatants.sort((a, b) => b.init - a.init);
-        combatState.turn_index = 0;
-        await supabase.from('campaign_combat').upsert({ campaign_id: campaignId, ...combatState });
-        e.target.reset();
-    });
+                            case "tab-mural":
+                                if (
+                                    typeof window.loadMural ===
+                                    "function"
+                                ) {
+                                    await window.loadMural();
+                                }
+                                break;
 
-    // =========================================================
-    // 9. EVENTOS DO MESTRE E TESTES DE DADOS
-    // =========================================================
-    document.getElementById("sendRollRequestBtn")?.addEventListener('click', async () => {
-        if (window.generateLog) await window.generateLog(`O Mestre exige um teste de: ${document.getElementById("requestRollSelect").value}`, 'request_roll');
-    });
+                            case "tab-logs":
+                                if (
+                                    typeof window.loadTimeline ===
+                                    "function"
+                                ) {
+                                    await window.loadTimeline();
+                                }
+                                break;
 
-    function showRollRequest(requestStr) {
-        currentRequestAttrName = requestStr.split(': ')[1]?.trim();
-        if (!currentRequestAttrName) return;
-        
-        document.getElementById("requestToastMsg").textContent = `Teste de ${currentRequestAttrName}`;
-        document.getElementById("requestToast").classList.add('active');
-        
-        currentRequestAttrValue = 0;
-        if (playerSheetCharName && currentRequestAttrName !== 'Puro (1d20)') {
-            document.querySelectorAll('.ps-roll-btn').forEach(b => {
-                if(b.querySelector('.attr-label')?.textContent === currentRequestAttrName) {
-                    currentRequestAttrValue = parseInt(b.querySelector('.attr-val')?.textContent) || 0;
+                            default:
+                                break;
+                        }
+                    } catch (error) {
+                        console.error(
+                            "[AERIOM] Erro ao carregar aba:",
+                            error
+                        );
+                    }
                 }
+            );
+        });
+    }
+
+    /* =====================================================
+       15. MODAL DE TEMA
+    ===================================================== */
+
+    function setupThemeModal() {
+        const themeModal =
+            getElement(
+                "themeConfigModal"
+            );
+
+        const themeSelect =
+            getElement(
+                "themeSelectDropdown"
+            );
+
+        const customUrlInput =
+            getElement(
+                "customThemeBgUrl"
+            );
+
+        const openButtons = [
+            getElement(
+                "openThemeConfigModalBtn"
+            ),
+            getElement(
+                "openThemeModalBtn"
+            ),
+            getElement(
+                "openMasterThemeMobile"
+            )
+        ].filter(Boolean);
+
+        const closeButton =
+            getElement(
+                "closeThemeModalBtn"
+            );
+
+        if (closeButton) {
+            closeButton.addEventListener(
+                "click",
+                () => {
+                    themeModal?.classList.remove(
+                        "active"
+                    );
+                }
+            );
+        }
+
+        function openModal() {
+            if (
+                !themeModal ||
+                !themeSelect ||
+                !currentCampaign ||
+                !window.AeriomThemeManager
+            ) {
+                return;
+            }
+
+            themeSelect.innerHTML = "";
+
+            let options = [];
+
+            try {
+                options =
+                    window.AeriomThemeManager
+                        .getThemeOptions?.() || [];
+            } catch (error) {
+                console.error(
+                    "[AERIOM] Não foi possível obter temas:",
+                    error
+                );
+            }
+
+            if (!Array.isArray(options)) {
+                options = [];
+            }
+
+            options.forEach((option) => {
+                if (!option?.id) {
+                    return;
+                }
+
+                const element =
+                    document.createElement(
+                        "option"
+                    );
+
+                element.value =
+                    option.id;
+
+                element.textContent =
+                    safeText(
+                        option.name,
+                        option.id
+                    );
+
+                themeSelect.appendChild(
+                    element
+                );
             });
+
+            const parsed =
+                parseCampaignTheme(
+                    currentCampaign.description
+                );
+
+            themeSelect.value =
+                parsed.themeId;
+
+            if (customUrlInput) {
+                customUrlInput.value =
+                    currentCampaign.cover_url ||
+                    "";
+            }
+
+            themeModal.classList.add(
+                "active"
+            );
+        }
+
+        openButtons.forEach(
+            (button) => {
+                if (
+                    button.dataset.aeriomThemeBound ===
+                    "true"
+                ) {
+                    return;
+                }
+
+                button.dataset.aeriomThemeBound =
+                    "true";
+
+                button.addEventListener(
+                    "click",
+                    openModal
+                );
+            }
+        );
+
+        const form =
+            getElement(
+                "themeConfigForm"
+            );
+
+        if (
+            form &&
+            form.dataset.aeriomThemeFormBound !==
+                "true"
+        ) {
+            form.dataset.aeriomThemeFormBound =
+                "true";
+
+            form.addEventListener(
+                "submit",
+                async (event) => {
+                    event.preventDefault();
+
+                    if (
+                        !currentCampaign ||
+                        userRole !== "master"
+                    ) {
+                        return;
+                    }
+
+                    const selectedTheme =
+                        themeSelect?.value ||
+                        "default";
+
+                    const customUrl =
+                        safeText(
+                            customUrlInput?.value,
+                            ""
+                        ).trim();
+
+                    const parsed =
+                        parseCampaignTheme(
+                            currentCampaign.description
+                        );
+
+                    const cleanDescription =
+                        parsed.cleanDesc ||
+                        "";
+
+                    const newDescription =
+                        cleanDescription
+                            ? `${cleanDescription}\n\n=== TEMA ===\nID: ${selectedTheme}`
+                            : `=== TEMA ===\nID: ${selectedTheme}`;
+
+                    const button =
+                        form.querySelector(
+                            'button[type="submit"]'
+                        );
+
+                    const originalText =
+                        button?.textContent ||
+                        "Salvar";
+
+                    if (button) {
+                        button.disabled =
+                            true;
+
+                        button.textContent =
+                            "A Sincronizar Atmosfera...";
+                    }
+
+                    try {
+                        const {
+                            error
+                        } =
+                            await supabase
+                                .from("campaigns")
+                                .update({
+                                    description:
+                                        newDescription,
+
+                                    cover_url:
+                                        customUrl ||
+                                        null
+                                })
+                                .eq(
+                                    "id",
+                                    campaignId
+                                );
+
+                        if (error) {
+                            throw error;
+                        }
+
+                        currentCampaign = {
+                            ...currentCampaign,
+                            description:
+                                newDescription,
+                            cover_url:
+                                customUrl ||
+                                null
+                        };
+
+                        updateCampaignVisuals();
+
+                        themeModal?.classList.remove(
+                            "active"
+                        );
+
+                        if (
+                            typeof window.generateLog ===
+                            "function"
+                        ) {
+                            await window.generateLog(
+                                "A atmosfera do ambiente mudou sutilmente...",
+                                "system"
+                            );
+                        }
+                    } catch (error) {
+                        console.error(
+                            "[AERIOM] Erro ao salvar tema:",
+                            error
+                        );
+
+                        alert(
+                            "Não foi possível alterar a atmosfera da campanha."
+                        );
+                    } finally {
+                        if (button) {
+                            button.disabled =
+                                false;
+
+                            button.textContent =
+                                originalText;
+                        }
+                    }
+                }
+            );
         }
     }
 
-    document.getElementById("requestToastRollBtn")?.addEventListener('click', async () => {
-        document.getElementById("requestToast").classList.remove('active');
-        const charName = playerSheetCharName || 'Um aventureiro';
-        
-        if (window.AeriomDice) {
-            const result = await window.AeriomDice.roll({ 
-                quantity: 1, 
-                sides: 20, 
-                modifier: currentRequestAttrValue, 
-                label: `Teste de ${currentRequestAttrName}` 
-            });
-            
-            if (window.generateLog) {
-                const sinal = currentRequestAttrValue >= 0 ? '+' : '';
-                window.generateLog(`${charName} respondeu ao teste de ${currentRequestAttrName}: 1d20 (${result.rolls[0]}) ${sinal} ${currentRequestAttrValue} = **${result.total}**`, 'roll');
+    /* =====================================================
+       16. PERSONAGENS DA CAMPANHA
+    ===================================================== */
+
+    async function loadCampaignCharacters() {
+        const list =
+            getElement(
+                "campaignCharactersList"
+            );
+
+        if (!list) {
+            return;
+        }
+
+        const {
+            data,
+            error
+        } =
+            await supabase
+                .from("campaign_characters")
+                .select(`
+                    id,
+                    user_id,
+                    character_id,
+                    current_hp,
+                    current_mana,
+                    conditions,
+                    characters(
+                        id,
+                        name,
+                        race,
+                        class,
+                        avatar_url
+                    )
+                `)
+                .eq(
+                    "campaign_id",
+                    campaignId
+                );
+
+        if (error) {
+            console.error(
+                "[AERIOM] Erro ao carregar personagens:",
+                error
+            );
+
+            throw error;
+        }
+
+        list.innerHTML = "";
+
+        if (
+            !Array.isArray(data) ||
+            data.length === 0
+        ) {
+            const empty =
+                createSafeElement(
+                    "p",
+                    "text-muted w-full text-center",
+                    "Nenhum aventureiro respondeu ao chamamento da mesa ainda."
+                );
+
+            empty.style.gridColumn =
+                "1 / -1";
+
+            empty.style.padding =
+                "var(--space-24)";
+
+            list.appendChild(
+                empty
+            );
+
+            return;
+        }
+
+        data.forEach((link) => {
+            const char =
+                link?.characters;
+
+            if (!char) {
+                return;
+            }
+
+            const isOwnCharacter =
+                link.user_id ===
+                currentUser?.id;
+
+            const card =
+                createSafeElement(
+                    "div",
+                    `campaign-char-card ${
+                        isOwnCharacter
+                            ? "own-character"
+                            : ""
+                    }`
+                );
+
+            /* AVATAR */
+
+            const avatarContainer =
+                createSafeElement(
+                    "div",
+                    "char-avatar-container"
+                );
+
+            const charName =
+                safeText(
+                    char.name,
+                    "Aventureiro"
+                );
+
+            const initial =
+                charName
+                    .charAt(0)
+                    .toUpperCase() ||
+                "?";
+
+            if (char.avatar_url) {
+                const img =
+                    document.createElement(
+                        "img"
+                    );
+
+                img.src =
+                    char.avatar_url;
+
+                img.className =
+                    "char-card-avatar";
+
+                img.alt =
+                    charName;
+
+                img.loading =
+                    "lazy";
+
+                img.addEventListener(
+                    "error",
+                    () => {
+                        avatarContainer.innerHTML =
+                            "";
+
+                        avatarContainer.appendChild(
+                            createSafeElement(
+                                "div",
+                                "char-card-fallback",
+                                initial
+                            )
+                        );
+                    },
+                    {
+                        once: true
+                    }
+                );
+
+                avatarContainer.appendChild(
+                    img
+                );
+            } else {
+                avatarContainer.appendChild(
+                    createSafeElement(
+                        "div",
+                        "char-card-fallback",
+                        initial
+                    )
+                );
+            }
+
+            /* INFORMAÇÕES */
+
+            const infoDiv =
+                createSafeElement(
+                    "div",
+                    "char-card-info"
+                );
+
+            infoDiv.appendChild(
+                createSafeElement(
+                    "h4",
+                    "",
+                    charName
+                )
+            );
+
+            infoDiv.appendChild(
+                createSafeElement(
+                    "span",
+                    "subtitle",
+                    `${safeText(char.race, "?")} • ${safeText(char.class, "?")}`
+                )
+            );
+
+            const stats =
+                createSafeElement(
+                    "div",
+                    "char-stats-mini"
+                );
+
+            stats.appendChild(
+                createSafeElement(
+                    "span",
+                    "pv",
+                    `PV: ${safeNumber(link.current_hp, 0)}`
+                )
+            );
+
+            stats.appendChild(
+                createSafeElement(
+                    "span",
+                    "mp",
+                    `MP: ${safeNumber(link.current_mana, 0)}`
+                )
+            );
+
+            infoDiv.appendChild(
+                stats
+            );
+
+            const conditions =
+                safeText(
+                    link.conditions,
+                    ""
+                ).trim();
+
+            if (conditions) {
+                const conditionBadge =
+                    createSafeElement(
+                        "div",
+                        "char-state-badge",
+                        "Condições"
+                    );
+
+                conditionBadge.title =
+                    conditions;
+
+                infoDiv.appendChild(
+                    conditionBadge
+                );
+            }
+
+            /* AÇÕES */
+
+            const actionDiv =
+                createSafeElement(
+                    "div"
+                );
+
+            if (
+                userRole ===
+                "master"
+            ) {
+                const button =
+                    createSafeElement(
+                        "button",
+                        "btn btn-secondary btn-sm",
+                        "Gerir"
+                    );
+
+                button.type =
+                    "button";
+
+                button.addEventListener(
+                    "click",
+                    () => {
+                        openCharacterStateModal(
+                            link
+                        );
+                    }
+                );
+
+                actionDiv.appendChild(
+                    button
+                );
+            } else if (
+                isOwnCharacter
+            ) {
+                const button =
+                    createSafeElement(
+                        "button",
+                        "btn btn-primary btn-sm",
+                        "Ficha"
+                    );
+
+                button.type =
+                    "button";
+
+                button.addEventListener(
+                    "click",
+                    () => {
+                        openPlayerSheet(
+                            link.character_id,
+                            link.id,
+                            link.current_hp,
+                            link.current_mana,
+                            link.conditions
+                        );
+                    }
+                );
+
+                actionDiv.appendChild(
+                    button
+                );
+            }
+
+            card.appendChild(
+                avatarContainer
+            );
+
+            card.appendChild(
+                infoDiv
+            );
+
+            card.appendChild(
+                actionDiv
+            );
+
+            list.appendChild(
+                card
+            );
+        });
+    }
+
+    /* =====================================================
+       17. ABRIR FICHA RÁPIDA
+    ===================================================== */
+
+    async function openPlayerSheet(
+        characterId,
+        linkId,
+        currentHp,
+        currentMana,
+        conditions
+    ) {
+        if (!characterId) {
+            return;
+        }
+
+        playerSheetLinkId =
+            linkId || null;
+
+        const {
+            data: char,
+            error
+        } =
+            await supabase
+                .from("characters")
+                .select("*")
+                .eq(
+                    "id",
+                    characterId
+                )
+                .single();
+
+        if (error) {
+            console.error(
+                "[AERIOM] Erro ao carregar ficha:",
+                error
+            );
+
+            return;
+        }
+
+        if (!char) {
+            return;
+        }
+
+        playerSheetCharacter =
+            char;
+
+        playerSheetCharName =
+            safeText(
+                char.name,
+                "Aventureiro"
+            );
+
+        setText(
+            "psName",
+            playerSheetCharName
+        );
+
+        setText(
+            "psSubinfo",
+            `${safeText(char.race, "?")} • ${safeText(char.class, "?")}`
+        );
+
+        setText(
+            "psHpView",
+            safeNumber(
+                currentHp,
+                0
+            )
+        );
+
+        setText(
+            "psManaView",
+            safeNumber(
+                currentMana,
+                0
+            )
+        );
+
+        setText(
+            "psConditionsView",
+            safeText(
+                conditions,
+                ""
+            ).trim() ||
+                "Nenhuma"
+        );
+
+        setValue(
+            "psHp",
+            safeNumber(
+                currentHp,
+                0
+            )
+        );
+
+        setValue(
+            "psMana",
+            safeNumber(
+                currentMana,
+                0
+            )
+        );
+
+        setValue(
+            "psConditions",
+            safeText(
+                conditions,
+                ""
+            )
+        );
+
+        renderPlayerAttributes(
+            char
+        );
+
+        setText(
+            "psInventory",
+            safeText(
+                char.inventory,
+                "Vazio"
+            ) || "Vazio"
+        );
+
+        setText(
+            "psSkills",
+            safeText(
+                char.skills,
+                "Nenhum registo."
+            ) || "Nenhum registo."
+        );
+
+        const form =
+            getElement(
+                "psStateForm"
+            );
+
+        if (form) {
+            form.style.display =
+                "none";
+        }
+
+        const modal =
+            getElement(
+                "playerSheetModal"
+            );
+
+        if (modal) {
+            modal.classList.add(
+                "active"
+            );
+        }
+    }
+
+    /* =====================================================
+       18. ATRIBUTOS DO JOGADOR
+    ===================================================== */
+
+    function getAttributeValue(
+        attributes,
+        keys
+    ) {
+        for (const key of keys) {
+            if (
+                Object.prototype.hasOwnProperty.call(
+                    attributes,
+                    key
+                )
+            ) {
+                return safeNumber(
+                    attributes[key],
+                    0
+                );
             }
         }
-    });
-    
-    document.getElementById("requestToastCloseBtn")?.addEventListener('click', () => document.getElementById("requestToast").classList.remove('active'));
 
-    document.getElementById("closePlayerSheetModal")?.addEventListener("click", () => document.getElementById("playerSheetModal").classList.remove('active'));
-    document.getElementById("closeCharacterStateModal")?.addEventListener("click", () => document.getElementById("characterStateModal").classList.remove('active'));
-    document.getElementById("closeCreateSecretModal")?.addEventListener("click", () => document.getElementById("createSecretModal").classList.remove('active'));
+        return 0;
+    }
 
-    // Rolagens Públicas do Mestre (No Painel de Ferramentas)
-    document.querySelectorAll('.master-dice-btn').forEach(btn => {
-        btn.addEventListener('click', async () => {
-            const sides = parseInt(btn.getAttribute('data-dice'));
-            if (window.AeriomDice) {
-                const result = await window.AeriomDice.roll({ 
-                    quantity: 1, 
-                    sides: sides, 
-                    modifier: 0, 
-                    label: `Rolagem do Mestre (1D${sides})` 
-                });
-                if (window.generateLog) window.generateLog(`O Mestre jogou 1D${sides} no salão. Resultado: **${result.total}**`, 'roll');
+    function renderPlayerAttributes(
+        char
+    ) {
+        const attrGrid =
+            getElement(
+                "psAttributesGrid"
+            );
+
+        if (!attrGrid) {
+            return;
+        }
+
+        attrGrid.innerHTML =
+            "";
+
+        const standardAttributes = [
+            {
+                key: "forca",
+                label: "Força",
+                aliases: [
+                    "forca",
+                    "Força",
+                    "FORÇA",
+                    "strength"
+                ]
+            },
+            {
+                key: "agilidade",
+                label: "Agilidade",
+                aliases: [
+                    "agilidade",
+                    "Agilidade",
+                    "AGILIDADE",
+                    "dexterity"
+                ]
+            },
+            {
+                key: "vigor",
+                label: "Vigor",
+                aliases: [
+                    "vigor",
+                    "Vigor",
+                    "VIGOR",
+                    "constitution"
+                ]
+            },
+            {
+                key: "intelecto",
+                label: "Intelecto",
+                aliases: [
+                    "intelecto",
+                    "Intelecto",
+                    "INTELECTO",
+                    "intelligence"
+                ]
+            },
+            {
+                key: "percepcao",
+                label: "Percepção",
+                aliases: [
+                    "percepcao",
+                    "Percepção",
+                    "percepção",
+                    "PERCEPÇÃO",
+                    "wisdom"
+                ]
+            },
+            {
+                key: "presenca",
+                label: "Presença",
+                aliases: [
+                    "presenca",
+                    "Presença",
+                    "presença",
+                    "PRESENÇA",
+                    "charisma"
+                ]
+            },
+            {
+                key: "precisao",
+                label: "Precisão",
+                aliases: [
+                    "precisao",
+                    "Precisão",
+                    "precisão",
+                    "PRECISÃO"
+                ]
+            },
+            {
+                key: "controle",
+                label: "Controle",
+                aliases: [
+                    "controle",
+                    "Controle",
+                    "CONTROLE"
+                ]
             }
-        });
-    });
+        ];
 
-    // Iniciar
-    init();
-});
+        let attrsData =
+            normalizeObject(
+                char.attributes
+            );
+
+        /*
+         * Alguns bancos podem guardar atributos
+         * diretamente nas colunas do personagem.
+         */
+        if (
+            Object.keys(
+                attrsData
+            ).length === 0
+        ) {
+            attrsData =
+                char;
+        }
+
+        standardAttributes.forEach(
+            (attribute) => {
+                const value =
+                    getAttributeValue(
+                        attrsData,
+                        attribute.aliases
+                    );
+
+                const button =
+                    document.createElement(
+                        "button"
+                    );
+
+                button.type =
+                    "button";
+
+                button.className =
+                    "ps-roll-btn";
+
+                const labelSpan =
+                    createSafeElement(
+                        "span",
+                        "attr-label",
+                        attribute.label
+                    );
+
+                const valueSpan =
+                    createSafeElement(
+                        "span",
+                        "attr-val",
+                        value
+                    );
+
+                button.appendChild(
+                    labelSpan
+                );
+
+                button.appendChild(
+                    valueSpan
+                );
+
+                button.addEventListener(
+                    "click",
+                    async () => {
+                        await executeAttributeRoll(
+                            attribute,
+                            value,
+                            char
+                        );
+                    }
+                );
+
+                attrGrid.appendChild(
+                    button
+                );
+            }
+        );
+    }
+
+    /* =====================================================
+       19. ROLAGEM DE ATRIBUTO
+    ===================================================== */
+
+    async function executeAttributeRoll(
+        attribute,
+        modifier,
+        character
+    ) {
+        const modal =
+            getElement(
+                "playerSheetModal"
+            );
+
+        modal?.classList.remove(
+            "active"
+        );
+
+        if (
+            !window.AeriomDice ||
+            typeof window.AeriomDice.roll !==
+                "function"
+        ) {
+            console.error(
+                "[AERIOM] Motor de dados não encontrado."
+            );
+
+            return;
+        }
+
+        try {
+            const result =
+                await window.AeriomDice.roll({
+                    quantity: 1,
+                    sides: 20,
+                    modifier,
+                    label:
+                        `Teste de ${attribute.label}`
+                });
+
+            if (
+                typeof window.generateLog ===
+                "function"
+            ) {
+                const signal =
+                    modifier >= 0
+                        ? "+"
+                        : "";
+
+                await window.generateLog(
+                    `${safeText(character.name, "Aventureiro")} rolou ${attribute.label}: 1d20 (${result.rolls[0]}) ${signal}${modifier} = **${result.total}**`,
+                    "roll"
+                );
+            }
+        } catch (error) {
+            console.error(
+                "[AERIOM] Erro na rolagem:",
+                error
+            );
+        }
+    }
+
+    /* =====================================================
+       20. EVENTOS DA FICHA RÁPIDA
+    ===================================================== */
+
+    function setupPlayerSheetEvents() {
+        const toggle =
+            getElement(
+                "psToggleEditStateBtn"
+            );
+
+        if (toggle) {
+            toggle.addEventListener(
+                "click",
+                () => {
+                    const form =
+                        getElement(
+                            "psStateForm"
+                        );
+
+                    if (!form) {
+                        return;
+                    }
+
+                    const hidden =
+                        form.style.display ===
+                        "none";
+
+                    form.style.display =
+                        hidden
+                            ? "block"
+                            : "none";
+                }
+            );
+        }
+
+        const close =
+            getElement(
+                "closePlayerSheetModal"
+            );
+
+        if (close) {
+            close.addEventListener(
+                "click",
+                () => {
+                    getElement(
+                        "playerSheetModal"
+                    )?.classList.remove(
+                        "active"
+                    );
+                }
+            );
+        }
+    }
+
+    /* =====================================================
+       21. ESTADO DO PERSONAGEM — JOGADOR
+    ===================================================== */
+
+    function setupCharacterStateEvents() {
+        const form =
+            getElement(
+                "psStateForm"
+            );
+
+        if (form) {
+            form.addEventListener(
+                "submit",
+                async (event) => {
+                    event.preventDefault();
+
+                    await savePlayerVitalState();
+                }
+            );
+        }
+
+        const close =
+            getElement(
+                "closeCharacterStateModal"
+            );
+
+        if (close) {
+            close.addEventListener(
+                "click",
+                () => {
+                    getElement(
+                        "characterStateModal"
+                    )?.classList.remove(
+                        "active"
+                    );
+                }
+            );
+        }
+
+        const closeSecret =
+            getElement(
+                "closeCreateSecretModal"
+            );
+
+        if (closeSecret) {
+            closeSecret.addEventListener(
+                "click",
+                () => {
+                    getElement(
+                        "createSecretModal"
+                    )?.classList.remove(
+                        "active"
+                    );
+                }
+            );
+        }
+
+        const masterForm =
+            getElement(
+                "characterStateForm"
+            );
+
+        if (masterForm) {
+            masterForm.addEventListener(
+                "submit",
+                async (event) => {
+                    event.preventDefault();
+
+                    await saveMasterCharacterState();
+                }
+            );
+        }
+    }
+
+    /* =====================================================
+       22. SALVAR ESTADO DO JOGADOR
+    ===================================================== */
+
+    async function savePlayerVitalState() {
+        if (!playerSheetLinkId) {
+            return;
+        }
+
+        const hpView =
+            getElement(
+                "psHpView"
+            );
+
+        const manaView =
+            getElement(
+                "psManaView"
+            );
+
+        const hp =
+            Math.max(
+                0,
+                safeNumber(
+                    getValue(
+                        "psHp",
+                        0
+                    ),
+                    0
+                )
+            );
+
+        const mana =
+            Math.max(
+                0,
+                safeNumber(
+                    getValue(
+                        "psMana",
+                        0
+                    ),
+                    0
+                )
+            );
+
+        const oldHp =
+            safeNumber(
+                hpView?.textContent,
+                0
+            );
+
+        const oldMana =
+            safeNumber(
+                manaView?.textContent,
+                0
+            );
+
+        const conditions =
+            safeText(
+                getValue(
+                    "psConditions",
+                    ""
+                ),
+                ""
+            ).trim();
+
+        const hpDiff =
+            hp - oldHp;
+
+        const manaDiff =
+            mana - oldMana;
+
+        spawnFloatingNumber(
+            hpDiff,
+            true,
+            "psHpView"
+        );
+
+        setTimeout(
+            () => {
+                spawnFloatingNumber(
+                    manaDiff,
+                    false,
+                    "psManaView"
+                );
+            },
+            150
+        );
+
+        setText(
+            "psHpView",
+            hp
+        );
+
+        setText(
+            "psManaView",
+            mana
+        );
+
+        setText(
+            "psConditionsView",
+            conditions ||
+                "Nenhuma"
+        );
+
+        const form =
+            getElement(
+                "psStateForm"
+            );
+
+        if (form) {
+            form.style.display =
+                "none";
+        }
+
+        try {
+            const {
+                error
+            } =
+                await supabase
+                    .from("campaign_characters")
+                    .update({
+                        current_hp:
+                            hp,
+                        current_mana:
+                            mana,
+                        conditions:
+                            conditions
+                    })
+                    .eq(
+                        "id",
+                        playerSheetLinkId
+                    );
+
+            if (error) {
+                throw error;
+            }
+
+            if (
+                typeof window.generateLog ===
+                "function" &&
+                (
+                    hpDiff !== 0 ||
+                    manaDiff !== 0
+                )
+            ) {
+                await window.generateLog(
+                    `${playerSheetCharName} alterou o seu estado vital (PV: ${hp}, Mana: ${mana}).`,
+                    "system"
+                );
+            }
+
+            await loadCampaignCharacters();
+
+        } catch (error) {
+            console.error(
+                "[AERIOM] Erro ao salvar estado:",
+                error
+            );
+
+            alert(
+                "Não foi possível salvar o estado do personagem."
+            );
+        }
+    }
+
+    /* =====================================================
+       23. NÚMERO FLUTUANTE
+    ===================================================== */
+
+    function spawnFloatingNumber(
+        diff,
+        isHp,
+        anchorId
+    ) {
+        if (!diff) {
+            return;
+        }
+
+        const anchor =
+            getElement(
+                anchorId
+            );
+
+        if (!anchor) {
+            return;
+        }
+
+        const rect =
+            anchor.getBoundingClientRect();
+
+        const element =
+            document.createElement(
+                "div"
+            );
+
+        let className;
+
+        if (isHp) {
+            className =
+                diff > 0
+                    ? "float-heal"
+                    : "float-damage";
+        } else {
+            className =
+                "float-mana-loss";
+        }
+
+        element.className =
+            `floating-number ${className}`;
+
+        const randomX =
+            Math.random() * 30 - 15;
+
+        element.style.left =
+            `${rect.left + 20 + randomX}px`;
+
+        element.style.top =
+            `${rect.top - 20}px`;
+
+        element.textContent =
+            diff > 0
+                ? `+${diff}`
+                : String(diff);
+
+        if (!isHp) {
+            element.textContent +=
+                " MP";
+        }
+
+        document.body.appendChild(
+            element
+        );
+
+        window.setTimeout(
+            () => {
+                element.remove();
+            },
+            1200
+        );
+    }
+
+    /* =====================================================
+       24. MODAL DE GERENCIAMENTO DO MESTRE
+    ===================================================== */
+
+    function openCharacterStateModal(
+        link
+    ) {
+        if (
+            !link ||
+            userRole !== "master"
+        ) {
+            return;
+        }
+
+        activeStateLinkId =
+            link.id;
+
+        setValue(
+            "stateHp",
+            safeNumber(
+                link.current_hp,
+                0
+            )
+        );
+
+        setValue(
+            "stateMana",
+            safeNumber(
+                link.current_mana,
+                0
+            )
+        );
+
+        setValue(
+            "stateConditions",
+            safeText(
+                link.conditions,
+                ""
+            )
+        );
+
+        const modal =
+            getElement(
+                "characterStateModal"
+            );
+
+        modal?.classList.add(
+            "active"
+        );
+    }
+
+    /* =====================================================
+       25. SALVAR ESTADO PELO MESTRE
+    ===================================================== */
+
+    async function saveMasterCharacterState() {
+        if (
