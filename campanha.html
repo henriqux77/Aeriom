@@ -44,8 +44,10 @@
                 <button class="dash-tab" data-tab="tab-mapas">🗺️ Mapas & Regiões</button>
                 
                 <div class="nav-category master-only" style="display: none;">Ferramentas do Mestre</div>
-                <button class="dash-tab master-only" data-tab="tab-segredos" style="display: none;">🗝️ Segredos</button>
-                <button class="dash-tab master-only" data-tab="tab-config" style="display: none;" id="openThemeModalBtn">🎨 Tema da Mesa</button>
+               <button class="btn btn-primary" id="openSecretModalBtn">
+    + Novo Segredo
+</button>
+🎨 Tema da Mesa</button>
             </nav>
         </aside>
 
@@ -624,6 +626,208 @@
 
     </div>
 </div>
+<!-- =========================================================
+     MODAL — MAPA INTERATIVO
+========================================================= -->
+
+<div id="mapViewModal" class="modal-backdrop">
+
+    <div
+        class="modal-surface"
+        style="
+            width:min(1200px,95vw);
+            max-width:1200px;
+            height:min(90vh,850px);
+            display:flex;
+            flex-direction:column;
+        ">
+
+        <button
+            id="closeMapViewBtn"
+            type="button"
+            class="modal-close">
+            ×
+        </button>
+
+        <div class="modal-header">
+            <h2 id="mapViewTitle">
+                Mapa
+            </h2>
+
+            <p class="text-muted">
+                Clique nos pontos para revelar informações.
+            </p>
+        </div>
+
+        <div
+            id="mapInteractiveArea"
+            style="
+                position:relative;
+                flex:1;
+                min-height:0;
+                overflow:auto;
+                display:flex;
+                justify-content:center;
+                align-items:center;
+                background:rgba(0,0,0,.35);
+                border-radius:var(--radius-sm);
+            ">
+
+            <img
+                id="mapInteractiveImage"
+                src=""
+                alt="Mapa da campanha"
+                style="
+                    display:block;
+                    max-width:100%;
+                    max-height:100%;
+                    object-fit:contain;
+                    cursor:crosshair;
+                ">
+
+            <div
+                id="mapPinsContainer"
+                style="
+                    position:absolute;
+                    inset:0;
+                    pointer-events:none;
+                ">
+            </div>
+
+        </div>
+
+    </div>
+</div>
+
+
+<!-- =========================================================
+     MODAL — CRIAR PIN
+========================================================= -->
+
+<div id="createPinModal" class="modal-backdrop">
+
+    <div class="modal-surface">
+
+        <button
+            id="closeCreatePinBtn"
+            type="button"
+            class="modal-close">
+            ×
+        </button>
+
+        <div class="modal-header">
+            <h2>📍 Marcar Local</h2>
+            <p class="text-muted">
+                Crie um ponto de interesse neste mapa.
+            </p>
+        </div>
+
+        <form id="createPinForm">
+
+            <div class="form-group">
+
+                <label
+                    class="form-label"
+                    for="pinTitleInput">
+                    Nome do Local
+                </label>
+
+                <input
+                    id="pinTitleInput"
+                    class="form-input"
+                    type="text"
+                    maxlength="150"
+                    required
+                    placeholder="Ex: Ruínas de Eldoria"
+                >
+
+            </div>
+
+            <div class="form-group">
+
+                <label
+                    class="form-label"
+                    for="pinDescInput">
+                    Descrição
+                </label>
+
+                <textarea
+                    id="pinDescInput"
+                    class="form-textarea"
+                    rows="5"
+                    maxlength="3000"
+                    placeholder="O que existe neste local?"
+                ></textarea>
+
+            </div>
+
+            <div style="
+                display:flex;
+                gap:8px;
+            ">
+
+                <div class="form-group" style="flex:1;">
+                    <label class="form-label">
+                        X (%)
+                    </label>
+
+                    <input
+                        id="pinPosX"
+                        class="form-input"
+                        type="number"
+                        step="0.01"
+                        min="0"
+                        max="100"
+                        readonly>
+                </div>
+
+                <div class="form-group" style="flex:1;">
+                    <label class="form-label">
+                        Y (%)
+                    </label>
+
+                    <input
+                        id="pinPosY"
+                        class="form-input"
+                        type="number"
+                        step="0.01"
+                        min="0"
+                        max="100"
+                        readonly>
+                </div>
+
+            </div>
+
+            <label style="
+                display:flex;
+                align-items:center;
+                gap:8px;
+                margin:12px 0;
+                cursor:pointer;
+            ">
+
+                <input
+                    id="pinHiddenInput"
+                    type="checkbox">
+
+                <span>
+                    🔒 Manter oculto dos jogadores
+                </span>
+
+            </label>
+
+            <button
+                id="savePinBtn"
+                type="submit"
+                class="btn btn-primary w-full">
+                Salvar Marcação
+            </button>
+
+        </form>
+
+    </div>
+</div>
+
     <!-- =========================================================
          SCRIPTS
     ========================================================= -->
