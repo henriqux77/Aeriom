@@ -396,15 +396,49 @@
     <!-- =========================================================
          SCRIPTS
     ========================================================= -->
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="js/supabase.js"></script>
-    <script src="js/auth.js"></script>
-    <script src="js/theme.js"></script>
-    <script src="js/menu.js"></script>
-    <!-- Submódulos da VTT -->
-    <script src="js/dice.js"></script>
-    <!-- Script Principal da Mesa Digital -->
-    <script src="js/campanha.js"></script>
+    <!-- =========================================================
+     AERIOM — CORE
+========================================================= -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
+<script src="js/supabase.js"></script>
+<script src="js/auth.js"></script>
+<script src="js/theme.js"></script>
+<script src="js/menu.js"></script>
+
+<!-- =========================================================
+     AERIOM — MOTOR DE DADOS
+========================================================= -->
+<script src="js/dice.js"></script>
+
+<!-- =========================================================
+     AERIOM — MÓDULOS DA MESA
+     IMPORTANTE:
+     Todos vêm ANTES de campanha.js.
+========================================================= -->
+
+<!-- Linha do tempo -->
+<script src="js/campanha-timeline.js"></script>
+
+<!-- Cozinha -->
+<script src="js/campanha-cozinha.js"></script>
+
+<!-- Cenas -->
+<script src="js/campanha-cena.js"></script>
+
+<!-- Cronómetro / Convites -->
+<script src="js/campanha-sessao.js"></script>
+
+<!-- Segredos -->
+<script src="js/campanha-segredos.js"></script>
+
+<!-- Mapas / Pins -->
+<script src="js/campanha-mapa.js"></script>
+
+<!-- =========================================================
+     AERIOM — NÚCLEO DA MESA
+     DEVE SER O ÚLTIMO.
+========================================================= -->
+<script src="js/campanha.js"></script>
 </body>
 </html>
